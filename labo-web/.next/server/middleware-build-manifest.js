@@ -1,0 +1,91 @@
+globalThis.__BUILD_MANIFEST = {
+  "pages": {
+    "/_app": []
+  },
+  "devFiles": [],
+  "polyfillFiles": [
+    "static/chunks/0cz1d0mv5g_q7.js"
+  ],
+  "lowPriorityFiles": [
+    "static/PszJutvbTFXmjBobKl7Sd/_buildManifest.js",
+    "static/PszJutvbTFXmjBobKl7Sd/_ssgManifest.js",
+    "static/PszJutvbTFXmjBobKl7Sd/_clientMiddlewareManifest.js"
+  ],
+  "rootMainFiles": [
+    "static/chunks/0as01tet1xr92.js",
+    "static/chunks/3wyekj2_97vcg.js",
+    "static/chunks/0wpywxjcqem_8.js",
+    "static/chunks/305of03-cafkj.js",
+    "static/chunks/turbopack-2u1d16houkiyo.js"
+  ],
+  "rootMainFilesTree": {},
+  "pagesChunkGroupBootstrapParams": {
+    "/_not-found/page": {
+      "otherChunks": [
+        "static/chunks/0as01tet1xr92.js",
+        "static/chunks/3wyekj2_97vcg.js",
+        "static/chunks/0wpywxjcqem_8.js",
+        "static/chunks/305of03-cafkj.js"
+      ],
+      "runtimeModuleIds": [
+        14857
+      ]
+    },
+    "/_global-error/page": {
+      "otherChunks": [
+        "static/chunks/0as01tet1xr92.js",
+        "static/chunks/3wyekj2_97vcg.js",
+        "static/chunks/0wpywxjcqem_8.js",
+        "static/chunks/305of03-cafkj.js"
+      ],
+      "runtimeModuleIds": [
+        14857
+      ]
+    },
+    "/facturation/page": {
+      "otherChunks": [
+        "static/chunks/0as01tet1xr92.js",
+        "static/chunks/3wyekj2_97vcg.js",
+        "static/chunks/0wpywxjcqem_8.js",
+        "static/chunks/305of03-cafkj.js"
+      ],
+      "runtimeModuleIds": [
+        14857
+      ]
+    },
+    "/laboratoire/page": {
+      "otherChunks": [
+        "static/chunks/0as01tet1xr92.js",
+        "static/chunks/3wyekj2_97vcg.js",
+        "static/chunks/0wpywxjcqem_8.js",
+        "static/chunks/305of03-cafkj.js"
+      ],
+      "runtimeModuleIds": [
+        14857
+      ]
+    },
+    "/login/page": {
+      "otherChunks": [
+        "static/chunks/0as01tet1xr92.js",
+        "static/chunks/3wyekj2_97vcg.js",
+        "static/chunks/0wpywxjcqem_8.js",
+        "static/chunks/305of03-cafkj.js"
+      ],
+      "runtimeModuleIds": [
+        14857
+      ]
+    },
+    "/rendez-vous/page": {
+      "otherChunks": [
+        "static/chunks/0as01tet1xr92.js",
+        "static/chunks/3wyekj2_97vcg.js",
+        "static/chunks/0wpywxjcqem_8.js",
+        "static/chunks/305of03-cafkj.js"
+      ],
+      "runtimeModuleIds": [
+        14857
+      ]
+    }
+  },
+  "chunkLoadingGlobal": "TURBOPACK"
+};

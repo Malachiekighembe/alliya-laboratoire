@@ -1,0 +1,8 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/facturation/page": "/facturation",
+  "/laboratoire/page": "/laboratoire",
+  "/login/page": "/login",
+  "/rendez-vous/page": "/rendez-vous"
+}
