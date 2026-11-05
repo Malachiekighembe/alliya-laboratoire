@@ -12,7 +12,7 @@ import { ResultsModule } from './results/results.module.js';
 import { BillingModule } from './billing/billing.module.js';
 import { InventoryModule } from './inventory/inventory.module.js';
 import { ReportsModule } from './reports/reports.module.js';
-import { SyncModule } from './sync/sync.module.js';
+import { SupabaseModule } from './supabase/supabase.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { createConfiguration, validateEnvironment } from './config/index.js';
@@ -40,7 +40,7 @@ import { createConfiguration, validateEnvironment } from './config/index.js';
     BillingModule,
     InventoryModule,
     ReportsModule,
-    SyncModule,
+    SupabaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ReportsService {
@@ -19,7 +20,7 @@ export class ReportsService {
       this.prisma.results.count({ where: { laboratory_id, status: 'preliminary' } }),
       this.prisma.invoices.aggregate({ where: { laboratory_id }, _sum: { total: true } }),
       this.prisma.payments.aggregate({ where: { laboratory_id, status: 'completed' }, _sum: { amount: true } }),
-      this.prisma.products.count({ where: { laboratory_id, is_active: true, current_stock: { lte: this.prisma.raw('min_stock') } } }),
+      this.prisma.products.count({ where: { laboratory_id, is_active: true, current_stock: { lte: Prisma.sql`min_stock` } } }),
       this.prisma.stock_lots.count({ where: { laboratory_id, expiry_date: { lte: new Date(Date.now() + 7 * 86400000) } } }),
     ]);
 

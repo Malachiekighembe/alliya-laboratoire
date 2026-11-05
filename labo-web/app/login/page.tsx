@@ -1,111 +1,108 @@
 "use client";
-import { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
 
-export default function ConnexionPage() {
-  const { login, loading, error, user } = useAuth();
-  const [showPassword, setShowPassword] = useState(false);
-  const [laboratoryId, setLaboratoryId] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { supabase } from "../../lib/supabase";
 
-  if (user) {
-    window.location.href = '/';
-    return null;
-  }
+export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("admin@alliya.com");
+  const [password, setPassword] = useState("password123");
+  const [laboratoryId, setLaboratoryId] = useState("LAB001");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+
     try {
-      await login(laboratoryId, email, password);
-      window.location.href = '/';
-    } catch {
-      // Erreur gerée par le hook
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        const { data: userLaboratories, error: labError } = await supabase
+          .from("user_laboratories")
+          .select("laboratory_id")
+          .eq("user_id", data.user.id)
+          .single();
+
+        if (labError) throw labError;
+
+        if (userLaboratories?.laboratory_id !== laboratoryId) {
+          throw new Error("Vous n'êtes pas autorisé à accéder à ce laboratoire");
+        }
+
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      setError("Une erreur est survenue lors de la connexion");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="card p-8">
-          <div className="flex flex-col items-center mb-6">
-            <div
-              className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-2xl font-bold mb-3"
-              style={{ backgroundColor: '#3D9597' }}
-            >
-              A
+    <div className="min-h-screen bg-gradient-to-br from-alliya-blue to-alliya-turquoise p-4">
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
+          <h2 className="text-2xl font-bold text-alliya-blue mb-4">Connexion Alliya Laboratoire</h2>
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-6">
+              <p className="text-red-600 text-sm">{error}</p>
             </div>
-            <h1 className="text-2xl font-bold" style={{ color: '#07122E' }}>
-              Alliya Labo
-            </h1>
-            <p className="text-muted-foreground mt-1">Connectez-vous à votre compte</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+          )}
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="label">ID Laboratoire</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <input
-                name="laboratory_id"
-                value={laboratoryId}
-                onChange={(e) => setLaboratoryId(e.target.value)}
-                className="input"
-                placeholder="UUID du laboratoire"
-                required
-              />
-            </div>
-            <div>
-              <label className="label">Email</label>
-              <input
-                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input"
                 required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-alliya-blue focus:border-transparent"
+                placeholder="votre@email.com"
               />
             </div>
             <div>
-              <label className="label">Mot de passe</label>
-              <div className="relative">
-                <input
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input pr-20"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? 'Masquer' : 'Afficher'}
-                </button>
-              </div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-alliya-blue focus:border-transparent"
+                placeholder="••••••••"
+              />
             </div>
-
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-muted-foreground">
-                <input type="checkbox" className="rounded" />
-                Se souvenir de moi
-              </label>
-              <a href="#" className="hover:underline" style={{ color: '#3D9597' }}>
-                Mot de passe oublie ?
-              </a>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">ID Laboratoire</label>
+              <input
+                type="text"
+                value={laboratoryId}
+                onChange={(e) => setLaboratoryId(e.target.value)}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-alliya-blue focus:border-transparent"
+                placeholder="Ex: LAB001"
+              />
             </div>
-
-            {error && <p className="text-destructive text-sm">{error}</p>}
-
             <button
               type="submit"
               disabled={loading}
-              className="w-full text-white font-medium py-2 rounded-md transition-opacity disabled:opacity-50"
-              style={{ backgroundColor: '#3D9597' }}
+              className="w-full bg-alliya-blue text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-alliya-blue focus:ring-offset-2"
             >
-              {loading ? 'Connexion...' : 'Se connecter'}
+              {loading ? "Connexion..." : "Se connecter"}
             </button>
           </form>
+          <p className="text-center mt-6 text-sm">
+            Pas encore de compte ? <a href="/register" className="text-alliya-blue hover:text-blue-700">S'inscrire</a>
+          </p>
         </div>
       </div>
     </div>

@@ -179,7 +179,7 @@ export class AuthService {
   private async getPermissions(userId: string, laboratory_id: string): Promise<string[]> {
     const roles = await this.prisma.user_roles.findMany({
       where: { user_id: userId, laboratory_id },
-      include: { role: { include: { permissions: true } } },
+      include: { role: true },
     });
     const perms = new Set<string>();
     for (const ur of roles) {

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class InventoryService {
@@ -62,7 +63,13 @@ export class InventoryService {
 
   async getLowStockAlerts(laboratory_id: string) {
     return this.prisma.products.findMany({
-      where: { laboratory_id, is_active: true, current_stock: { lte: this.prisma.raw('min_stock') } },
+      where: {
+        laboratory_id,
+        is_active: true,
+        current_stock: {
+          lte: Prisma.sql`min_stock`
+        }
+      },
     });
   }
 }
