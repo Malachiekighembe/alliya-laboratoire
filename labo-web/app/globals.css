@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Alliya Laboratoire - Palette Bleu Marine + Turquoise uniquement */
+/* Alliya Laboratoire - Palette Bleu Marine + Turquoise uniquement (douce) */
 :root {
-  --radius: 0.75rem;
+  --radius: 0.875rem;
 
   /* Alliya Design Tokens */
   --alliaya-dark: #07122E;
@@ -12,74 +12,74 @@
   --alliaya-dark-800: #14203A;
   --alliaya-dark-900: #0B172C;
   --alliaya-light: #FFFFFF;
-  --alliaya-light-50: #F1F5F9;
+  --alliaya-light-50: #F5F8FA;
   --alliaya-turquoise: #3D9597;
   --alliaya-turquoise-600: #2E7A7C;
-  --alliaya-turquoise-50: #E3F2F2;
+  --alliaya-turquoise-50: #EEF7F7;
   --alliaya-slate: #334155;
 
-  /* Background et Foreground - Mode Clair */
+  /* Background et Foreground - Mode Clair (doux) */
   --background: 0 0% 100%;
-  --foreground: 226 56% 11%;
+  --foreground: 226 40% 15%;
   --card: 0 0% 100%;
-  --card-foreground: 226 56% 11%;
+  --card-foreground: 226 40% 15%;
   --popover: 0 0% 100%;
-  --popover-foreground: 226 56% 11%;
+  --popover-foreground: 226 40% 15%;
 
   /* Primary - Bleu Marine Alliya */
-  --primary: 226 56% 12%;
+  --primary: 226 45% 14%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary - Turquoise Alliya (accent) */
-  --secondary: 181 43% 41%;
-  --secondary-foreground: 226 88% 10%;
+  /* Secondary - Turquoise Alliya (accent doux) */
+  --secondary: 185 35% 42%;
+  --secondary-foreground: 226 70% 12%;
 
   /* Muted */
-  --muted: 210 20% 96%;
-  --muted-foreground: 215 16% 47%;
+  --muted: 210 15% 95%;
+  --muted-foreground: 215 15% 55%;
 
-  /* Accent - Turquoise */
-  --accent: 181 43% 41%;
-  --accent-foreground: 226 88% 10%;
+  /* Accent - Turquoise doux */
+  --accent: 185 35% 42%;
+  --accent-foreground: 226 70% 12%;
 
-  /* Status */
-  --destructive: 0 62% 57%;
+  /* Status (doux) */
+  --destructive: 0 60% 55%;
   --destructive-foreground: 0 0% 98%;
-  --success: 152 59% 38%;
+  --success: 150 50% 40%;
   --success-foreground: 0 0% 98%;
-  --warning: 35 83% 49%;
+  --warning: 35 75% 50%;
   --warning-foreground: 0 0% 98%;
-  --info: 208 86% 47%;
+  --info: 210 75% 48%;
   --info-foreground: 0 0% 98%;
 
-  /* Border et Input */
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 181 43% 41%;
+  /* Border et Input (doux) */
+  --border: 214 25% 90%;
+  --input: 214 25% 90%;
+  --ring: 185 35% 42%;
 }
 
 .dark {
-  --background: 226 88% 8%;
-  --foreground: 0 0% 97%;
-  --card: 226 56% 12%;
-  --card-foreground: 0 0% 97%;
-  --popover: 226 56% 12%;
-  --popover-foreground: 0 0% 97%;
-  --primary: 181 45% 42%;
-  --primary-foreground: 226 88% 10%;
-  --secondary: 226 56% 12%;
-  --secondary-foreground: 0 0% 97%;
-  --muted: 226 56% 15%;
-  --muted-foreground: 215 16% 66%;
-  --accent: 181 45% 42%;
-  --accent-foreground: 226 88% 10%;
-  --destructive: 0 62% 57%;
-  --border: 226 56% 15%;
-  --input: 226 56% 15%;
-  --ring: 181 45% 42%;
-  --success: 156 60% 38%;
-  --warning: 38 68% 50%;
-  --info: 214 66% 49%;
+  --background: 226 85% 7%;
+  --foreground: 0 0% 96%;
+  --card: 226 55% 10%;
+  --card-foreground: 0 0% 96%;
+  --popover: 226 55% 10%;
+  --popover-foreground: 0 0% 96%;
+  --primary: 185 40% 44%;
+  --primary-foreground: 226 85% 8%;
+  --secondary: 226 55% 10%;
+  --secondary-foreground: 0 0% 96%;
+  --muted: 226 55% 12%;
+  --muted-foreground: 215 15% 60%;
+  --accent: 185 40% 44%;
+  --accent-foreground: 226 85% 8%;
+  --destructive: 0 60% 55%;
+  --border: 226 55% 12%;
+  --input: 226 55% 12%;
+  --ring: 185 40% 44%;
+  --success: 155 55% 40%;
+  --warning: 38 65% 52%;
+  --info: 215 65% 50%;
 }
 
 @layer base {
@@ -90,26 +90,30 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  html {
+    scroll-behavior: smooth;
   }
 }
 
 @layer components {
-  /* Boutons cohérents */
+  /* Boutons cohérents et doux */
   .btn {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 shadow-sm;
   }
   .btn-primary {
-    @apply btn bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2;
+    @apply btn bg-primary text-primary-foreground hover:bg-primary/90 px-5 py-2.5 shadow-sm hover:shadow-md;
   }
   .btn-turquoise {
-    @apply btn bg-[#3D9597] text-[#07122E] hover:bg-[#2E7A7C] px-4 py-2 shadow-sm;
+    @apply btn bg-[#3D9597] text-[#07122E] hover:bg-[#2E7A7C] px-5 py-2.5 shadow-sm hover:shadow-md;
   }
   .btn-outline {
-    @apply btn border border-input bg-background hover:bg-accent hover:text-accent-foreground px-4 py-2;
+    @apply btn border border-input bg-background hover:bg-accent hover:text-accent-foreground px-5 py-2.5;
   }
   .btn-ghost {
-    @apply btn hover:bg-accent hover:text-accent-foreground px-4 py-2;
+    @apply btn hover:bg-accent hover:text-accent-foreground px-5 py-2.5;
   }
   .btn-sm {
     @apply h-8 px-3 text-xs;
@@ -118,20 +122,25 @@
     @apply h-9 w-9;
   }
 
-  /* Inputs cohérents */
+  /* Inputs cohérents et doux */
   .input {
-    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200;
   }
   .label {
     @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
   }
 
-  /* Cartes */
+  /* Cartes douces */
   .card {
-    @apply rounded-xl border shadow-sm;
+    @apply rounded-xl border border-border/60 shadow-sm;
     border-color: hsl(var(--border));
     background-color: hsl(var(--card));
     color: hsl(var(--card-foreground));
+    transition-all duration-200;
+  }
+  .card:hover {
+    border-color: hsl(var(--border));
+    box-shadow: 0 4px 12px -1px rgb(0 0 0 / 0.06);
   }
   .card-header {
     @apply flex flex-col space-y-1.5 p-6;
@@ -149,7 +158,7 @@
     @apply flex items-center p-6 pt-0;
   }
 
-  /* Alertes cohérentes */
+  /* Alertes douces */
   .alert {
     @apply relative rounded-lg border p-4 text-sm;
     border-color: hsl(var(--border));
@@ -167,7 +176,7 @@
     @apply alert bg-red-50 border-red-200 text-red-800;
   }
 
-  /* Table */
+  /* Table douce */
   .table {
     @apply w-full text-sm caption-top;
   }
@@ -178,17 +187,20 @@
     @apply table-row-group;
   }
   .table-row {
-    @apply table-row;
+    @apply table-row transition-all duration-150;
+  }
+  .table-row:hover {
+    @apply bg-muted/50;
   }
   .table-head {
-    @apply table-cell;
+    @apply table-cell text-xs font-semibold text-muted-foreground uppercase tracking-wider;
   }
   .table-cell {
-    @apply table-cell p-4 align-middle border-b;
+    @apply table-cell p-4 align-middle border-b border-border/60;
     border-color: hsl(var(--border));
   }
 
-  /* Badge */
+  /* Badge doux */
   .badge {
     @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors;
     border-color: hsl(var(--border));
@@ -203,12 +215,12 @@
     @apply badge border-input bg-transparent;
   }
 
-  /* Navigation */
+  /* Navigation douce */
   .nav-link {
     @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200;
   }
   .nav-link-active {
-    @apply nav-link bg-[#E3F2F2] text-[#3D9597] border border-[#BFE3E3];
+    @apply nav-link bg-[#EEF7F7] text-[#2E7A7C] border border-[#BFE3E3];
   }
   .nav-link-inactive {
     @apply nav-link text-slate-400 hover:bg-muted hover:text-foreground;
@@ -216,14 +228,14 @@
 }
 
 @layer utilities {
-  /* Couleurs Alliya - Bleu Marine */
+  /* Couleurs Alliya - Bleu Marine (douces) */
   .bg-alliya-dark { background-color: #07122E; }
   .bg-alliya-dark-700 { background-color: #1E2A47; }
   .bg-alliya-dark-800 { background-color: #14203A; }
   .bg-alliya-dark-900 { background-color: #0B172C; }
-  .bg-alliya-light-50 { background-color: #F1F5F9; }
+  .bg-alliya-light-50 { background-color: #F5F8FA; }
   .bg-alliya-turquoise { background-color: #3D9597; }
-  .bg-alliya-turquoise-50 { background-color: #E3F2F2; }
+  .bg-alliya-turquoise-50 { background-color: #EEF7F7; }
   .bg-alliya-turquoise-500 { background-color: #3D9597; }
   .bg-alliya-turquoise-600 { background-color: #2E7A7C; }
   .text-alliya-dark { color: #07122E; }
@@ -241,8 +253,6 @@
 
   .gradient-allya { background: linear-gradient(135deg, #07122E 0%, #1A2A5E 100%); }
   .gradient-allya-turquoise { background: linear-gradient(135deg, #07122E 0%, #3D9597 100%); }
-}
 
-@layer utilities {
   .text-balance { text-wrap: balance; }
 }

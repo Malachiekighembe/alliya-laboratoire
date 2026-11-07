@@ -247,8 +247,17 @@ export interface DashboardStats {
   expiring_lots: number;
 }
 
+// Result type for non-blocking calls
+export interface AsyncResult<T> {
+  data: T | null;
+  error: Error | null;
+  loading: boolean;
+}
+
 // API base URL — configurable via env
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const DEFAULT_TIMEOUT = 15000;
+const MAX_RETRIES = 2;
 
 class ApiClient {
   private token: string | null = null;
@@ -261,28 +270,88 @@ class ApiClient {
     return this.token;
   }
 
-  async request<T>(method: string, path: string, body?: unknown): Promise<ApiEnvelope<T>> {
+  private async fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+    timeoutMs: number = DEFAULT_TIMEOUT,
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      return res;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    retries: number = MAX_RETRIES,
+  ): Promise<ApiEnvelope<T>> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
 
-    const res = await fetch(`${API_BASE}/api/v1${path}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    let lastError: Error | null = null;
 
-    if (!res.ok) {
-      const err = (await res.json().catch(() => ({}))) as ApiError;
-      throw new Error(err.message || `HTTP ${res.status}`);
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const res = await this.fetchWithTimeout(
+          `${API_BASE}/api/v1${path}`,
+          {
+            method,
+            headers,
+            body: body ? JSON.stringify(body) : undefined,
+          },
+        );
+
+        if (!res.ok) {
+          const err = (await res.json().catch(() => ({}))) as ApiError;
+          throw new Error(err.message || `HTTP ${res.status}`);
+        }
+
+        return (await res.json()) as ApiEnvelope<T>;
+      } catch (err) {
+        lastError = err as Error;
+        // Ne pas retry sur erreurs 4xx (client)
+        if (err instanceof Error && err.message.startsWith('HTTP 4')) {
+          throw err;
+        }
+        if (attempt < retries) {
+          await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+        }
+      }
     }
 
-    return res.json() as Promise<ApiEnvelope<T>>;
+    throw lastError || new Error('Requête échouée');
+  }
+
+  /// Non-blocking: returns { data, error, loading } without throwing
+  async safeRequest<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+  ): Promise<AsyncResult<T>> {
+    try {
+      const res = await this.request<T>(method, path, body);
+      return { data: res.data ?? null, error: null, loading: false };
+    } catch (err) {
+      return { data: null, error: err as Error, loading: false };
+    }
   }
 
   get<T>(path: string) { return this.request<T>('GET', path); }
   post<T>(path: string, body?: unknown) { return this.request<T>('POST', path, body); }
   patch<T>(path: string, body?: unknown) { return this.request<T>('PATCH', path, body); }
   delete<T>(path: string) { return this.request<T>('DELETE', path); }
+
+  safeGet<T>(path: string) { return this.safeRequest<T>('GET', path); }
+  safePost<T>(path: string, body?: unknown) { return this.safeRequest<T>('POST', path, body); }
+  safePatch<T>(path: string, body?: unknown) { return this.safeRequest<T>('PATCH', path, body); }
+  safeDelete<T>(path: string) { return this.safeRequest<T>('DELETE', path); }
 }
 
 export const api = new ApiClient();
