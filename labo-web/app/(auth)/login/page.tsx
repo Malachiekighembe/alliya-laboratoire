@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Mail, Lock, ShieldCheck, ChevronRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ShieldCheck, ChevronRight, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function LoginPage() {
@@ -34,29 +34,29 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-alliya-dark-900 via-alliya-dark-800 to-alliya-dark-900 p-6 overflow-hidden">
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-alliya-dark-900 via-alliya-dark-800 to-alliya-dark-900 p-4 overflow-hidden">
       {/* Décorations subtiles */}
       <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#3D9597]/10 rounded-full blur-[160px]" />
       <div className="absolute top-[10%] right-[-10%] w-[40%] h-[40%] bg-[#1E2A47]/30 rounded-full blur-[140px]" />
-      <div className="absolute bottom-[-15%] left-[-10%] w-[50%] h-[50%] bg-[#3D9597]/5 rounded-full blur-[160px]" />
 
       <div className="relative z-10 w-full max-w-md">
         <Card className="shadow-2xl border-border/50 bg-card overflow-hidden border border-border">
           <CardHeader className="px-8 pt-8 pb-2 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-alliya-turquoise text-white mb-5 shadow-lg shadow-[#3D9597]_0px_0px_15px_rgba(61,149,151,$($matches[1]/100))">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-alliya-turquoise text-white mb-6 shadow-lg shadow-[#3D9597]/30">
               <ShieldCheck className="h-7 w-7" />
             </div>
             <CardTitle className="text-2xl font-bold tracking-tight">
               Alliya<span className="text-alliya-turquoise-700"> Laboratoire</span>
             </CardTitle>
-            <CardDescription className="text-muted-foreground text-sm mt-2">
+            <p className="text-muted-foreground text-sm mt-2">
               Système de gestion de laboratoire biomédical
-            </CardDescription>
+            </p>
           </CardHeader>
 
           <CardContent className="px-8 pb-6 space-y-6">
             {error && (
               <Alert variant="destructive" className="text-sm">
+                <AlertTriangle className="h-4 w-4 mr-2" />
                 <AlertTitle>Erreur de connexion</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
@@ -64,8 +64,8 @@ export default function LoginPage() {
 
             <form onSubmit={onSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="identifier" className="font-medium">
-                  <Mail className="h-3.5 w-3.5 text-alliya-turquoise-700 mr-2" />
+                <Label htmlFor="identifier" className="font-medium flex items-center gap-2">
+                  <Mail className="h-3.5 w-3.5 text-alliya-turquoise-700" />
                   Identifiant
                 </Label>
                 <Input
@@ -75,7 +75,7 @@ export default function LoginPage() {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="email@domaine.com ou téléphone"
-                  className="text-sm placeholder:text-muted-foreground bg-background border border-input focus:border-alliya-turquoise focus:ring-2 ring-[#3D9597]/20 transition-all h-11 rounded-xl"
+                  className="text-sm placeholder:text-muted-foreground bg-background border border-input focus:border-alliya-turquoise focus:ring-2 focus:ring-[#3D9597]/20 transition-all h-11 rounded-xl"
                   required
                 />
               </div>
@@ -98,7 +98,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="pl-10 pr-10 text-sm placeholder:text-muted-foreground bg-background border border-input focus:border-alliya-turquoise focus:ring-2 ring-[#3D9597]/20 transition-all h-11 rounded-xl"
+                    className="pl-10 pr-10 text-sm placeholder:text-muted-foreground bg-background border border-input focus:border-alliya-turquoise focus:ring-2 focus:ring-[#3D9597]/20 transition-all h-11 rounded-xl"
                     required
                   />
                   <button
@@ -115,6 +115,7 @@ export default function LoginPage() {
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
+                    defaultChecked
                     className="rounded border-alliya-dark-500 text-alliya-turquoise-700 focus:ring-alliya-turquoise-700 bg-background h-3.5 w-3.5"
                   />
                   <span className="text-muted-foreground">Se souvenir de moi</span>
@@ -123,7 +124,7 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full btn-turquoise py-3.5 rounded-xl text-sm font-semibold tracking-wide active:scale-[0.97] shadow-lg shadow-[#3D9597]_0px_0px_15px_rgba(61,149,151,$($matches[1]/100))"
+                className="w-full py-3.5 rounded-xl text-sm font-semibold tracking-wide active:scale-[0.97] shadow-lg shadow-[#3D9597]/20"
                 disabled={loading}
               >
                 {loading ? (
@@ -142,13 +143,16 @@ export default function LoginPage() {
           </CardContent>
 
           <div className="border-t border-border px-8 py-5 bg-muted/30">
-            <div className="flex flex-col items-center justify-center gap-2 text-center">
+            <div className="flex items-center justify-between gap-4 text-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background border border-border">
                 <span className="text-[10px] font-bold text-alliya-dark-700">AL</span>
               </div>
-              <p className="text-[10px] text-muted-foreground leading-tight">
-                Alliya Laboratoire — Système de gestion biomédical
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-muted-foreground">Nouveau ici ?</span>
+                <a href="/register" className="text-[10px] text-alliya-turquoise-700 font-semibold hover:underline">
+                  Créer un compte
+                </a>
+              </div>
             </div>
           </div>
         </Card>
@@ -156,5 +160,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-

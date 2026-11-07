@@ -50,11 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (tokens) {
-      api.setToken(tokens.access_token);
-    }
-  }, [tokens]);
+  // S'assurer que le token est configure sur l'instance API AVANT tout render des enfants
+  // pour eviter les requetes sans Authorization header (cause de deconnexion)
+  if (tokens) {
+    api.setToken(tokens.access_token);
+  }
 
   const login = React.useCallback(async (identifier: string, password: string) => {
     setError(null);
