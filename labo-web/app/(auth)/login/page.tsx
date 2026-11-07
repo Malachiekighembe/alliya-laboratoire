@@ -60,9 +60,9 @@ export default function LoginPage() {
       variants={fadeIn}
       initial="hidden"
       animate="visible"
-      className="flex min-h-screen items-center justify-center bg-[#FAFAFA] p-6"
+      className="flex min-h-screen items-center justify-center bg-white p-6"
     >
-      {/* UN seul écran : carte centrée */}
+      {/* Une seule carte, centre, pas de split */}
       <MotionDiv
         variants={fadeUp}
         initial="hidden"
@@ -80,7 +80,7 @@ export default function LoginPage() {
               <ShieldCheck className="h-6 w-6" />
             </MotionDiv>
             <MotionH1 variants={fadeUp} initial="hidden" animate="visible" className="text-2xl font-extrabold tracking-tight text-[#0F172A]">
-              Alliya<span className="text-[#059669]"> Laboratoire</span>
+              Alliya<span className="text-[#10B981]"> Laboratoire</span>
             </MotionH1>
             <MotionP variants={fadeUp} initial="hidden" animate="visible" className="text-[#6B7280] text-sm mt-1">
               Connexion à votre espace laboratoire
@@ -111,7 +111,7 @@ export default function LoginPage() {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="email@domaine.com ou téléphone"
-                  className="text-sm placeholder:text-[#9CA3AF] bg-[#FAFAFA] border border-[#D1D5DB] focus:border-[#059669] focus:ring-2 focus:ring-[#059669]/20 transition-all h-10 rounded-lg"
+                  className="text-sm placeholder:text-[#9CA3AF] bg-[#FAFAFA] border border-[#D1D5DB] focus:border-[#10B981] focus:ring-2 focus:ring-[#10B981]/20 transition-all h-10 rounded-lg"
                   required
                 />
               </MotionDiv>
@@ -134,13 +134,13 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="pl-9 pr-10 text-sm placeholder:text-[#9CA3AF] bg-[#FAFAFA] border border-[#D1D5DB] focus:border-[#059669] focus:ring-2 focus:ring-[#059669]/20 transition-all h-10 rounded-lg"
+                    className="pl-9 pr-10 text-sm placeholder:text-[#9CA3AF] bg-[#FAFAFA] border border-[#D1D5DB] focus:border-[#10B981] focus:ring-2 focus:ring-[#10B981]/20 transition-all h-10 rounded-lg"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPw(!showPw)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280] group-hover:text-[#059669] transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280] group-hover:text-[#10B981] transition-colors"
                   >
                     {showPw ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                   </button>
@@ -152,7 +152,7 @@ export default function LoginPage() {
                   <input
                     type="checkbox"
                     defaultChecked
-                    className="rounded border-[#059669] text-[#059669] focus:ring-[#059669] bg-[#FAFAFA] h-3 w-3"
+                    className="rounded border-[#10B981] text-[#10B981] focus:ring-[#10B981] bg-[#FAFAFA] h-3 w-3"
                   />
                   <span className="text-[#6B7280]">Se souvenir de moi</span>
                 </label>
