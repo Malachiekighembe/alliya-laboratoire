@@ -5,6 +5,7 @@ import { CommonModule } from './common/common.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
 import { PatientsModule } from './patients/patients.module.js';
+import { PatientCarnetsModule } from './patient-carnets/patient-carnets.module.js';
 import { VisitsModule } from './visits/visits.module.js';
 import { ExaminationsModule } from './examinations/examinations.module.js';
 import { SpecimensModule } from './specimens/specimens.module.js';
@@ -35,6 +36,7 @@ import { createConfiguration, validateEnvironment } from './config/index.js';
     AuthModule,
     UsersModule,
     PatientsModule,
+    PatientCarnetsModule,
     VisitsModule,
     ExaminationsModule,
     SpecimensModule,

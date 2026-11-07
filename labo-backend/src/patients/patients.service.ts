@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import { MetricUtil } from '../common/utils/metric.util.js';
+import { PatientCarnetsService } from '../patient-carnets/patient-carnets.service.js';
 import { CreatePatientContactDto, CreatePatientDto, UpdatePatientContactDto, UpdatePatientDto } from './patients.dtos.js';
 import { PaginationDto } from '../common/dto/pagination.dto.js';
 
@@ -9,6 +10,7 @@ export class PatientsService {
   constructor(
     private readonly prisma: DatabaseService,
     private readonly metricUtil: MetricUtil,
+    private readonly carnetService: PatientCarnetsService,
   ) {}
 
   async create(createPatientDto: CreatePatientDto, laboratory_id: string) {
@@ -31,6 +33,8 @@ export class PatientsService {
     const patient = await this.prisma.patients.create({
       data,
     });
+
+    await this.carnetService.createCarnet(laboratory_id, patient.id);
 
     return patient;
   }
