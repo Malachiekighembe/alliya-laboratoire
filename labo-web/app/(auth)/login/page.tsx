@@ -60,7 +60,7 @@ export default function LoginPage() {
       variants={fadeIn}
       initial="hidden"
       animate="visible"
-      className="flex min-h-screen items-center justify-center bg-white p-6"
+      className="flex min-h-screen items-center justify-center bg-white p-6 z-50"
     >
       {/* Une seule carte, centre, pas de split */}
       <MotionDiv

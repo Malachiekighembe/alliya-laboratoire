@@ -8,7 +8,7 @@ export function ClientShell({ children }: { children: React.ReactNode }) {
   const isAuth = pathname.startsWith("/login") || pathname.startsWith("/register");
 
   if (isAuth) {
-    return <div className="min-h-screen">{children}</div>;
+    return <div className="min-h-screen bg-white">{children}</div>;
   }
 
   return <Layout>{children}</Layout>;
