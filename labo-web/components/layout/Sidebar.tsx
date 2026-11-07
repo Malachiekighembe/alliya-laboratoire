@@ -32,6 +32,7 @@ type NavItem = {
 const MANAGEMENT_ITEMS: NavItem[] = [
   { label: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
   { label: "Patients", href: "/patients", icon: Users },
+  { label: "Carnets", href: "/patients", icon: FileText },
   { label: "Dossiers", href: "/patients/dossiers", icon: FileText },
   { label: "Analyses", href: "/analyses", icon: FlaskConical },
   { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
@@ -40,9 +41,9 @@ const MANAGEMENT_ITEMS: NavItem[] = [
 ];
 
 const ADMIN_ITEMS: NavItem[] = [
-  { label: "Laboratoires", href: "/admin/laboratoires", icon: Activity, roles: ["super_admin"] },
-  { label: "Utilisateurs", href: "/admin/utilisateurs", icon: UserCog, roles: ["super_admin"] },
-  { label: "Abonnements", href: "/admin/abonnements", icon: CreditCard, roles: ["super_admin"] },
+  { label: "Laboratoires", href: "/admin/laboratoires", icon: Activity, roles: ["super_admin", "ADMIN"] },
+  { label: "Utilisateurs", href: "/admin/utilisateurs", icon: UserCog, roles: ["super_admin", "ADMIN"] },
+  { label: "Abonnements", href: "/admin/abonnements", icon: CreditCard, roles: ["super_admin", "ADMIN", "DIR"] },
   { label: "Paramètres", href: "/parametres", icon: Settings },
 ];
 
