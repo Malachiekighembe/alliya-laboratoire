@@ -132,11 +132,10 @@
 
   /* Cartes douces */
   .card {
-    @apply rounded-xl border border-border/60 shadow-sm;
+    @apply rounded-xl border border-border/60 shadow-sm transition-all duration-200;
     border-color: hsl(var(--border));
     background-color: hsl(var(--card));
     color: hsl(var(--card-foreground));
-    transition-all duration-200;
   }
   .card:hover {
     border-color: hsl(var(--border));

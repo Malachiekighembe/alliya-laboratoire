@@ -38,13 +38,13 @@ export function Skeleton({
 
   return (
     <div
-      className={React.concat(
+      className={[
         base,
         `rounded-[${radius}]`,
         w ? `w-[${w}]` : "",
         h ? `h-[${h}]` : "",
         className ?? "",
-      )}
+      ].filter(Boolean).join(" ")}
     />
   );
 }
@@ -59,7 +59,7 @@ export function SkeletonText({
   className?: string;
 }) {
   return (
-    <div className={React.concat("flex flex-col gap-2", className ?? "")}>
+    <div className={[ "flex flex-col gap-2", className ?? "" ].filter(Boolean).join(" ")}>
       {Array.from({ length: count }).map((_, i) => (
         <Skeleton
           key={i}
@@ -74,10 +74,10 @@ export function SkeletonText({
 export function SkeletonCard({ className }: { className?: string }) {
   return (
     <div
-      className={React.concat(
+      className={[
         "animate-pulse rounded-xl border border-dashed border-muted p-6 bg-muted",
         className ?? "",
-      )}
+      ].filter(Boolean).join(" ")}
     >
       <Skeleton variant="rect" width="100%" height="3rem" />
       <div className="mt-4 space-y-3">
@@ -91,10 +91,7 @@ export function SkeletonCard({ className }: { className?: string }) {
 export function SkeletonTableRow({ className }: { className?: string }) {
   return (
     <tr
-      className={React.concat(
-        "animate-pulse border-b border-muted",
-        className ?? "",
-      )}
+      className={[ "animate-pulse border-b border-muted", className ?? "" ].filter(Boolean).join(" ")}
     >
       {[0, 1, 2, 3, 4].map((i) => (
         <td key={i} className="px-4 py-3 h-8 bg-muted/50" />
@@ -105,7 +102,7 @@ export function SkeletonTableRow({ className }: { className?: string }) {
 
 export function SkeletonStatsGrid({ className }: { className?: string }) {
   return (
-    <div className={React.concat("grid gap-4 sm:grid-cols-2 xl:grid-cols-4", className ?? "")}>
+    <div className={[ "grid gap-4 sm:grid-cols-2 xl:grid-cols-4", className ?? "" ].filter(Boolean).join(" ")}>
       {[0, 1, 2, 3].map((i) => (
         <div key={i} className="animate-pulse rounded-xl p-4 bg-muted border border-dashed border-muted">
           <Skeleton variant="circle" width="3rem" height="3rem" />

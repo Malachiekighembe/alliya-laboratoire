@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api-client";
 import {
@@ -140,9 +141,11 @@ export default function PatientCarnetPage() {
               </a>
             </Button>
             {canManage && (
-              <Button href="/patients/nouveau">
-                <Activity className="h-4 w-4 mr-2" /> Nouvelle visite
-              </Button>
+              <Link href="/patients/nouveau">
+                <Button variant="outline" size="sm">
+                  <Activity className="h-4 w-4 mr-2" /> Nouvelle visite
+                </Button>
+              </Link>
             )}
           </div>
         }

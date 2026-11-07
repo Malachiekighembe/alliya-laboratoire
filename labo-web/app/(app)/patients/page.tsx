@@ -23,14 +23,17 @@ export default function PatientsPage() {
   const [search, setSearch] = React.useState("");
 
   // Chargement non bloquant via useAsync (l'UI ne se fige pas)
-  const { data: patients = [], loading, error } = useAsync(async () => {
-    if (!user?.laboratory_id) return [];
+  const carnetResult = useAsync(async () => {
+    if (!user?.laboratory_id) return { data: null, error: null, loading: false };
     const res = await api.safeGet<any[]>(
       `/patients?laboratory_id=${user.laboratory_id}`
     );
-    if (res.error) throw res.error;
-    return Array.isArray(res.data) ? res.data : [];
+    return res;
   }, { enabled: !!user?.laboratory_id });
+
+  const patients: any[] = carnetResult.data ?? [];
+  const loading = carnetResult.loading;
+  const error = carnetResult.error;
 
   const filtered = patients.filter((p) =>
     `${p.first_name} ${p.last_name} ${p.matricule}`.toLowerCase().includes(search.toLowerCase())
