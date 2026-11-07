@@ -17,6 +17,12 @@ prisma/migrations/
 lib/prisma/
 
 # IDE
+*.agents
+*.claude
+*.vscode/
+*.idea/
+*.cursor/
+*.devin/
 .vscode/
 .idea/
 *.swp
