@@ -6,16 +6,15 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function HomePage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (loading) return;
     if (!user) {
       router.replace("/login");
     } else {
       router.replace("/dashboard");
     }
-  }, [user, loading, router]);
+  }, [user, router]);
 
   return null;
 }

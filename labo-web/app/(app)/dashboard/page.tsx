@@ -7,10 +7,9 @@ import { getRoleDashboard } from "@/lib/auth";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (loading) return;
     if (!user) {
       router.replace("/login");
       return;
@@ -25,7 +24,7 @@ export default function DashboardPage() {
     if (!currentPath.startsWith(redirect)) {
       router.replace(redirect);
     }
-  }, [user, loading, router]);
+  }, [user, router]);
 
   return null;
 }

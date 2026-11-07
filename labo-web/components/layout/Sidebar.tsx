@@ -30,14 +30,14 @@ type NavItem = {
 };
 
 const MANAGEMENT_ITEMS: NavItem[] = [
-  { label: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Patients", href: "/patients", icon: Users },
-  { label: "Carnets", href: "/patients", icon: FileText },
-  { label: "Dossiers", href: "/patients/dossiers", icon: FileText },
-  { label: "Analyses", href: "/analyses", icon: FlaskConical },
-  { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
-  { label: "Rendez-vous", href: "/rendez-vous", icon: Clock },
-  { label: "Rapports", href: "/rapports", icon: BarChart3 },
+  { label: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "technician", "laborant", "doctor", "viewer"] },
+  { label: "Patients", href: "/patients", icon: Users, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "doctor", "viewer"] },
+  { label: "Carnets", href: "/patients", icon: FileText, roles: ["super_admin", "admin", "lab_manager", "DIR", "technician", "laborant", "doctor", "viewer"] },
+  { label: "Dossiers", href: "/patients/dossiers", icon: FileText, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "doctor", "viewer"] },
+  { label: "Analyses", href: "/analyses", icon: FlaskConical, roles: ["super_admin", "admin", "lab_manager", "DIR", "technician", "laborant", "doctor", "viewer"] },
+  { label: "Résultats", href: "/resultats", icon: ClipboardCheck, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "technician", "laborant", "doctor", "viewer"] },
+  { label: "Rendez-vous", href: "/rendez-vous", icon: Clock, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "doctor"] },
+  { label: "Rapports", href: "/rapports", icon: BarChart3, roles: ["super_admin", "admin", "lab_manager", "DIR", "doctor", "viewer"] },
 ];
 
 const ADMIN_ITEMS: NavItem[] = [
@@ -136,20 +136,18 @@ export default function Sidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
-        {!isSuperAdmin && (
-          <div>
-            {!collapsed && (
-              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Espace de gestion
-              </p>
-            )}
-            <div className="space-y-1">
+        <div>
+          {!collapsed && (
+            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Espace de gestion
+            </p>
+          )}
+          <div className="space-y-1">
               {MANAGEMENT_ITEMS.filter(canSee).map(
-                (item) => <NavLink key={item.href} item={item} />
+                (item, index) => <NavLink key={`${item.label}-${index}`} item={item} />
               )}
-            </div>
           </div>
-        )}
+        </div>
         <div>
           {!collapsed && (
             <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
