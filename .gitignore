@@ -1,8 +1,11 @@
 # Dependencies
 node_modules/
-/.next/
+.labo-web/.next/
+labo-web/.next/
 /dist/
+labo-backend/dist/
 /.cache/
+
 
 # Environment
 .env
@@ -33,5 +36,8 @@ yarn-error.log*
 /coverage/
 *.lcov
 
-# TypeScript
-*.tsbuildinfo
+# Temp / generated
+tmp/
+tmpgen/
+*.txt
+

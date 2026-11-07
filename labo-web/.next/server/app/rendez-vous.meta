@@ -2,12 +2,12 @@
   "headers": {
     "x-nextjs-stale-time": "300",
     "x-nextjs-prerender": "1",
-    "x-next-cache-tags": "_N_T_/layout,_N_T_/rendez-vous/layout,_N_T_/rendez-vous/page,_N_T_/rendez-vous"
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(app)/layout,_N_T_/(app)/rendez-vous/layout,_N_T_/(app)/rendez-vous/page,_N_T_/rendez-vous"
   },
   "segmentPaths": [
     "/_tree",
     "/_full",
-    "/rendez-vous/__PAGE__"
+    "/!KGFwcCk/rendez-vous/__PAGE__"
   ],
   "prefetchHints": {
     "hints": 64,
@@ -16,18 +16,23 @@
         "hints": 96,
         "slots": {
           "children": {
-            "hints": 160,
-            "slots": null
+            "hints": 96,
+            "slots": {
+              "children": {
+                "hints": 160,
+                "slots": null
+              }
+            }
           }
         }
       }
     }
   },
   "routeCache": {
-    "key": "/route-cache/APP_PAGE/fe6cc8739dc50300abdb5fe11c57a98fb570e5e4b2d59a243fb850d3b253273c/$/rendez-vous",
+    "key": "/route-cache/APP_PAGE/21e47948ea62c419a1e362aa110ce07504819fd83f6aaac4dd632ca6a206a100/$/rendez-vous",
     "owner": {
       "kind": "APP_PAGE",
-      "sourceRoute": "/rendez-vous/page"
+      "sourceRoute": "/(app)/rendez-vous/page"
     },
     "isFallback": false
   }

@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
+import { AuthProvider } from "@/components/auth/AuthProvider";
+import { ClientShell } from "@/components/layout/ClientShell";
 import "./globals.css";
-import Nav from "../components/Nav";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Alliya Laboratoire",
-  description: "Plateforme de gestion de laboratoire biomédical",
+  description: "Système de gestion de laboratoire biomédical",
 };
 
 export default function RootLayout({
@@ -13,9 +15,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className="min-h-screen bg-background text-foreground antialiased">
-        <Nav />
-        <main className="min-h-screen pt-16">{children}</main>
+      <body className="font-sans antialiased">
+        <AuthProvider>
+          <ClientShell>{children}</ClientShell>
+        </AuthProvider>
       </body>
     </html>
   );

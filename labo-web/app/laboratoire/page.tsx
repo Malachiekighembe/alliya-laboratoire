@@ -1,8 +1,10 @@
 "use client";
 import { useAuth } from '../../hooks/useAuth';
+import { useRoleGuard } from '@/lib/auth';
 
 export default function LaboratoirePage() {
   const { user, hasPermission } = useAuth();
+  useRoleGuard();
 
   if (!user) {
     return (

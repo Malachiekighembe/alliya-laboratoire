@@ -188,6 +188,50 @@ export interface Laboratory {
   phone: string | null;
   address: string | null;
   is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  subscription?: LaboratorySubscription;
+  stats?: LaboratoryStats;
+}
+
+export interface LaboratorySubscription {
+  id: string;
+  laboratory_id: string;
+  plan: 'starter' | 'professional' | 'enterprise';
+  plan_name: string;
+  status: 'active' | 'expired' | 'cancelled' | 'trial';
+  started_at: string;
+  expires_at: string | null;
+  price_monthly: number;
+  currency: string;
+  max_users: number | null;
+  max_patients: number | null;
+  max_analyses: number | null;
+  auto_renew: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LaboratoryStats {
+  laboratory_id: string;
+  users_count: number;
+  patients_count: number;
+  analyses_count: number;
+  results_count: number;
+  visits_count: number;
+  last_activity: string | null;
+}
+
+export interface CreateLaboratoryInput {
+  code: string;
+  name: string;
+  slug: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  is_active?: boolean;
+  plan?: 'starter' | 'professional' | 'enterprise';
 }
 
 export interface DashboardStats {
@@ -204,7 +248,7 @@ export interface DashboardStats {
 }
 
 // API base URL — configurable via env
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 class ApiClient {
   private token: string | null = null;

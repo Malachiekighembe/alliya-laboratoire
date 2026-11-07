@@ -14,16 +14,16 @@ export default function Nav() {
         <div className="flex items-center gap-4">
           {user ? (
             <>
-              <Link href="/patients" className="text-sm font-medium hover:text-primary transition-colors">
+              <Link href="/patients" className="text-sm font-medium hover:text-alliya-dark-700 transition-colors">
                 Patients
               </Link>
-              <Link href="/rendez-vous" className="text-sm font-medium hover:text-primary transition-colors">
+              <Link href="/rendez-vous" className="text-sm font-medium hover:text-alliya-dark-700 transition-colors">
                 Rendez-vous
               </Link>
-              <Link href="/laboratoire" className="text-sm font-medium hover:text-primary transition-colors">
+              <Link href="/laboratoire" className="text-sm font-medium hover:text-alliya-dark-700 transition-colors">
                 Laboratoire
               </Link>
-              <Link href="/facturation" className="text-sm font-medium hover:text-primary transition-colors">
+              <Link href="/facturation" className="text-sm font-medium hover:text-alliya-dark-700 transition-colors">
                 Facturation
               </Link>
               <span className="text-sm text-muted-foreground">
@@ -36,7 +36,7 @@ export default function Nav() {
               </button>
             </>
           ) : (
-            <Link href="/login" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link href="/login" className="text-sm font-medium hover:text-alliya-dark-700 transition-colors">
               Se connecter
             </Link>
           )}

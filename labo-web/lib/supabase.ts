@@ -46,8 +46,15 @@ export const supabaseAuth = {
 // Database operations
 export const supabaseDb = {
   // Laboratories
-  getLaboratories: () => supabase.from('laboratories').select('*'),
+  getLaboratories: () => supabase.from('laboratories').select('*, subscriptions(*), lab_stats(*)'),
   getLaboratory: (id: string) => supabase.from('laboratories').select('*').eq('id', id).single(),
+  createLaboratory: (data: any) => supabase.from('laboratories').insert(data).select().single(),
+  updateLaboratory: (id: string, data: any) => supabase.from('laboratories').update(data).eq('id', id).select().single(),
+  deleteLaboratory: (id: string) => supabase.from('laboratories').delete().eq('id', id),
+
+  // Subscriptions
+  createSubscription: (data: any) => supabase.from('subscriptions').insert(data).select().single(),
+  updateSubscription: (id: string, data: any) => supabase.from('subscriptions').update(data).eq('id', id).select().single(),
   
   // Users
   getUsers: (laboratory_id: string) => supabase.from('users').select('*').eq('laboratory_id', laboratory_id),

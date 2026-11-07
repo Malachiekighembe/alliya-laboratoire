@@ -10,7 +10,7 @@ interface PatientTableProps {
 export function PatientTable({ patients, onEdit, onDelete }: PatientTableProps) {
   if (patients.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
+      <div className="text-center py-12 text-gray-500">
         Aucun patient trouvé
       </div>
     );
@@ -20,37 +20,47 @@ export function PatientTable({ patients, onEdit, onDelete }: PatientTableProps) 
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-border">
-            <th className="text-left text-sm font-medium text-muted-foreground w-24">Matricule</th>
-            <th className="text-left text-sm font-medium text-muted-foreground">Nom</th>
-            <th className="text-left text-sm font-medium text-muted-foreground w-32">Téléphone</th>
-            <th className="text-left text-sm font-medium text-muted-foreground w-24">Statut</th>
-            <th className="text-right text-sm font-medium text-muted-foreground w-32">Actions</th>
+          <tr className="border-b border-gray-200">
+            <th className="text-left text-sm font-medium text-gray-600 w-24 py-3">Matricule</th>
+            <th className="text-left text-sm font-medium text-gray-600 py-3">Nom</th>
+            <th className="text-left text-sm font-medium text-gray-600 w-32 py-3">Téléphone</th>
+            <th className="text-left text-sm font-medium text-gray-600 w-24 py-3">Statut</th>
+            <th className="text-right text-sm font-medium text-gray-600 w-32 py-3">Actions</th>
           </tr>
         </thead>
         <tbody>
           {patients.map((patient) => (
-            <tr key={patient.id} className="border-b border-border/50 hover:bg-muted/50">
-              <td className="text-sm font-mono">{patient.matricule}</td>
-              <td className="text-sm">
+            <tr key={patient.id} className="border-b border-gray-100 hover:bg-gray-50">
+              <td className="text-sm font-mono py-3">{patient.matricule}</td>
+              <td className="text-sm py-3">
                 {patient.first_name} {patient.last_name}
               </td>
-              <td className="text-sm">{patient.phone || '—'}</td>
-              <td className="text-sm">
+              <td className="text-sm py-3">{patient.phone || '—'}</td>
+              <td className="text-sm py-3">
                 {patient.is_active ? (
-                  <span className="text-green-600 font-medium">Actif</span>
+                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                    Actif
+                  </span>
                 ) : (
-                  <span className="text-red-600 font-medium">Inactif</span>
+                  <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">
+                    Inactif
+                  </span>
                 )}
               </td>
-              <td className="text-right text-sm space-x-2">
+              <td className="text-right text-sm py-3 space-x-2">
                 {onEdit && (
-                  <button onClick={() => onEdit(patient)} className="text-primary hover:underline">
+                  <button
+                    onClick={() => onEdit(patient)}
+                    className="text-alliya-blue hover:text-blue-800 font-medium text-sm"
+                  >
                     Voir
                   </button>
                 )}
                 {onDelete && (
-                  <button onClick={() => onDelete(patient)} className="text-destructive hover:underline">
+                  <button
+                    onClick={() => onDelete(patient)}
+                    className="text-red-600 hover:text-red-800 font-medium text-sm"
+                  >
                     Supprimer
                   </button>
                 )}
