@@ -13,6 +13,8 @@ import { ResultsModule } from './results/results.module.js';
 import { BillingModule } from './billing/billing.module.js';
 import { InventoryModule } from './inventory/inventory.module.js';
 import { ReportsModule } from './reports/reports.module.js';
+import { OrdersModule } from './orders/orders.module.js';
+import { ResultValidationsModule } from './result-validations/result-validations.module.js';
 import { LaboratoriesModule } from './laboratories/laboratories.module.js';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
@@ -44,6 +46,8 @@ import { createConfiguration, validateEnvironment } from './config/index.js';
     BillingModule,
     InventoryModule,
     ReportsModule,
+    OrdersModule,
+    ResultValidationsModule,
     LaboratoriesModule,
     SubscriptionsModule,
     SupabaseModule,

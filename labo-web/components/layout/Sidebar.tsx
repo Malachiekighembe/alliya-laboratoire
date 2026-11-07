@@ -18,6 +18,7 @@ import {
   Clock,
   Activity,
   CreditCard,
+  Stethoscope,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn, getInitials } from "@/lib/utils";
@@ -34,8 +35,11 @@ const MANAGEMENT_ITEMS: NavItem[] = [
   { label: "Patients", href: "/patients", icon: Users, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "doctor", "viewer"] },
   { label: "Carnets", href: "/patients", icon: FileText, roles: ["super_admin", "admin", "lab_manager", "DIR", "technician", "laborant", "doctor", "viewer"] },
   { label: "Dossiers", href: "/patients/dossiers", icon: FileText, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "doctor", "viewer"] },
+  { label: "Visites", href: "/visites", icon: Activity, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "doctor"] },
+  { label: "Prelevements", href: "/prelevements", icon: Stethoscope, roles: ["super_admin", "admin", "lab_manager", "DIR", "technician", "laborant"] },
   { label: "Analyses", href: "/analyses", icon: FlaskConical, roles: ["super_admin", "admin", "lab_manager", "DIR", "technician", "laborant", "doctor", "viewer"] },
-  { label: "Résultats", href: "/resultats", icon: ClipboardCheck, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "technician", "laborant", "doctor", "viewer"] },
+  { label: "Resultats", href: "/resultats", icon: ClipboardCheck, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "technician", "laborant", "doctor", "viewer"] },
+  { label: "Validations", href: "/validations", icon: ClipboardCheck, roles: ["super_admin", "admin", "lab_manager", "DIR", "doctor"] },
   { label: "Rendez-vous", href: "/rendez-vous", icon: Clock, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "doctor"] },
   { label: "Rapports", href: "/rapports", icon: BarChart3, roles: ["super_admin", "admin", "lab_manager", "DIR", "doctor", "viewer"] },
 ];
