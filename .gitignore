@@ -40,4 +40,34 @@ yarn-error.log*
 tmp/
 tmpgen/
 *.txt
+*.tsbuildinfo
+
+# Scripts / debug / setup (ignored, kept locally)
+PRODUCTION_SETUP.md
+START_PRODUCTION.md
+SUPABASE_SETUP.md
+labo-web/SUPABASE_SETUP.md
+labo-backend/_test-cors.mjs
+labo-backend/_write.py
+labo-backend/check-admin.cjs
+labo-backend/columns.json
+labo-backend/fix-role-permissions.sql
+labo-backend/inspect_schema.cjs
+labo-backend/inspect_schema.js
+labo-backend/run-sql.cjs
+labo-backend/schema.sql
+labo-backend/seed-admin.cjs
+labo-backend/supabase_status.txt
+labo-backend/supastatus.txt
+labo-web/app/admin/
+labo-web/app/design-system/
+labo-web/components/PermissionManager.tsx
+labo-web/lib/permissions.ts
+labo-web/types/
+
+# Backend runtime
+labo-backend/dev-*.log
+labo-backend/dev-*.txt
+labo-backend/dev*.txt
+
 
