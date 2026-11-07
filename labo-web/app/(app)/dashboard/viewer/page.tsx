@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useLab } from "@/components/lab/LabProvider";
 import { api } from "@/lib/api-client";
@@ -13,6 +14,22 @@ import {
   CardTitle,
 } from "@/components/ui";
 import { Users, FlaskConical, ClipboardCheck, Eye } from "lucide-react";
+
+const MotionDiv = motion.div;
+const MotionCard = motion.div;
+
+const fadeUp: any = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+const staggerContainer: any = {
+  hidden: {},
+  visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
+};
+const staggerItem: any = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
 
 export default function ViewerDashboard() {
   const { activeLabId } = useLab();
@@ -54,40 +71,50 @@ export default function ViewerDashboard() {
   }, [activeLabId]);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Accès en lecture seule"
-        description="Consultation des données du laboratoire"
-      />
+    <MotionDiv variants={fadeUp} initial="hidden" animate="visible" className="space-y-6">
+      <MotionDiv variants={fadeUp} initial="hidden" animate="visible" className="mb-2">
+        <PageHeader
+          title="Accès en lecture seule"
+          description="Consultation des données du laboratoire"
+        />
+      </MotionDiv>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Patients"
-          value={loading ? "…" : stats.patients}
-          icon={<Users className="h-5 w-5 text-alliya-turquoise-700" />}
-          variant="alliya-turquoise"
-        />
-        <StatCard
-          label="Analyses"
-          value={loading ? "…" : stats.analyses}
-          icon={<FlaskConical className="h-5 w-5 text-alliya-dark-700" />}
-          variant="alliya-dark"
-        />
-        <StatCard
-          label="Résultats"
-          value={loading ? "…" : stats.results}
-          icon={<ClipboardCheck className="h-5 w-5 text-success" />}
-          variant="outline"
-        />
-        <StatCard
-          label="Mode lecture"
-          value="—"
-          icon={<Eye className="h-5 w-5 text-muted-foreground" />}
-          variant="default"
-        />
-      </div>
+      <MotionDiv variants={staggerContainer} initial="hidden" animate="visible" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MotionDiv variants={staggerItem} className="p-4">
+          <StatCard
+            label="Patients"
+            value={loading ? "…" : stats.patients}
+            icon={<Users className="h-5 w-5 text-alliya-turquoise-700" />}
+            variant="alliya-turquoise"
+          />
+        </MotionDiv>
+        <MotionDiv variants={staggerItem} className="p-4">
+          <StatCard
+            label="Analyses"
+            value={loading ? "…" : stats.analyses}
+            icon={<FlaskConical className="h-5 w-5 text-alliya-dark-700" />}
+            variant="alliya-dark"
+          />
+        </MotionDiv>
+        <MotionDiv variants={staggerItem} className="p-4">
+          <StatCard
+            label="Résultats"
+            value={loading ? "…" : stats.results}
+            icon={<ClipboardCheck className="h-5 w-5 text-success" />}
+            variant="outline"
+          />
+        </MotionDiv>
+        <MotionDiv variants={staggerItem} className="p-4">
+          <StatCard
+            label="Mode lecture"
+            value="—"
+            icon={<Eye className="h-5 w-5 text-muted-foreground" />}
+            variant="default"
+          />
+        </MotionDiv>
+      </MotionDiv>
 
-      <div className="rounded-lg border border-border bg-muted/50 p-6">
+      <MotionCard variants={fadeUp} initial="hidden" animate="visible" whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="rounded-lg border border-border bg-muted/50 p-6">
         <div className="flex items-center gap-2">
           <Eye className="h-5 w-5 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
@@ -95,8 +122,7 @@ export default function ViewerDashboard() {
             restreintes.
           </p>
         </div>
-      </div>
-    </div>
+      </MotionCard>
+    </MotionDiv>
   );
 }
-

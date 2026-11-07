@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api-client";
 import {
@@ -20,6 +21,22 @@ import {
   Activity,
   Clock,
 } from "lucide-react";
+
+const MotionDiv = motion.div;
+const MotionCard = motion.div;
+
+const fadeUp: any = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+const staggerContainer: any = {
+  hidden: {},
+  visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
+};
+const staggerItem: any = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
@@ -55,49 +72,59 @@ export default function SuperAdminDashboard() {
   );
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Administration du réseau"
-        description={`Connecté en tant que ${user?.first_name} ${user?.last_name} (Super Administrateur)`}
-        action={
-          <a href="/admin" className="bg-alliya-turquoise-500 hover:bg-alliya-turquoise-400 text-alliya-dark-900 rounded-md px-4 py-2 text-sm font-medium transition-colors">
-            Panneau admin
-          </a>
-        }
-      />
+    <MotionDiv variants={fadeUp} initial="hidden" animate="visible" className="space-y-6">
+      <MotionDiv variants={fadeUp} initial="hidden" animate="visible" className="mb-2">
+        <PageHeader
+          title="Administration du réseau"
+          description={`Connecté en tant que ${user?.first_name} ${user?.last_name} (Super Administrateur)`}
+          action={
+            <a href="/admin" className="bg-slate-800 hover:bg-slate-900 text-slate-100 rounded-md px-4 py-2 text-sm font-medium transition-colors">
+              Panneau admin
+            </a>
+          }
+        />
+      </MotionDiv>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Laboratoires"
-          value={totalLabs}
-          icon={<Building2 className="h-5 w-5 text-alliya-turquoise-700" />}
-          variant="alliya-turquoise"
-        />
-        <StatCard
-          label="Actifs"
-          value={activeLabs}
-          icon={<ShieldCheck className="h-5 w-5 text-success" />}
-          variant="outline"
-        />
-        <StatCard
-          label="Utilisateurs"
-          value={totalUsers}
-          icon={<Users className="h-5 w-5 text-alliya-dark-700" />}
-          variant="alliya-dark"
-        />
-        <StatCard
-          label="Revenu mensuel"
-          value={new Intl.NumberFormat("fr-FR", {
-            style: "currency",
-            currency: "EUR",
-          }).format(monthlyRevenue)}
-          icon={<DollarSign className="h-5 w-5 text-alliya-dark-700" />}
-          variant="alliya-dark"
-        />
-      </div>
+      <MotionDiv variants={staggerContainer} initial="hidden" animate="visible" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MotionDiv variants={staggerItem} className="p-4">
+          <StatCard
+            label="Laboratoires"
+            value={totalLabs}
+            icon={<Building2 className="h-5 w-5 text-slate-600" />}
+            variant="alliya-turquoise"
+          />
+        </MotionDiv>
+        <MotionDiv variants={staggerItem} className="p-4">
+          <StatCard
+            label="Actifs"
+            value={activeLabs}
+            icon={<ShieldCheck className="h-5 w-5 text-success" />}
+            variant="outline"
+          />
+        </MotionDiv>
+        <MotionDiv variants={staggerItem} className="p-4">
+          <StatCard
+            label="Utilisateurs"
+            value={totalUsers}
+            icon={<Users className="h-5 w-5 text-slate-600" />}
+            variant="alliya-dark"
+          />
+        </MotionDiv>
+        <MotionDiv variants={staggerItem} className="p-4">
+          <StatCard
+            label="Revenu mensuel"
+            value={new Intl.NumberFormat("fr-FR", {
+              style: "currency",
+              currency: "EUR",
+            }).format(monthlyRevenue)}
+            icon={<DollarSign className="h-5 w-5 text-slate-600" />}
+            variant="alliya-dark"
+          />
+        </MotionDiv>
+      </MotionDiv>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+      <MotionDiv variants={staggerContainer} initial="hidden" animate="visible" className="grid gap-6 lg:grid-cols-2">
+        <MotionCard variants={staggerItem} whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="rounded-xl border border-border bg-white p-6 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">Patients du réseau</CardTitle>
           </CardHeader>
@@ -110,8 +137,8 @@ export default function SuperAdminDashboard() {
             </div>
             <Activity className="h-8 w-8 text-muted-foreground" />
           </CardContent>
-        </Card>
-        <Card>
+        </MotionCard>
+        <MotionCard variants={staggerItem} whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="rounded-xl border border-border bg-white p-6 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">Abonnements actifs</CardTitle>
           </CardHeader>
@@ -124,13 +151,13 @@ export default function SuperAdminDashboard() {
             </div>
             <Clock className="h-8 w-8 text-muted-foreground" />
           </CardContent>
-        </Card>
-      </div>
+        </MotionCard>
+      </MotionDiv>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
+        <MotionDiv variants={fadeUp} initial="hidden" animate="visible" className="flex items-center justify-center py-20">
           <p className="text-muted-foreground">Chargement…</p>
-        </div>
+        </MotionDiv>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -169,7 +196,6 @@ export default function SuperAdminDashboard() {
           </table>
         </div>
       )}
-    </div>
+    </MotionDiv>
   );
 }
-

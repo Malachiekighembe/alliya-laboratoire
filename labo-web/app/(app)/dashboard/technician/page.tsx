@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useLab } from "@/components/lab/LabProvider";
 import { api } from "@/lib/api-client";
@@ -13,6 +14,22 @@ import {
   CardTitle,
 } from "@/components/ui";
 import { FlaskConical, Users, Microscope, ClipboardList } from "lucide-react";
+
+const MotionDiv = motion.div;
+const MotionCard = motion.div;
+
+const fadeUp: any = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+const staggerContainer: any = {
+  hidden: {},
+  visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
+};
+const staggerItem: any = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
 
 export default function TechnicianDashboard() {
   const { activeLabId } = useLab();
@@ -41,41 +58,51 @@ export default function TechnicianDashboard() {
   }, [activeLabId]);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Espace technicien"
-        description="Gestion des analyses et échantillons"
-      />
+    <MotionDiv variants={fadeUp} initial="hidden" animate="visible" className="space-y-6">
+      <MotionDiv variants={fadeUp} initial="hidden" animate="visible" className="mb-2">
+        <PageHeader
+          title="Espace technicien"
+          description="Gestion des analyses et échantillons"
+        />
+      </MotionDiv>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Analyses du jour"
-          value={loading ? "…" : stats.analyses}
-          icon={<FlaskConical className="h-5 w-5 text-alliya-turquoise-700" />}
-          variant="alliya-turquoise"
-        />
-        <StatCard
-          label="Échantillons"
-          value={loading ? "…" : stats.specimens}
-          icon={<Microscope className="h-5 w-5 text-alliya-dark-700" />}
-          variant="alliya-dark"
-        />
-        <StatCard
-          label="En attente"
-          value={loading ? "…" : stats.pending}
-          icon={<ClipboardList className="h-5 w-5 text-warning" />}
-          variant="outline"
-        />
-        <StatCard
-          label="Terminés"
-          value={loading ? "…" : stats.completed}
-          icon={<Users className="h-5 w-5 text-success" />}
-          variant="outline"
-        />
-      </div>
+      <MotionDiv variants={staggerContainer} initial="hidden" animate="visible" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MotionDiv variants={staggerItem} className="p-4">
+          <StatCard
+            label="Analyses du jour"
+            value={loading ? "…" : stats.analyses}
+            icon={<FlaskConical className="h-5 w-5 text-alliya-turquoise-700" />}
+            variant="alliya-turquoise"
+          />
+        </MotionDiv>
+        <MotionDiv variants={staggerItem} className="p-4">
+          <StatCard
+            label="Échantillons"
+            value={loading ? "…" : stats.specimens}
+            icon={<Microscope className="h-5 w-5 text-alliya-dark-700" />}
+            variant="alliya-dark"
+          />
+        </MotionDiv>
+        <MotionDiv variants={staggerItem} className="p-4">
+          <StatCard
+            label="En attente"
+            value={loading ? "…" : stats.pending}
+            icon={<ClipboardList className="h-5 w-5 text-warning" />}
+            variant="outline"
+          />
+        </MotionDiv>
+        <MotionDiv variants={staggerItem} className="p-4">
+          <StatCard
+            label="Terminés"
+            value={loading ? "…" : stats.completed}
+            icon={<Users className="h-5 w-5 text-success" />}
+            variant="outline"
+          />
+        </MotionDiv>
+      </MotionDiv>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card>
+      <MotionDiv variants={staggerContainer} initial="hidden" animate="visible" className="grid gap-6 lg:grid-cols-3">
+        <MotionCard variants={staggerItem} whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="rounded-xl border border-border bg-white p-6 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">Nouvelles analyses</CardTitle>
           </CardHeader>
@@ -84,8 +111,8 @@ export default function TechnicianDashboard() {
               Consulter les analyses à réaliser.
             </p>
           </CardContent>
-        </Card>
-        <Card>
+        </MotionCard>
+        <MotionCard variants={staggerItem} whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="rounded-xl border border-border bg-white p-6 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">Échantillons</CardTitle>
           </CardHeader>
@@ -94,8 +121,8 @@ export default function TechnicianDashboard() {
               Gérer la réception des échantillons.
             </p>
           </CardContent>
-        </Card>
-        <Card>
+        </MotionCard>
+        <MotionCard variants={staggerItem} whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="rounded-xl border border-border bg-white p-6 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">Saisir résultats</CardTitle>
           </CardHeader>
@@ -104,9 +131,8 @@ export default function TechnicianDashboard() {
               Entrer les résultats d'analyses.
             </p>
           </CardContent>
-        </Card>
-      </div>
-    </div>
+        </MotionCard>
+      </MotionDiv>
+    </MotionDiv>
   );
 }
-

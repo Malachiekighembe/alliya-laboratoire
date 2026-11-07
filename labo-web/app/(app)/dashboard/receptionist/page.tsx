@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useLab } from "@/components/lab/LabProvider";
 import { api } from "@/lib/api-client";
@@ -13,6 +14,27 @@ import {
   CardTitle,
 } from "@/components/ui";
 import { Users, Calendar, Phone, Mail } from "lucide-react";
+
+const MotionDiv = motion.div;
+const MotionCard = motion.div;
+
+const fadeUp: React.ComponentProps<typeof MotionDiv>["variants"] = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+
+const staggerContainer: any = {
+  hidden: {},
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
+  },
+};
+
+const staggerItem: any = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
 
 export default function ReceptionistDashboard() {
   const { activeLabId } = useLab();
@@ -40,41 +62,88 @@ export default function ReceptionistDashboard() {
   }, [activeLabId]);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Accueil - Réception"
-        description="Gestion des patients et rendez-vous"
-      />
+    <MotionDiv
+      variants={fadeUp}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+    >
+      <MotionDiv
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+        className="mb-2"
+      >
+        <PageHeader
+          title="Accueil - Réception"
+          description="Gestion des patients et rendez-vous"
+        />
+      </MotionDiv>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Patients inscrits"
-          value={loading ? "…" : stats.patients}
-          icon={<Users className="h-5 w-5 text-alliya-turquoise-700" />}
-          variant="alliya-turquoise"
-        />
-        <StatCard
-          label="Rendez-vous"
-          value={loading ? "…" : stats.appointments}
-          icon={<Calendar className="h-5 w-5 text-alliya-dark-700" />}
-          variant="alliya-dark"
-        />
-        <StatCard
-          label="Aujourd'hui"
-          value={loading ? "…" : stats.today}
-          icon={<Phone className="h-5 w-5 text-warning" />}
-          variant="outline"
-        />
-        <StatCard
-          label="Contacts"
-          value="—"
-          icon={<Mail className="h-5 w-5 text-success" />}
-          variant="outline"
-        />
-      </div>
+      <MotionDiv
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        <MotionDiv
+          variants={staggerItem}
+          className="p-4"
+        >
+          <StatCard
+            label="Patients inscrits"
+            value={loading ? "…" : stats.patients}
+            icon={<Users className="h-5 w-5 text-alliya-turquoise-700" />}
+            variant="alliya-turquoise"
+          />
+        </MotionDiv>
+        <MotionDiv
+          variants={staggerItem}
+          className="p-4"
+        >
+          <StatCard
+            label="Rendez-vous"
+            value={loading ? "…" : stats.appointments}
+            icon={<Calendar className="h-5 w-5 text-alliya-dark-700" />}
+            variant="alliya-dark"
+          />
+        </MotionDiv>
+        <MotionDiv
+          variants={staggerItem}
+          className="p-4"
+        >
+          <StatCard
+            label="Aujourd'hui"
+            value={loading ? "…" : stats.today}
+            icon={<Phone className="h-5 w-5 text-warning" />}
+            variant="outline"
+          />
+        </MotionDiv>
+        <MotionDiv
+          variants={staggerItem}
+          className="p-4"
+        >
+          <StatCard
+            label="Contacts"
+            value="—"
+            icon={<Mail className="h-5 w-5 text-success" />}
+            variant="outline"
+          />
+        </MotionDiv>
+      </MotionDiv>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card>
+      <MotionDiv
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="grid gap-6 lg:grid-cols-3"
+      >
+        <MotionCard
+          variants={staggerItem}
+          whileHover={{ y: -4 }}
+          transition={{ duration: 0.2 }}
+          className="rounded-xl border border-border bg-white p-6 shadow-sm"
+        >
           <CardHeader>
             <CardTitle className="text-base">Nouveau patient</CardTitle>
           </CardHeader>
@@ -83,8 +152,13 @@ export default function ReceptionistDashboard() {
               Enregistrer un nouveau patient.
             </p>
           </CardContent>
-        </Card>
-        <Card>
+        </MotionCard>
+        <MotionCard
+          variants={staggerItem}
+          whileHover={{ y: -4 }}
+          transition={{ duration: 0.2 }}
+          className="rounded-xl border border-border bg-white p-6 shadow-sm"
+        >
           <CardHeader>
             <CardTitle className="text-base">Rendez-vous du jour</CardTitle>
           </CardHeader>
@@ -93,8 +167,13 @@ export default function ReceptionistDashboard() {
               Consulter les rendez-vous planifiés.
             </p>
           </CardContent>
-        </Card>
-        <Card>
+        </MotionCard>
+        <MotionCard
+          variants={staggerItem}
+          whileHover={{ y: -4 }}
+          transition={{ duration: 0.2 }}
+          className="rounded-xl border border-border bg-white p-6 shadow-sm"
+        >
           <CardHeader>
             <CardTitle className="text-base">Recherche patient</CardTitle>
           </CardHeader>
@@ -103,9 +182,8 @@ export default function ReceptionistDashboard() {
               Rechercher un patient existant.
             </p>
           </CardContent>
-        </Card>
-      </div>
-    </div>
+        </MotionCard>
+      </MotionDiv>
+    </MotionDiv>
   );
 }
-
