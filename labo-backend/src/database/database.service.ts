@@ -209,4 +209,10 @@ export class DatabaseService {
     }
     return true;
   }
+
+  async rpc(functionName: string, params: any = {}): Promise<any> {
+    const { data, error } = await (supabase as any).rpc(functionName, params);
+    if (error) throw error;
+    return data;
+  }
 }

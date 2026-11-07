@@ -14,6 +14,31 @@ export class PatientsService {
   ) {}
 
   async create(createPatientDto: CreatePatientDto, laboratory_id: string) {
+    // Empêcher la création d'une deuxième identité pour le même patient
+    // (même téléphone ou même nom+prénom+date de naissance)
+    const existing = await this.prisma.patients.findFirst({
+      where: {
+        laboratory_id,
+        deleted_at: null,
+        OR: [
+          { phone: createPatientDto.phone || null },
+          {
+            first_name: createPatientDto.first_name,
+            last_name: createPatientDto.last_name,
+            birth_date: createPatientDto.birth_date
+              ? new Date(createPatientDto.birth_date)
+              : null,
+          },
+        ],
+      },
+    });
+
+    if (existing) {
+      throw new ConflictException(
+        'Un patient avec cette identité existe déjà dans ce laboratoire',
+      );
+    }
+
     const matricule = await this.metricUtil.generatePatientMatricule(laboratory_id);
 
     const data: any = {
