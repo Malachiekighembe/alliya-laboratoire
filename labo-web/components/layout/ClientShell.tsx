@@ -5,7 +5,7 @@ import { Layout } from "@/components/layout/Layout";
 
 export function ClientShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAuth = pathname.startsWith("/login") || pathname.startsWith("/register");
+  const isAuth = pathname === "/login" || pathname === "/register" || pathname.includes("/login") || pathname.includes("/register");
 
   if (isAuth) {
     return <div className="min-h-screen bg-white">{children}</div>;

@@ -34,10 +34,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4 overflow-hidden">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-[#E5E7EB] bg-white overflow-hidden border border-[#E5E7EB]">
         <CardHeader className="px-8 pt-9 pb-4 text-center">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#374151] text-white mb-5 shadow-md mx-auto">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#111827] text-white mb-5 shadow-md mx-auto">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight text-[#111827]">
@@ -70,7 +70,7 @@ export default function LoginPage() {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder="email@domaine.com ou téléphone"
-                className="text-sm placeholder:text-[#9CA3AF] bg-[#FAFAFA] border border-[#D1D5DB] focus:border-[#374151] focus:ring-2 focus:ring-[#374151]/20 transition-all h-10 rounded-lg"
+                className="text-sm placeholder:text-[#9CA3AF] bg-[#FAFAFA] border border-[#D1D5DB] focus:border-[#111827] focus:ring-2 focus:ring-[#111827]/20 transition-all h-10 rounded-lg"
                 required
               />
             </div>
@@ -93,7 +93,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="pl-9 pr-10 text-sm placeholder:text-[#9CA3AF] bg-[#FAFAFA] border border-[#D1D5DB] focus:border-[#374151] focus:ring-2 focus:ring-[#374151]/20 transition-all h-10 rounded-lg"
+                  className="pl-9 pr-10 text-sm placeholder:text-[#9CA3AF] bg-[#FAFAFA] border border-[#D1D5DB] focus:border-[#111827] focus:ring-2 focus:ring-[#111827]/20 transition-all h-10 rounded-lg"
                   required
                 />
                 <button
@@ -111,7 +111,7 @@ export default function LoginPage() {
                 <input
                   type="checkbox"
                   defaultChecked
-                  className="rounded border-[#374151] text-[#374151] focus:ring-[#374151] bg-[#FAFAFA] h-3 w-3"
+                  className="rounded border-[#111827] text-[#111827] focus:ring-[#111827] bg-[#FAFAFA] h-3 w-3"
                 />
                 <span className="text-[#6B7280]">Se souvenir de moi</span>
               </label>
