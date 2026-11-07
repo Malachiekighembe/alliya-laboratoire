@@ -6,7 +6,7 @@ import { AuthController } from "./auth.controller.js";
 import { AuthService } from "./auth.service.js";
 import { JwtStrategy } from "./strategies/jwt.strategy.js";
 import { LocalStrategy } from "./strategies/local.strategy.js";
-import { PrismaModule } from "../prisma/prisma.module.js";
+import { DatabaseModule } from "../database/database.module.js";
 import { COMMON } from "../common/common.module.js";
 
 @Module({
@@ -16,7 +16,7 @@ import { COMMON } from "../common/common.module.js";
       secret: process.env.JWT_ACCESS_SECRET || "changeme",
       signOptions: { expiresIn: "15m" },
     }),
-    PrismaModule,
+    DatabaseModule,
     COMMON,
   ],
   providers: [AuthService, JwtStrategy, LocalStrategy],
@@ -24,3 +24,4 @@ import { COMMON } from "../common/common.module.js";
   exports: [AuthService],
 })
 export class AuthModule {}
+

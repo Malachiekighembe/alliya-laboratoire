@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from './prisma/prisma.module.js';
+import { DatabaseModule } from './database/database.module.js';
 import { CommonModule } from './common/common.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -12,6 +12,8 @@ import { ResultsModule } from './results/results.module.js';
 import { BillingModule } from './billing/billing.module.js';
 import { InventoryModule } from './inventory/inventory.module.js';
 import { ReportsModule } from './reports/reports.module.js';
+import { LaboratoriesModule } from './laboratories/laboratories.module.js';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -28,7 +30,7 @@ import { createConfiguration, validateEnvironment } from './config/index.js';
       },
       envFilePath: ['.env', '.env.local'],
     }),
-    PrismaModule,
+    DatabaseModule,
     CommonModule,
     AuthModule,
     UsersModule,
@@ -40,9 +42,12 @@ import { createConfiguration, validateEnvironment } from './config/index.js';
     BillingModule,
     InventoryModule,
     ReportsModule,
+    LaboratoriesModule,
+    SubscriptionsModule,
     SupabaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+

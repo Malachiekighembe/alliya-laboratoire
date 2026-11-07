@@ -1,7 +1,7 @@
-import { PrismaService } from '../../prisma/prisma.service.js';
+import { DatabaseService } from '../../database/database.service.js';
 
 export class MetricUtil {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: DatabaseService) {}
 
   /**
    * Génère un matricule au format LAB/PAT/YYYY/0001

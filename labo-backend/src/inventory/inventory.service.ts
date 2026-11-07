@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { Prisma } from '@prisma/client';
+import { DatabaseService } from '../database/database.service.js';
 
 @Injectable()
 export class InventoryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: DatabaseService) {}
 
   async createProduct(laboratory_id: string, data: { sku: string; name: string; category?: string; unit?: string; price?: number; min_stock?: number }) {
     return this.prisma.products.create({ data: { laboratory_id, ...data, min_stock: data.min_stock ?? 0 } });
@@ -62,14 +61,9 @@ export class InventoryService {
   }
 
   async getLowStockAlerts(laboratory_id: string) {
-    return this.prisma.products.findMany({
-      where: {
-        laboratory_id,
-        is_active: true,
-        current_stock: {
-          lte: Prisma.sql`min_stock`
-        }
-      },
+    const products = await this.prisma.products.findMany({
+      where: { laboratory_id, is_active: true },
     });
+    return products.filter((p: any) => (p.current_stock ?? 0) <= (p.min_stock ?? 0));
   }
 }

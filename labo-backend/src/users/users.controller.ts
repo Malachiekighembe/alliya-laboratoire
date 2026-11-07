@@ -21,8 +21,9 @@ export class UsersController {
 
   @Get()
   @RequirePermissions('users.read')
-  async findAll(@CurrentLaboratory() labId: string, @Query() pagination: PaginationDto) {
-    const result = await this.usersService.findAll(labId, pagination);
+  async findAll(@CurrentLaboratory() labId: string, @CurrentUser() user: any, @Query() pagination: PaginationDto) {
+    const isSuperAdmin = !!user && (user.roles?.includes('super_admin') || user.permissions?.includes('system.admin'));
+    const result = await this.usersService.findAll(isSuperAdmin ? undefined : labId, pagination);
     return new ApiResponseDto({ success: true, data: result.items, pagination: { page: pagination.page, limit: pagination.limit, total: result.total, totalPages: Math.ceil(result.total / pagination.limit), hasNext: pagination.page * pagination.limit < result.total, hasPrev: pagination.page > 1 } });
   }
 

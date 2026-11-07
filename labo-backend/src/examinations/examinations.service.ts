@@ -1,11 +1,11 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { DatabaseService } from '../database/database.service.js';
 import { PaginationDto } from '../common/dto/pagination.dto.js';
 import { CreateTestCatalogDto, UpdateTestCatalogDto } from './examinations.dtos.js';
 
 @Injectable()
 export class ExaminationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: DatabaseService) {}
 
   async create(createTestDto: CreateTestCatalogDto, laboratory_id: string) {
     const existing = await this.prisma.test_catalog.findUnique({

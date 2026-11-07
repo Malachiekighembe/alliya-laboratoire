@@ -1,14 +1,14 @@
 import { IsString, IsEmail, IsOptional, IsUUID, MinLength, MaxLength } from 'class-validator';
 
 export class LoginDto {
-  @IsUUID() laboratory_id: string;
+  @IsOptional() @IsUUID() laboratory_id?: string;
   @IsEmail() email: string;
   @IsString() password: string;
   @IsOptional() @IsString() device_id?: string;
 }
 
 export class RegisterDto {
-  @IsUUID() laboratory_id: string;
+  @IsOptional() @IsUUID() laboratory_id?: string;
   @IsEmail() email: string;
   @IsString() @MinLength(8) password: string;
   @IsString() first_name: string;

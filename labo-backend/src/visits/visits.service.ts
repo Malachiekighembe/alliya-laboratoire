@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { DatabaseService } from '../database/database.service.js';
 import { MetricUtil } from '../common/utils/metric.util.js';
 import { PatientsService } from '../patients/patients.service.js';
 import { CreateVisitDto, CreateOrderDto, UpdateVisitDto, SearchVisitsDto } from './visits.dtos.js';
@@ -8,7 +8,7 @@ import { PaginationDto } from '../common/dto/pagination.dto.js';
 @Injectable()
 export class VisitsService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prisma: DatabaseService,
     private readonly metricUtil: MetricUtil,
     private readonly patientsService: PatientsService,
   ) {}

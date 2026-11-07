@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
-import { PrismaModule } from '../prisma/prisma.module.js';
+import { DatabaseModule } from '../database/database.module.js';
 
 // Guards
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
@@ -23,7 +23,7 @@ import { MetricUtil } from './utils/metric.util.js';
 
 @Global()
 @Module({
-  imports: [PrismaModule],
+  imports: [DatabaseModule],
   providers: [
     JwtAuthGuard,
     PermissionsGuard,
@@ -51,8 +51,9 @@ import { MetricUtil } from './utils/metric.util.js';
     PasswordUtil,
     UuidUtil,
     MetricUtil,
-    PrismaModule,
+    DatabaseModule,
   ],
 })
 export class CommonModule {}
 export { CommonModule as COMMON };
+

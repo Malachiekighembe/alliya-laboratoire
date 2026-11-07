@@ -1,4 +1,4 @@
-import {
+﻿import {
   CallHandler,
   ExecutionContext,
   Injectable,
@@ -6,11 +6,12 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { PrismaService } from '../../prisma/prisma.service.js';
+import { DatabaseService } from '../../database/database.service.js';
+import { UuidUtil } from '../utils/uuid.util.js';
 
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: DatabaseService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
@@ -53,6 +54,7 @@ export class AuditInterceptor implements NestInterceptor {
 
           await this.prisma.audit_logs.create({
             data: {
+              id: UuidUtil.generate(),
               laboratory_id: laboratoryId || null,
               user_id: user?.id || null,
               action,

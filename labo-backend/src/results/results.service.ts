@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { DatabaseService } from '../database/database.service.js';
 import { MetricUtil } from '../common/utils/metric.util.js';
 import { SpecimensService } from '../specimens/specimens.service.js';
 import { ExaminationsService } from '../examinations/examinations.service.js';
@@ -9,7 +9,7 @@ import { AmendResultDto, CreateResultDto, SearchResultsDto, UpdateResultDto } fr
 @Injectable()
 export class ResultsService {
   constructor(
-    private prisma: PrismaService,
+    private prisma: DatabaseService,
     private metricUtil: MetricUtil,
     private specimensService: SpecimensService,
     private examinationsService: ExaminationsService,

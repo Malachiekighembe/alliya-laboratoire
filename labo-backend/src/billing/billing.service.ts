@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { DatabaseService } from '../database/database.service.js';
 import { MetricUtil } from '../common/utils/metric.util.js';
 import {
   CreateInvoiceDto,
@@ -26,7 +26,7 @@ import { PaginationDto } from '../common/dto/pagination.dto.js';
 @Injectable()
 export class BillingService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prisma: DatabaseService,
     private readonly metricUtil: MetricUtil,
   ) {}
 

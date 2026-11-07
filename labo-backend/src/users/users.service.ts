@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { DatabaseService } from '../database/database.service.js';
 import { PasswordUtil } from '../common/utils/password.util.js';
 import { PaginationDto } from '../common/dto/pagination.dto.js';
 import { ApiResponseDto } from '../common/dto/api-response.dto.js';
@@ -7,7 +7,7 @@ import { CreateUserDto, UpdateUserDto, UpdatePasswordDto, AssignRolesDto } from 
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: DatabaseService) {}
 
   async create(createUserDto: CreateUserDto, laboratoryId: string, actorId?: string) {
     const exists = await this.existsByEmail(createUserDto.email, laboratoryId);
@@ -33,8 +33,11 @@ export class UsersService {
     return this.findById(user.id, laboratoryId);
   }
 
-  async findAll(laboratoryId: string, pagination: PaginationDto) {
-    const where: any = { laboratory_id: laboratoryId, deleted_at: null };
+  async findAll(laboratoryId: string | undefined, pagination: PaginationDto) {
+    const where: any = { deleted_at: null };
+    if (laboratoryId) {
+      where.laboratory_id = laboratoryId;
+    }
     if (pagination.search) {
       where.OR = [
         { first_name: { contains: pagination.search, mode: 'insensitive' } },
