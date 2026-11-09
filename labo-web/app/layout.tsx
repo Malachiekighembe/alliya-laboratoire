@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className="font-sans antialiased bg-white">
+      <body className="font-sans antialiased bg-white overflow-hidden">
         <AuthProvider>
           <ClientShell>{children}</ClientShell>
         </AuthProvider>
