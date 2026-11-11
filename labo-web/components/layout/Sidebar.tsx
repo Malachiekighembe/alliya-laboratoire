@@ -14,8 +14,8 @@ import { cn, getInitials } from "@/lib/utils";
 type NavItem = { label: string; href: string; icon: React.ComponentType<{ className?: string }>; roles?: string[] };
 type NavSection = { title: string; items: NavItem[]; roles?: string[] };
 
-const NAVY = "#07122E";
-const NAVY_2 = "#0B172C";
+const NAVY = "#0f1b33";
+const NAVY_2 = "#162544";
 const TURQ = "#3D9597";
 
 const SYSTEM_SECTIONS: NavSection[] = [
@@ -109,13 +109,13 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
           "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 outline-none",
           collapsed ? "justify-center" : "",
           active
-            ? "bg-white/10 text-white shadow-sm"
-            : "text-slate-300/80 hover:bg-white/5 hover:text-white"
+            ? "bg-white/[0.08] text-white"
+            : "text-slate-300/75 hover:bg-white/[0.05] hover:text-slate-100"
         )}
       >
-        {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full" style={{ background: TURQ }} />}
-        <span className={cn("flex h-8 w-8 items-center justify-center rounded-lg shrink-0 transition-colors", active ? "bg-white/10" : "group-hover:bg-white/5")}> 
-          <Icon className={cn("h-[18px] w-[18px]", active ? "text-white" : "text-slate-300 group-hover:text-white")} />
+        {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-[#3D9597]/80" />}
+        <span className={cn("flex h-8 w-8 items-center justify-center rounded-lg shrink-0 transition-colors", active ? "bg-white/[0.08]" : "group-hover:bg-white/[0.04]")}> 
+          <Icon className={cn("h-[18px] w-[18px]", active ? "text-slate-100" : "text-slate-400 group-hover:text-slate-200")} />
         </span>
         {!collapsed && <span className="truncate">{item.label}</span>}
       </Link>
@@ -125,17 +125,17 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
   const content = (
     <div className="flex h-full flex-col" style={{ background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY_2} 100%)` }}>
       {/* Header */}
-      <div className="flex h-16 items-center justify-between px-3 border-b border-white/10">
+      <div className="flex h-16 items-center justify-between px-3 border-b border-white/[0.08]">
         <Link href="/dashboard" className={cn("flex items-center gap-2.5", collapsed && "mx-auto")}> 
-          <div className="h-9 w-9 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow" style={{ background: `linear-gradient(135deg, ${TURQ}, #2E7A7C)` }}>AL</div>
+          <div className="h-9 w-9 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br from-[#3D9597]/80 to-[#2E7A7C]/80">AL</div>
           {!collapsed && (
             <div className="leading-tight">
-              <p className="text-white font-semibold tracking-tight">Alliya Labo</p>
-              <p className="text-[10px] text-slate-400">Système de laboratoire</p>
+              <p className="text-slate-100 font-semibold tracking-tight">Alliya Labo</p>
+              <p className="text-[10px] text-slate-400/80">Système de laboratoire</p>
             </div>
           )}
         </Link>
-        <button onClick={onToggle} className={cn("hidden lg:flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-white/10 hover:text-white transition-colors", collapsed && "hidden")}> 
+        <button onClick={onToggle} className={cn("hidden lg:flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 transition-colors", collapsed && "hidden")}> 
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
       </div>
@@ -155,21 +155,21 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
       </nav>
 
       {/* Footer user */}
-      <div className="border-t border-white/10 p-2.5 space-y-1">
+      <div className="border-t border-white/[0.08] p-2.5 space-y-1">
         {user && (
-          <Link href="/profil" className={cn("flex items-center gap-3 rounded-xl px-2.5 py-2 hover:bg-white/5 transition-colors", collapsed && "justify-center")} title="Mon profil"> 
-            <div className="h-9 w-9 shrink-0 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ background: `linear-gradient(135deg, #1E2A47, ${TURQ})` }}>
+          <Link href="/profil" className={cn("flex items-center gap-3 rounded-xl px-2.5 py-2 hover:bg-white/[0.05] transition-colors", collapsed && "justify-center")} title="Mon profil"> 
+            <div className="h-9 w-9 shrink-0 rounded-full flex items-center justify-center text-white text-xs font-semibold bg-gradient-to-br from-[#2a3d5f] to-[#3D9597]/70">
               {getInitials(user.first_name || "", user.last_name || "")}
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-white">{(user.first_name || "") + " " + (user.last_name || "") || "Mon profil"}</p>
-                <p className="truncate text-xs capitalize" style={{ color: TURQ }}>{(user.roles?.[0] || "Utilisateur").replace(/_/g, " ")}</p>
+                <p className="truncate text-sm font-medium text-slate-100">{(user.first_name || "") + " " + (user.last_name || "") || "Mon profil"}</p>
+                <p className="truncate text-xs capitalize text-[#6bbfc1]">{(user.roles?.[0] || "Utilisateur").replace(/_/g, " ")}</p>
               </div>
             )}
           </Link>
         )}
-        <button onClick={handleLogout} className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-red-500/10 hover:text-red-300 transition-colors", collapsed && "justify-center")} title="Déconnexion"> 
+        <button onClick={handleLogout} className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-white/[0.05] hover:text-slate-200 transition-colors", collapsed && "justify-center")} title="Déconnexion"> 
           <span className="flex h-8 w-8 items-center justify-center rounded-lg shrink-0"><LogOut className="h-[18px] w-[18px]" /></span>
           {!collapsed && <span>Déconnexion</span>}
         </button>

@@ -105,7 +105,7 @@ export default function AdminAbonnementsPage() {
           title="Abonnements"
           description="Gestion des abonnements des laboratoires. La création n'est pas bloquée : les informations manquantes peuvent être complétées plus tard."
           action={
-            <Button onClick={() => { setError(""); setForm({ ...emptyForm }); setOpen(true); }} className="bg-[#07122E] text-white hover:bg-[#0B172C]">
+            <Button onClick={() => { setError(""); setForm({ ...emptyForm }); setOpen(true); }} className="bg-[#1E2A47] text-white hover:bg-[#162544] shadow-sm">
               <Plus className="h-4 w-4 mr-2" /> Nouvel abonnement
             </Button>
           }
@@ -166,7 +166,7 @@ export default function AdminAbonnementsPage() {
             </div>
             <DialogFooter className="sm:col-span-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={saving} className="bg-[#07122E] text-white hover:bg-[#0B172C]">{saving ? "Création…" : "Créer l'abonnement"}</Button>
+              <Button type="submit" disabled={saving} className="bg-[#1E2A47] text-white hover:bg-[#162544] shadow-sm">{saving ? "Création…" : "Créer l'abonnement"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -219,5 +219,6 @@ export default function AdminAbonnementsPage() {
     </MotionDiv>
   );
 }
+
 
 

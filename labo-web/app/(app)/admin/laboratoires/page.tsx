@@ -119,7 +119,7 @@ export default function AdminLaboratoiresPage() {
         title="Administration — Laboratoires"
         description="Créer les laboratoires et leur responsable. Les informations manquantes pourront être complétées plus tard dans les profils."
         action={
-          <Button onClick={openCreate} className="bg-[ #1d4ed8] text-white hover:bg-[#1e40af]">
+          <Button onClick={openCreate} className="bg-[#1E2A47] text-white hover:bg-[#162544] shadow-sm">
             <Plus className="h-4 w-4 mr-2" /> Nouveau laboratoire
           </Button>
         }
@@ -204,7 +204,7 @@ export default function AdminLaboratoiresPage() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={saving} className="bg-[ #1d4ed8] text-white hover:bg-[#1e40af]">{saving ? "Enregistrement…" : (editLab ? "Mettre à jour" : "Créer le laboratoire")}</Button>
+              <Button type="submit" disabled={saving} className="bg-[#1E2A47] text-white hover:bg-[#162544] shadow-sm">{saving ? "Enregistrement…" : (editLab ? "Mettre à jour" : "Créer le laboratoire")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -223,7 +223,7 @@ export default function AdminLaboratoiresPage() {
                 <CardContent className="pt-5 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-700 to-blue-900 text-white flex items-center justify-center shrink-0"><Building2 className="h-5 w-5" /></div>
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#1E2A47] to-[#3D9597]/80 text-white flex items-center justify-center shrink-0"><Building2 className="h-5 w-5" /></div>
                       <div className="min-w-0">
                         <p className="font-semibold text-slate-900 truncate">{lab.name || "(Sans nom)"}</p>
                         <p className="text-xs text-slate-500 font-mono">{lab.code || "—"} · {lab.slug || "—"}</p>
@@ -252,6 +252,7 @@ export default function AdminLaboratoiresPage() {
     </MotionDiv>
   );
 }
+
 
 
 

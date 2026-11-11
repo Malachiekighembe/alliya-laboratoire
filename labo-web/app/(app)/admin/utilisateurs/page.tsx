@@ -84,7 +84,7 @@ export default function AdminUtilisateursPage() {
         title="Administration — Utilisateurs"
         description="Créer et gérer les responsables/admins et utilisateurs des laboratoires. La création n'est pas bloquée : complétez les profils ensuite."
         action={
-          <Button onClick={() => { setError(""); setForm({ ...emptyUser }); setOpen(true); }} className="bg-[ #1d4ed8] text-white hover:bg-[#1e40af]">
+          <Button onClick={() => { setError(""); setForm({ ...emptyUser }); setOpen(true); }} className="bg-[#1E2A47] text-white hover:bg-[#162544] shadow-sm">
             <Plus className="h-4 w-4 mr-2" /> Nouvel utilisateur
           </Button>
         }
@@ -124,7 +124,7 @@ export default function AdminUtilisateursPage() {
             </div>
             <DialogFooter className="sm:col-span-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={saving} className="bg-[ #1d4ed8] text-white hover:bg-[#1e40af]">{saving ? "Création…" : "Créer l'utilisateur"}</Button>
+              <Button type="submit" disabled={saving} className="bg-[#1E2A47] text-white hover:bg-[#162544] shadow-sm">{saving ? "Création…" : "Créer l'utilisateur"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -178,6 +178,7 @@ export default function AdminUtilisateursPage() {
     </MotionDiv>
   );
 }
+
 
 
 
