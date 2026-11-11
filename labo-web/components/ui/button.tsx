@@ -4,44 +4,30 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "../../lib/utils";
 
-// Alliya palette constants
-const ALLIYA_DARK = "#07122E";
-const ALLIYA_DARK_700 = "#1E2A47";
-const ALLIYA_DARK_800 = "#14203A";
-const ALLIYA_TURQUOISE = "#3D9597";
-const ALLIYA_TURQUOISE_600 = "#2E7A7C";
-const ALLIYA_TURQUOISE_50 = "#E3F2F2";
-
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D9597]/30 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: `bg-[#${ALLIYA_DARK.slice(1)}] text-white hover:bg-[#${ALLIYA_DARK_700.slice(1)}] hover:text-white shadow-sm`,
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        // Variantes bleu Alliya (alliya-dark - palette Commerce)
-        "alliya-dark": `bg-[#${ALLIYA_DARK_700.slice(1)}] text-white hover:bg-[#${ALLIYA_DARK_800.slice(1)}] hover:text-white shadow-sm border border-[#${ALLIYA_DARK_700.slice(1)}]`,
-        "alliya-dark-outline": `border-[#${ALLIYA_DARK_700.slice(1)}] bg-transparent text-[#${ALLIYA_DARK_700.slice(1)}] hover:bg-[#${ALLIYA_TURQUOISE_50.slice(1)}] hover:text-[#${ALLIYA_DARK_800.slice(1)}]`,
-        "alliya-dark-ghost": `text-[#${ALLIYA_DARK_700.slice(1)}] hover:bg-[#${ALLIYA_TURQUOISE_50.slice(1)}] hover:text-[#${ALLIYA_DARK_800.slice(1)}]`,
-        // Variante turquoise Alliya (accent)
-        "alliya-turquoise": `bg-[#${ALLIYA_TURQUOISE.slice(1)}] text-[#${ALLIYA_DARK.slice(1)}] hover:bg-[#${ALLIYA_TURQUOISE_600.slice(1)}] hover:text-[#${ALLIYA_DARK.slice(1)}] shadow-sm border border-[#${ALLIYA_TURQUOISE.slice(1)}]`,
-        "alliya-turquoise-outline": `border-[#${ALLIYA_TURQUOISE.slice(1)}] bg-transparent text-[#${ALLIYA_TURQUOISE.slice(1)}] hover:bg-[#${ALLIYA_TURQUOISE_50.slice(1)}] hover:text-[#${ALLIYA_TURQUOISE.slice(1)}]`,
-        // Variantes utilitaires
-        turquoise: `bg-[#${ALLIYA_TURQUOISE.slice(1)}] text-[#${ALLIYA_DARK.slice(1)}] hover:bg-[#${ALLIYA_TURQUOISE_600.slice(1)}] shadow-sm border border-[#${ALLIYA_TURQUOISE.slice(1)}]`,
-        success: "bg-green-500 text-white hover:bg-green-600 shadow-sm border border-green-400",
-        warning: "bg-yellow-500 text-[#07122E] hover:bg-yellow-600 shadow-sm border border-yellow-400",
+        default: "bg-[#07122E] text-white hover:bg-[#0B172C] shadow-sm",
+        destructive: "bg-red-600/90 text-white hover:bg-red-600 shadow-sm",
+        outline: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300",
+        secondary: "bg-slate-100 text-slate-800 hover:bg-slate-200/80",
+        ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+        link: "text-[#07122E] underline-offset-4 hover:underline",
+        "alliya-dark": "bg-[#07122E] text-white hover:bg-[#0B172C] shadow-sm",
+        "alliya-dark-outline": "border border-[#07122E]/20 bg-transparent text-[#07122E] hover:bg-[#07122E]/5",
+        "alliya-dark-ghost": "text-[#07122E] hover:bg-[#07122E]/5",
+        "alliya-turquoise": "bg-[#3D9597] text-white hover:bg-[#2E7A7C] shadow-sm",
+        "alliya-turquoise-outline": "border border-[#3D9597]/40 bg-transparent text-[#2E7A7C] hover:bg-[#3D9597]/10",
+        turquoise: "bg-[#3D9597] text-white hover:bg-[#2E7A7C] shadow-sm",
+        success: "bg-[#3D9597]/15 text-[#2E7A7C] hover:bg-[#3D9597]/25 border border-[#3D9597]/30",
+        warning: "bg-amber-100 text-amber-800 hover:bg-amber-200/80 border border-amber-200",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
+        sm: "h-9 rounded-lg px-3",
+        lg: "h-11 rounded-xl px-6",
         icon: "h-10 w-10",
       },
     },

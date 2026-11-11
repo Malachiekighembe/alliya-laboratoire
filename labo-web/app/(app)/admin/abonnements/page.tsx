@@ -127,7 +127,7 @@ export default function AdminAbonnementsPage() {
           <form onSubmit={create} className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1 sm:col-span-2">
               <Label htmlFor="laboratory_id">Laboratoire (laboratory_id)</Label>
-              <select id="laboratory_id" value={form.laboratory_id} onChange={(e) => setForm({ ...form, laboratory_id: e.target.value })} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#3D9597]/30 focus:border-[#3D9597]">
+              <select id="laboratory_id" value={form.laboratory_id} onChange={(e) => setForm({ ...form, laboratory_id: e.target.value })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
                 <option value="">— Aucun / à affecter plus tard —</option>
                 {labs.map((l) => <option key={l.id} value={l.id}>{l.name || l.code} ({l.code || "—"})</option>)}
               </select>
@@ -135,7 +135,7 @@ export default function AdminAbonnementsPage() {
             </div>
             <div className="space-y-1">
               <Label htmlFor="plan">Plan (plan)</Label>
-              <select id="plan" value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#3D9597]/30 focus:border-[#3D9597]">
+              <select id="plan" value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
                 <option value="starter">Starter</option>
                 <option value="professional">Professional</option>
                 <option value="enterprise">Enterprise</option>
@@ -143,7 +143,7 @@ export default function AdminAbonnementsPage() {
             </div>
             <div className="space-y-1">
               <Label htmlFor="status">Statut (status)</Label>
-              <select id="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#3D9597]/30 focus:border-[#3D9597]">
+              <select id="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
                 <option value="trial">trial (essai)</option>
                 <option value="active">active</option>
                 <option value="expired">expired</option>
@@ -155,7 +155,7 @@ export default function AdminAbonnementsPage() {
             <div className="space-y-1"><Label htmlFor="currency">Devise (currency)</Label><Input id="currency" value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} /></div>
             <div className="space-y-1">
               <Label htmlFor="auto_renew">Renouvellement auto (auto_renew)</Label>
-              <select id="auto_renew" value={form.auto_renew ? "true" : "false"} onChange={(e) => setForm({ ...form, auto_renew: e.target.value === "true" })} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-[#3D9597]/30 focus:border-[#3D9597]">
+              <select id="auto_renew" value={form.auto_renew ? "true" : "false"} onChange={(e) => setForm({ ...form, auto_renew: e.target.value === "true" })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
                 <option value="true">Oui</option>
                 <option value="false">Non</option>
               </select>
@@ -219,4 +219,5 @@ export default function AdminAbonnementsPage() {
     </MotionDiv>
   );
 }
+
 

@@ -166,7 +166,7 @@
     @apply alert bg-blue-50 border-blue-200 text-blue-800;
   }
   .alert-success {
-    @apply alert bg-green-50 border-green-200 text-green-800;
+    @apply alert bg-[#3D9597]/10 border-[#3D9597]/25 text-[#2E7A7C];
   }
   .alert-warning {
     @apply alert bg-yellow-50 border-yellow-200 text-yellow-800;

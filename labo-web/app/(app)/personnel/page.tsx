@@ -87,13 +87,13 @@ export default function PersonnelPage() {
             <div className="space-y-1"><Label htmlFor="password">Mot de passe (password)</Label><Input id="password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Optionnel" /></div>
             <div className="space-y-1">
               <Label htmlFor="role">Rôle (roles[])</Label>
-              <select id="role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full border border-[#D1D5DB] rounded-md px-3 py-2 text-sm bg-white">
+              <select id="role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
                 {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
             <div className="space-y-1">
               <Label htmlFor="is_active">Actif (is_active)</Label>
-              <select id="is_active" value={form.is_active ? "true" : "false"} onChange={(e) => setForm({ ...form, is_active: e.target.value === "true" })} className="w-full border border-[#D1D5DB] rounded-md px-3 py-2 text-sm bg-white">
+              <select id="is_active" value={form.is_active ? "true" : "false"} onChange={(e) => setForm({ ...form, is_active: e.target.value === "true" })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
                 <option value="true">Oui</option><option value="false">Non</option>
               </select>
             </div>
@@ -119,8 +119,8 @@ export default function PersonnelPage() {
                       <td className="px-3 py-2">{s.email || "—"}</td>
                       <td className="px-3 py-2">{s.phone || "—"}</td>
                       <td className="px-3 py-2">{Array.isArray(s.roles) ? s.roles.join(", ") : "—"}</td>
-                      <td className="px-3 py-2"><span className={`text-xs px-2 py-0.5 rounded-full ${s.is_active !== false ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>{s.is_active !== false ? "Actif" : "Inactif"}</span></td>
-                      <td className="px-3 py-2">{miss.length ? <span className="inline-flex items-center gap-1 text-xs text-amber-700"><AlertCircle className="h-3 w-3" /> {miss.join(", ")}</span> : <span className="text-xs text-green-700">Complet</span>}</td>
+                      <td className="px-3 py-2"><span className={`text-xs px-2 py-0.5 rounded-full ${s.is_active !== false ? "bg-[#3D9597]/10 text-[#2E7A7C]" : "bg-red-50 text-red-700"}`}>{s.is_active !== false ? "Actif" : "Inactif"}</span></td>
+                      <td className="px-3 py-2">{miss.length ? <span className="inline-flex items-center gap-1 text-xs text-amber-700"><AlertCircle className="h-3 w-3" /> {miss.join(", ")}</span> : <span className="text-xs text-[#2E7A7C]">Complet</span>}</td>
                     </tr>
                   );
                 })}
@@ -133,5 +133,7 @@ export default function PersonnelPage() {
     </div>
   );
 }
+
+
 
 

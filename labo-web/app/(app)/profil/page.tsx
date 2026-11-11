@@ -102,7 +102,7 @@ export default function ProfilPage() {
         </div>
       )}
       {uMiss.length === 0 && lMiss.length === 0 && (
-        <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-800 text-sm"><CheckCircle2 className="h-4 w-4" /> Profils complets.</div>
+        <div className="flex items-center gap-2 rounded-lg border border-[#3D9597]/25 bg-[#3D9597]/10 px-4 py-3 text-[#2E7A7C] text-sm"><CheckCircle2 className="h-4 w-4" /> Profils complets.</div>
       )}
       <Card className="border border-[#E5E7EB]">
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><User className="h-4 w-4" /> Profil utilisateur (table: users)</CardTitle></CardHeader>
@@ -146,5 +146,7 @@ export default function ProfilPage() {
     </div>
   );
 }
+
+
 
 

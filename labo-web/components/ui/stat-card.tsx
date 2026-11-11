@@ -30,7 +30,7 @@ export function StatCard({
     "alliya-turquoise": `border-l-[#${ALLIYA_TURQUOISE.slice(1)}] text-[#${ALLIYA_TURQUOISE_700_TEXT.slice(1)}]`,
     blue: `border-l-[#${ALLIYA_DARK_800.slice(1)}] text-[#${ALLIYA_DARK_700_TEXT.slice(1)}]`,
     "alliya-dark": `border-l-[#${ALLIYA_DARK_800.slice(1)}] text-[#${ALLIYA_DARK_700_TEXT.slice(1)}]`,
-    success: "border-l-green-500 text-green-700",
+    success: "border-l-[#3D9597] text-[#2E7A7C]",
     warning: "border-l-yellow-500 text-yellow-700",
     outline: "border-l-input text-muted-foreground",
   }[variant];
@@ -50,7 +50,7 @@ export function StatCard({
           <p className="text-sm font-medium text-muted-foreground">{label}</p>
           <p className="mt-2 text-3xl font-bold tracking-tight">{value}</p>
           {trend && (
-            <p className={cn("mt-1 text-xs", trend.value >= 0 ? "text-green-700" : "text-red-700")}>
+            <p className={cn("mt-1 text-xs", trend.value >= 0 ? "text-[#2E7A7C]" : "text-red-500")}>
               {trend.value >= 0 ? "▲" : "▼"} {Math.abs(trend.value)}% {trend.label}
             </p>
           )}

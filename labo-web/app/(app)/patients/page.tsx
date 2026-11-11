@@ -117,7 +117,7 @@ export default function PatientsPage() {
             </div>
             <div className="space-y-1">
               <Label htmlFor="gender">Genre (gender)</Label>
-              <select id="gender" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background">
+              <select id="gender" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
                 <option value="UNKNOWN">UNKNOWN</option>
                 <option value="M">M</option>
                 <option value="F">F</option>
@@ -193,7 +193,7 @@ export default function PatientsPage() {
                       <TableCell className="font-medium">{p.first_name}</TableCell>
                       <TableCell className="text-sm">{p.phone || "—"}</TableCell>
                       <TableCell>
-                        <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", p.is_active ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100")}>
+                        <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", p.is_active ? "bg-[#3D9597]/10 text-[#2E7A7C] border border-[#3D9597]/20" : "bg-red-50 text-red-700 border border-red-100")}>
                           {p.is_active ? "Actif" : "Inactif"}
                         </span>
                       </TableCell>
@@ -208,3 +208,5 @@ export default function PatientsPage() {
     </div>
   );
 }
+
+

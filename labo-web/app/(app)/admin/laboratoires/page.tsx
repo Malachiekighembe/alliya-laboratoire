@@ -161,7 +161,7 @@ export default function AdminLaboratoiresPage() {
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="is_active">Statut (is_active)</Label>
-                  <select id="is_active" value={labForm.is_active ? "true" : "false"} onChange={(e) => setLabForm({ ...labForm, is_active: e.target.value === "true" })} className="w-full border border-[#D1D5DB] rounded-md px-3 py-2 text-sm bg-white">
+                  <select id="is_active" value={labForm.is_active ? "true" : "false"} onChange={(e) => setLabForm({ ...labForm, is_active: e.target.value === "true" })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
                     <option value="true">Actif</option>
                     <option value="false">Inactif</option>
                   </select>
@@ -238,7 +238,7 @@ export default function AdminLaboratoiresPage() {
                     <div className="flex items-center gap-2"><Users className="h-3.5 w-3.5 text-slate-400" /><span>{lab.stats?.users_count ?? 0} utilisateur(s)</span></div>
                   </div>
                   <div className="flex items-center justify-between pt-1">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${lab.is_active ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}>{lab.is_active ? "Actif" : "Inactif"}</span>
+                    <span className={`text-xs px-2.5 py-1 rounded-full ${lab.is_active ? "bg-[#3D9597]/10 text-[#2E7A7C] border border-[#3D9597]/20" : "bg-slate-100 text-slate-600 border border-slate-200"}`}>{lab.is_active ? "Actif" : "Inactif"}</span>
                     {miss.length > 0 && (
                       <span className="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full"><AlertCircle className="h-3 w-3" /> Profil incomplet ({miss.length})</span>
                     )}
@@ -252,5 +252,6 @@ export default function AdminLaboratoiresPage() {
     </MotionDiv>
   );
 }
+
 
 

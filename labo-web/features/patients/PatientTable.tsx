@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Patient } from "../../lib/api-client";
 
 interface PatientTableProps {
@@ -11,7 +11,7 @@ export function PatientTable({ patients, onEdit, onDelete }: PatientTableProps) 
   if (patients.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500">
-        Aucun patient trouvé
+        Aucun patient trouvÃ©
       </div>
     );
   }
@@ -23,7 +23,7 @@ export function PatientTable({ patients, onEdit, onDelete }: PatientTableProps) 
           <tr className="border-b border-gray-200">
             <th className="text-left text-sm font-medium text-gray-600 w-24 py-3">Matricule</th>
             <th className="text-left text-sm font-medium text-gray-600 py-3">Nom</th>
-            <th className="text-left text-sm font-medium text-gray-600 w-32 py-3">Téléphone</th>
+            <th className="text-left text-sm font-medium text-gray-600 w-32 py-3">TÃ©lÃ©phone</th>
             <th className="text-left text-sm font-medium text-gray-600 w-24 py-3">Statut</th>
             <th className="text-right text-sm font-medium text-gray-600 w-32 py-3">Actions</th>
           </tr>
@@ -35,10 +35,10 @@ export function PatientTable({ patients, onEdit, onDelete }: PatientTableProps) 
               <td className="text-sm py-3">
                 {patient.first_name} {patient.last_name}
               </td>
-              <td className="text-sm py-3">{patient.phone || '—'}</td>
+              <td className="text-sm py-3">{patient.phone || 'â€”'}</td>
               <td className="text-sm py-3">
                 {patient.is_active ? (
-                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                  <span className="bg-[#3D9597]/15 text-[#2E7A7C] px-2 py-1 rounded-full text-xs font-medium">
                     Actif
                   </span>
                 ) : (
@@ -51,7 +51,7 @@ export function PatientTable({ patients, onEdit, onDelete }: PatientTableProps) 
                 {onEdit && (
                   <button
                     onClick={() => onEdit(patient)}
-                    className="text-alliya-blue hover:text-blue-800 font-medium text-sm"
+                    className="text-[#07122E] hover:text-[#3D9597] font-medium text-sm"
                   >
                     Voir
                   </button>
