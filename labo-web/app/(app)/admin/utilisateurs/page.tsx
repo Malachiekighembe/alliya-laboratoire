@@ -84,7 +84,7 @@ export default function AdminUtilisateursPage() {
         title="Administration — Utilisateurs"
         description="Créer et gérer les responsables/admins et utilisateurs des laboratoires. La création n'est pas bloquée : complétez les profils ensuite."
         action={
-          <Button onClick={() => { setError(""); setForm({ ...emptyUser }); setOpen(true); }} className="bg-[#1E2A47] text-white hover:bg-[#162544] shadow-sm">
+          <Button onClick={() => { setError(""); setForm({ ...emptyUser }); setOpen(true); }} className="!bg-[#1E2A47] !text-white hover:!bg-[#162544] shadow-sm border-0">
             <Plus className="h-4 w-4 mr-2" /> Nouvel utilisateur
           </Button>
         }
@@ -97,34 +97,34 @@ export default function AdminUtilisateursPage() {
           </DialogHeader>
           {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">{error}</p>}
           <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1 sm:col-span-2">
-              <Label htmlFor="laboratory_id">Laboratoire (laboratory_id)</Label>
-              <select id="laboratory_id" value={form.laboratory_id} onChange={(e) => setForm({ ...form, laboratory_id: e.target.value })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
+            <div className="sm:col-span-2">
+              <Label htmlFor="laboratory_id">Laboratoire</Label>
+              <select id="laboratory_id" value={form.laboratory_id} onChange={(e) => setForm({ ...form, laboratory_id: e.target.value })} className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:border-[#3D9597] focus:ring-2 focus:ring-[#3D9597]/15">
                 <option value="">— Aucun / à affecter plus tard —</option>
                 {labs.map((l) => <option key={l.id} value={l.id}>{l.name || l.code} ({l.code})</option>)}
               </select>
             </div>
-            <div className="space-y-1"><Label htmlFor="first_name">Prénom (first_name)</Label><Input id="first_name" value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} /></div>
-            <div className="space-y-1"><Label htmlFor="last_name">Nom (last_name)</Label><Input id="last_name" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></div>
-            <div className="space-y-1"><Label htmlFor="email">Email (email)</Label><Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-            <div className="space-y-1"><Label htmlFor="phone">Téléphone (phone)</Label><Input id="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
-            <div className="space-y-1"><Label htmlFor="password">Mot de passe (password)</Label><Input id="password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Optionnel, à définir plus tard" /></div>
-            <div className="space-y-1">
-              <Label htmlFor="role">Rôle (roles[])</Label>
-              <select id="role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
+            <div><Label htmlFor="first_name">Prénom</Label><Input id="first_name" value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} placeholder="Prénom" /></div>
+            <div><Label htmlFor="last_name">Nom</Label><Input id="last_name" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} placeholder="Nom" /></div>
+            <div><Label htmlFor="email">Email</Label><Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@exemple.com" /></div>
+            <div><Label htmlFor="phone">Téléphone</Label><Input id="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+243 ..." /></div>
+            <div><Label htmlFor="password">Mot de passe</Label><Input id="password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Optionnel, à définir plus tard" /></div>
+            <div>
+              <Label htmlFor="role">Rôle</Label>
+              <select id="role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:border-[#3D9597] focus:ring-2 focus:ring-[#3D9597]/15">
                 {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="is_active">Actif (is_active)</Label>
-              <select id="is_active" value={form.is_active ? "true" : "false"} onChange={(e) => setForm({ ...form, is_active: e.target.value === "true" })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
-                <option value="true">Oui</option>
-                <option value="false">Non</option>
+            <div>
+              <Label htmlFor="is_active">Statut</Label>
+              <select id="is_active" value={form.is_active ? "true" : "false"} onChange={(e) => setForm({ ...form, is_active: e.target.value === "true" })} className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:border-[#3D9597] focus:ring-2 focus:ring-[#3D9597]/15">
+                <option value="true">Actif</option>
+                <option value="false">Inactif</option>
               </select>
             </div>
             <DialogFooter className="sm:col-span-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={saving} className="bg-[#1E2A47] text-white hover:bg-[#162544] shadow-sm">{saving ? "Création…" : "Créer l'utilisateur"}</Button>
+              <Button type="submit" disabled={saving} className="!bg-[#1E2A47] !text-white hover:!bg-[#162544] shadow-sm border-0">{saving ? "Création…" : "Créer l'utilisateur"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

@@ -119,7 +119,7 @@ export default function AdminLaboratoiresPage() {
         title="Administration — Laboratoires"
         description="Créer les laboratoires et leur responsable. Les informations manquantes pourront être complétées plus tard dans les profils."
         action={
-          <Button onClick={openCreate} className="bg-[#1E2A47] text-white hover:bg-[#162544] shadow-sm">
+          <Button onClick={openCreate} className="!bg-[#1E2A47] !text-white hover:!bg-[#162544] shadow-sm border-0">
             <Plus className="h-4 w-4 mr-2" /> Nouveau laboratoire
           </Button>
         }
@@ -132,36 +132,36 @@ export default function AdminLaboratoiresPage() {
           </DialogHeader>
           {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">{error}</p>}
           <form onSubmit={submit} className="space-y-6">
-            <section className="space-y-3">
-              <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2"><Building2 className="h-4 w-4" /> Informations du laboratoire <span className="text-xs font-normal text-slate-400">(table: laboratories)</span></h3>
+            <section className="space-y-4">
+              <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2"><Building2 className="h-4 w-4 text-[#1E2A47]" /> Informations du laboratoire</h3>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1 sm:col-span-2">
+                <div className="sm:col-span-2">
                   <Label htmlFor="name">Nom du laboratoire</Label>
-                  <Input id="name" value={labForm.name} onChange={(e) => { const v = e.target.value; setLabForm({ ...labForm, name: v, slug: editLab ? labForm.slug : (labForm.slug || slugify(v)) }); }} placeholder="Ex: Laboratoire Central" />
+                  <Input id="name" value={labForm.name} onChange={(e) => { const v = e.target.value; setLabForm({ ...labForm, name: v, slug: editLab ? labForm.slug : (labForm.slug || slugify(v)) }); }} placeholder="Ex : Laboratoire Central" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <Label htmlFor="code">Code</Label>
-                  <Input id="code" value={labForm.code} onChange={(e) => setLabForm({ ...labForm, code: e.target.value })} placeholder="Auto si vide (ex: LAB-001)" />
+                  <Input id="code" value={labForm.code} onChange={(e) => setLabForm({ ...labForm, code: e.target.value })} placeholder="Auto si vide (ex : LAB-001)" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <Label htmlFor="slug">Slug</Label>
                   <Input id="slug" value={labForm.slug} onChange={(e) => setLabForm({ ...labForm, slug: e.target.value })} placeholder="labo-central" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <Label htmlFor="lab_email">Email</Label>
-                  <Input id="lab_email" type="email" value={labForm.email} onChange={(e) => setLabForm({ ...labForm, email: e.target.value })} />
+                  <Input id="lab_email" type="email" value={labForm.email} onChange={(e) => setLabForm({ ...labForm, email: e.target.value })} placeholder="contact@labo.com" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <Label htmlFor="lab_phone">Téléphone</Label>
-                  <Input id="lab_phone" value={labForm.phone} onChange={(e) => setLabForm({ ...labForm, phone: e.target.value })} />
+                  <Input id="lab_phone" value={labForm.phone} onChange={(e) => setLabForm({ ...labForm, phone: e.target.value })} placeholder="+243 ..." />
                 </div>
-                <div className="space-y-1 sm:col-span-2">
+                <div className="sm:col-span-2">
                   <Label htmlFor="address">Adresse</Label>
                   <Input id="address" value={labForm.address} onChange={(e) => setLabForm({ ...labForm, address: e.target.value })} placeholder="Adresse complète" />
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="is_active">Statut (is_active)</Label>
-                  <select id="is_active" value={labForm.is_active ? "true" : "false"} onChange={(e) => setLabForm({ ...labForm, is_active: e.target.value === "true" })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
+                <div>
+                  <Label htmlFor="is_active">Statut</Label>
+                  <select id="is_active" value={labForm.is_active ? "true" : "false"} onChange={(e) => setLabForm({ ...labForm, is_active: e.target.value === "true" })} className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:border-[#3D9597] focus:ring-2 focus:ring-[#3D9597]/15">
                     <option value="true">Actif</option>
                     <option value="false">Inactif</option>
                   </select>
@@ -170,33 +170,35 @@ export default function AdminLaboratoiresPage() {
             </section>
 
             {!editLab && (
-              <section className="space-y-3 border-t pt-4">
-                <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2"><Shield className="h-4 w-4" /> Responsable du laboratoire <span className="text-xs font-normal text-slate-400">(table: users, rôle: admin)</span></h3>
-                <p className="text-xs text-slate-500">Créez l&apos;administrateur du labo (il pourra ensuite créer ses utilisateurs). Vous pouvez laisser vide et compléter plus tard.</p>
+              <section className="space-y-4 border-t border-slate-100 pt-5">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2"><Shield className="h-4 w-4 text-[#1E2A47]" /> Responsable du laboratoire</h3>
+                  <p className="text-xs text-slate-500 mt-1">Administrateur du labo (rôle <span className="font-medium text-slate-700">admin</span>). Vous pouvez compléter plus tard.</p>
+                </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="a_first">Prénom (first_name)</Label>
-                    <Input id="a_first" value={adminForm.first_name} onChange={(e) => setAdminForm({ ...adminForm, first_name: e.target.value })} />
+                  <div>
+                    <Label htmlFor="a_first">Prénom</Label>
+                    <Input id="a_first" value={adminForm.first_name} onChange={(e) => setAdminForm({ ...adminForm, first_name: e.target.value })} placeholder="Prénom" />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="a_last">Nom (last_name)</Label>
-                    <Input id="a_last" value={adminForm.last_name} onChange={(e) => setAdminForm({ ...adminForm, last_name: e.target.value })} />
+                  <div>
+                    <Label htmlFor="a_last">Nom</Label>
+                    <Input id="a_last" value={adminForm.last_name} onChange={(e) => setAdminForm({ ...adminForm, last_name: e.target.value })} placeholder="Nom" />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="a_email">Email (email)</Label>
-                    <Input id="a_email" type="email" value={adminForm.email} onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })} />
+                  <div>
+                    <Label htmlFor="a_email">Email</Label>
+                    <Input id="a_email" type="email" value={adminForm.email} onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })} placeholder="responsable@labo.com" />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="a_phone">Téléphone (phone)</Label>
-                    <Input id="a_phone" value={adminForm.phone} onChange={(e) => setAdminForm({ ...adminForm, phone: e.target.value })} />
+                  <div>
+                    <Label htmlFor="a_phone">Téléphone</Label>
+                    <Input id="a_phone" value={adminForm.phone} onChange={(e) => setAdminForm({ ...adminForm, phone: e.target.value })} placeholder="+243 ..." />
                   </div>
-                  <div className="space-y-1 sm:col-span-2">
-                    <Label htmlFor="a_pass">Mot de passe (password)</Label>
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="a_pass">Mot de passe</Label>
                     <Input id="a_pass" type="password" value={adminForm.password} onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })} placeholder="Définir maintenant ou plus tard" />
                   </div>
-                  <div className="space-y-1">
+                  <div>
                     <Label>Rôle</Label>
-                    <div className="text-sm px-3 py-2 rounded-md border bg-slate-50 text-slate-700">admin (affecté automatiquement)</div>
+                    <div className="h-10 flex items-center text-sm px-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-700">Admin (automatique)</div>
                   </div>
                 </div>
               </section>
@@ -204,7 +206,7 @@ export default function AdminLaboratoiresPage() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={saving} className="bg-[#1E2A47] text-white hover:bg-[#162544] shadow-sm">{saving ? "Enregistrement…" : (editLab ? "Mettre à jour" : "Créer le laboratoire")}</Button>
+              <Button type="submit" disabled={saving} className="!bg-[#1E2A47] !text-white hover:!bg-[#162544] shadow-sm border-0">{saving ? "Enregistrement…" : (editLab ? "Mettre à jour" : "Créer le laboratoire")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

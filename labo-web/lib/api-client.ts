@@ -269,6 +269,9 @@ class ApiClient {
   private token: string | null = null;
   private authHandlers: AuthHandlers | null = null;
   private refreshPromise: Promise<string | null> | null = null;
+  private getCache = new Map<string, { at: number; data: unknown }>();
+  private inflightGet = new Map<string, Promise<ApiEnvelope<any>>>();
+  private readonly GET_CACHE_TTL = 30_000; // 30s: fast navigation, réduit la charge backend
 
   setToken(token: string | null) {
     this.token = token;
@@ -280,6 +283,11 @@ class ApiClient {
 
   setAuthHandlers(handlers: AuthHandlers | null) {
     this.authHandlers = handlers;
+  }
+
+  clearCache(prefix?: string) {
+    if (!prefix) { this.getCache.clear(); return; }
+    for (const k of this.getCache.keys()) if (k.startsWith(prefix)) this.getCache.delete(k);
   }
 
   private async fetchWithTimeout(
@@ -335,60 +343,91 @@ class ApiClient {
     body?: unknown,
     retries: number = MAX_RETRIES,
   ): Promise<ApiEnvelope<T>> {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
+    const methodUp = method.toUpperCase();
+    const isGet = methodUp === 'GET';
 
-    let lastError: Error | null = null;
-
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        const res = await this.fetchWithTimeout(
-          `${API_BASE}/api/v1${path}`,
-          {
-            method,
-            headers,
-            body: body ? JSON.stringify(body) : undefined,
-          },
-        );
-
-        if (res.status === 401 && path !== '/auth/refresh' && path !== '/auth/login') {
-          const newToken = await this.tryRefreshToken();
-          if (newToken) {
-            headers['Authorization'] = `Bearer ${newToken}`;
-            const retryRes = await this.fetchWithTimeout(
-              `${API_BASE}/api/v1${path}`,
-              { method, headers, body: body ? JSON.stringify(body) : undefined },
-            );
-            if (retryRes.ok) return (await retryRes.json()) as ApiEnvelope<T>;
-            const retryErr = (await retryRes.json().catch(() => ({}))) as ApiError;
-            if (retryRes.status === 401) {
-              this.authHandlers?.onUnauthorized();
-            }
-            throw new Error(retryErr.message || `HTTP ${retryRes.status}`);
-          } else {
-            this.authHandlers?.onUnauthorized();
-          }
-        }
-
-        if (!res.ok) {
-          const err = (await res.json().catch(() => ({}))) as ApiError;
-          throw new Error(err.message || `HTTP ${res.status}`);
-        }
-
-        return (await res.json()) as ApiEnvelope<T>;
-      } catch (err) {
-        lastError = err as Error;
-        // Ne pas retry sur erreurs 4xx (client)
-        if (err instanceof Error && err.message.startsWith('HTTP 4')) {
-          throw err;
-        }
-        if (attempt < retries) {
-          await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
-        }
+    // Cache GET: réponse instantanée si fraîche (navigation fluide / "offline-like")
+    if (isGet) {
+      const hit = this.getCache.get(path);
+      if (hit && Date.now() - hit.at < this.GET_CACHE_TTL) {
+        return hit.data as ApiEnvelope<T>;
       }
+      const inflight = this.inflightGet.get(path);
+      if (inflight) return inflight as Promise<ApiEnvelope<T>>;
+    } else {
+      // Mutation: invalider le cache lié pour voir les données à jour
+      this.clearCache();
     }
 
-    throw lastError || new Error('Requête échouée');
+    const doFetch = async (): Promise<ApiEnvelope<T>> => {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
+
+      let lastError: Error | null = null;
+
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+          const res = await this.fetchWithTimeout(
+            `${API_BASE}/api/v1${path}`,
+            {
+              method: methodUp,
+              headers,
+              body: body ? JSON.stringify(body) : undefined,
+            },
+          );
+
+          if (res.status === 401 && path !== '/auth/refresh' && path !== '/auth/login') {
+            const newToken = await this.tryRefreshToken();
+            if (newToken) {
+              headers['Authorization'] = `Bearer ${newToken}`;
+              const retryRes = await this.fetchWithTimeout(
+                `${API_BASE}/api/v1${path}`,
+                { method: methodUp, headers, body: body ? JSON.stringify(body) : undefined },
+              );
+              if (retryRes.ok) {
+                const json = (await retryRes.json()) as ApiEnvelope<T>;
+                if (isGet) this.getCache.set(path, { at: Date.now(), data: json });
+                return json;
+              }
+              const retryErr = (await retryRes.json().catch(() => ({}))) as ApiError;
+              if (retryRes.status === 401) {
+                this.authHandlers?.onUnauthorized();
+              }
+              throw new Error(retryErr.message || `HTTP ${retryRes.status}`);
+            } else {
+              this.authHandlers?.onUnauthorized();
+            }
+          }
+
+          if (!res.ok) {
+            const err = (await res.json().catch(() => ({}))) as ApiError;
+            throw new Error(err.message || `HTTP ${res.status}`);
+          }
+
+          const json = (await res.json()) as ApiEnvelope<T>;
+          if (isGet) this.getCache.set(path, { at: Date.now(), data: json });
+          return json;
+        } catch (err) {
+          lastError = err as Error;
+          // Ne pas retry sur erreurs 4xx (client)
+          if (err instanceof Error && err.message.startsWith('HTTP 4')) {
+            throw err;
+          }
+          if (attempt < retries) {
+            await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+          }
+        }
+      }
+
+      throw lastError || new Error('Requête échouée');
+    };
+
+    if (isGet) {
+      const p = doFetch().finally(() => this.inflightGet.delete(path));
+      this.inflightGet.set(path, p);
+      return p;
+    }
+    return doFetch();
   }
 
   /// Non-blocking: returns { data, error, loading } without throwing
