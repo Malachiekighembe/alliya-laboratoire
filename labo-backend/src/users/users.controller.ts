@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+﻿import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, ForbiddenException, Req } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { PermissionsGuard } from '../common/guards/permissions.guard.js';
 import { LaboratoryAccessGuard } from '../common/guards/laboratory-access.guard.js';
@@ -7,7 +7,6 @@ import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { CurrentLaboratory } from '../common/decorators/laboratory.decorator.js';
 import { RequirePermissions } from '../common/decorators/permissions.decorator.js';
 import { UsersService } from './users.service.js';
-import { ForbiddenException } from '@nestjs/common';
 import { ApiResponseDto } from '../common/dto/api-response.dto.js';
 import { PaginationDto } from '../common/dto/pagination.dto.js';
 import { CreateUserDto, UpdateUserDto, UpdatePasswordDto, AssignRolesDto, ActivateUserDto, DeactivateUserDto } from './users.dtos.js';
@@ -19,59 +18,81 @@ import { CreateUserDto, UpdateUserDto, UpdatePasswordDto, AssignRolesDto, Activa
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('me')
+  async me(@CurrentUser() user: any) {
+    const data = await this.usersService.findByIdAny(user.id);
+    return ApiResponseDto.success(data);
+  }
+
+  @Patch('me')
+  async updateMe(@Body() dto: UpdateUserDto, @CurrentUser() user: any) {
+    // self profile: only allow safe fields
+    const safe = {
+      first_name: dto.first_name,
+      last_name: dto.last_name,
+      phone: dto.phone,
+      email: dto.email,
+    };
+    const data = await this.usersService.update(user.id, null, safe);
+    return ApiResponseDto.success(data, 'Profil mis à jour');
+  }
+
   @Get()
   @RequirePermissions('users.read')
-  async findAll(@CurrentLaboratory() labId: string, @CurrentUser() user: any, @Query() pagination: PaginationDto) {
+  async findAll(@CurrentLaboratory() labId: string, @CurrentUser() user: any, @Query() pagination: PaginationDto, @Query('laboratory_id') laboratory_id?: string) {
     const isSuperAdmin = !!user && (user.roles?.includes('super_admin') || user.permissions?.includes('system.admin'));
-    const result = await this.usersService.findAll(isSuperAdmin ? undefined : labId, pagination);
-    return new ApiResponseDto({ success: true, data: result.items, pagination: { page: pagination.page, limit: pagination.limit, total: result.total, totalPages: Math.ceil(result.total / pagination.limit), hasNext: pagination.page * pagination.limit < result.total, hasPrev: pagination.page > 1 } });
+    const targetLab = isSuperAdmin ? (laboratory_id || undefined) : (labId || user.laboratory_id);
+    const result = await this.usersService.findAll(targetLab, pagination);
+    return new ApiResponseDto({ success: true, data: result.items, pagination: { page: (pagination as any).page, limit: (pagination as any).limit, total: result.total, totalPages: Math.ceil(result.total / (((pagination as any).limit) || 50 || 1)), hasNext: false, hasPrev: false } });
   }
 
   @Get(':id')
   @RequirePermissions('users.read')
   async findOne(@Param('id') id: string, @CurrentLaboratory() labId: string, @CurrentUser() user: any) {
-    if (id !== user.id && !user.permissions?.includes('users.read')) {
+    const isSuperAdmin = !!user && (user.roles?.includes('super_admin') || user.permissions?.includes('system.admin'));
+    if (id !== user.id && !isSuperAdmin && !user.permissions?.includes('users.read')) {
       throw new ForbiddenException('Accès refusé');
     }
-    const data = await this.usersService.findById(id, labId);
+    const data = isSuperAdmin ? await this.usersService.findByIdAny(id) : await this.usersService.findById(id, labId || user.laboratory_id);
     return ApiResponseDto.success(data);
   }
 
   @Post()
   @RequirePermissions('users.create')
   async create(@Body() dto: CreateUserDto, @CurrentLaboratory() labId: string, @CurrentUser() user: any) {
-    const data = await this.usersService.create(dto, labId, user.id);
+    const isSuperAdmin = !!user && (user.roles?.includes('super_admin') || user.permissions?.includes('system.admin'));
+    const targetLab = isSuperAdmin ? (dto.laboratory_id ?? null) : (labId || user.laboratory_id);
+    const data = await this.usersService.create({ ...dto, laboratory_id: targetLab }, targetLab, user.id);
     return ApiResponseDto.success(data, 'Utilisateur créé');
   }
 
   @Patch(':id')
   @RequirePermissions('users.update')
   async update(@Param('id') id: string, @Body() dto: UpdateUserDto, @CurrentLaboratory() labId: string, @CurrentUser() user: any) {
-    if (id !== user.id) {
-      // admin check via permission guard already
-    }
-    const data = await this.usersService.update(id, labId, dto);
+    const isSuperAdmin = !!user && (user.roles?.includes('super_admin') || user.permissions?.includes('system.admin'));
+    const data = await this.usersService.update(id, isSuperAdmin ? undefined : (labId || user.laboratory_id), dto);
     return ApiResponseDto.success(data, 'Utilisateur mis à jour');
   }
 
   @Delete(':id')
   @RequirePermissions('users.delete')
-  async remove(@Param('id') id: string, @CurrentLaboratory() labId: string) {
-    await this.usersService.remove(id, labId);
+  async remove(@Param('id') id: string, @CurrentLaboratory() labId: string, @CurrentUser() user: any) {
+    const isSuperAdmin = !!user && (user.roles?.includes('super_admin') || user.permissions?.includes('system.admin'));
+    await this.usersService.remove(id, isSuperAdmin ? undefined : (labId || user.laboratory_id));
     return ApiResponseDto.success(null, 'Utilisateur supprimé');
   }
 
   @Patch(':id/password')
   async updatePassword(@Param('id') id: string, @Body() dto: UpdatePasswordDto, @CurrentUser() user: any) {
     if (id !== user.id) throw new ForbiddenException('Accès refusé');
-    await this.usersService.updatePassword(id, dto.current_password, dto.new_password);
+    await this.usersService.updatePassword(id, dto.current_password || '', dto.new_password);
     return ApiResponseDto.success(null, 'Mot de passe mis à jour');
   }
 
   @Post(':id/roles')
   @RequirePermissions('users.roles.manage')
   async assignRoles(@Param('id') id: string, @Body() dto: AssignRolesDto, @CurrentLaboratory() labId: string, @CurrentUser() user: any) {
-    const data = await this.usersService.assignRoles(id, labId, dto.role_ids, user.id);
+    const data = await this.usersService.assignRoles(id, labId || user.laboratory_id, dto.role_ids, user.id);
     return ApiResponseDto.success(data, 'Rôles assignés');
   }
 
@@ -91,15 +112,17 @@ export class UsersController {
 
   @Patch(':id/activate')
   @RequirePermissions('users.update')
-  async activate(@Param('id') id: string, @CurrentLaboratory() labId: string, @Body() _dto: ActivateUserDto) {
-    const data = await this.usersService.activate(id, labId);
+  async activate(@Param('id') id: string, @CurrentLaboratory() labId: string, @Body() _dto: ActivateUserDto, @CurrentUser() user: any) {
+    const isSuperAdmin = !!user && (user.roles?.includes('super_admin') || user.permissions?.includes('system.admin'));
+    const data = await this.usersService.activate(id, isSuperAdmin ? undefined : (labId || user.laboratory_id));
     return ApiResponseDto.success(data, 'Utilisateur activé');
   }
 
   @Patch(':id/deactivate')
   @RequirePermissions('users.update')
-  async deactivate(@Param('id') id: string, @CurrentLaboratory() labId: string, @Body() _dto: DeactivateUserDto) {
-    const data = await this.usersService.deactivate(id, labId);
+  async deactivate(@Param('id') id: string, @CurrentLaboratory() labId: string, @Body() _dto: DeactivateUserDto, @CurrentUser() user: any) {
+    const isSuperAdmin = !!user && (user.roles?.includes('super_admin') || user.permissions?.includes('system.admin'));
+    const data = await this.usersService.deactivate(id, isSuperAdmin ? undefined : (labId || user.laboratory_id));
     return ApiResponseDto.success(data, 'Utilisateur désactivé');
   }
 }

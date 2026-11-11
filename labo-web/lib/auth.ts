@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/useAuth";
+﻿import { useAuth } from "@/hooks/useAuth";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
@@ -14,9 +14,11 @@ const ROLE_ROUTES: Record<string, string> = {
   viewer: "/dashboard/viewer",
 };
 
+const COMMON = ["/dashboard", "/profil"];
+
 const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
   super_admin: [
-    "/dashboard",
+    ...COMMON,
     "/dashboard/super-admin",
     "/admin",
     "/admin/laboratoires",
@@ -26,7 +28,7 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
     "/personnel",
   ],
   admin: [
-    "/dashboard",
+    ...COMMON,
     "/dashboard/lab-admin",
     "/patients",
     "/analyses",
@@ -42,7 +44,7 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
     "/rapports",
   ],
   lab_manager: [
-    "/dashboard",
+    ...COMMON,
     "/dashboard/lab-admin",
     "/patients",
     "/analyses",
@@ -57,7 +59,7 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
     "/rapports",
   ],
   DIR: [
-    "/dashboard",
+    ...COMMON,
     "/dashboard/lab-admin",
     "/patients",
     "/analyses",
@@ -72,7 +74,7 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
     "/rapports",
   ],
   doctor: [
-    "/dashboard",
+    ...COMMON,
     "/dashboard/doctor",
     "/patients",
     "/analyses",
@@ -82,7 +84,7 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
     "/rendez-vous",
   ],
   technician: [
-    "/dashboard",
+    ...COMMON,
     "/dashboard/technician",
     "/patients",
     "/analyses",
@@ -90,14 +92,14 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
     "/prelevements",
   ],
   receptionist: [
-    "/dashboard",
+    ...COMMON,
     "/dashboard/receptionist",
     "/patients",
     "/visites",
     "/rendez-vous",
   ],
   laborant: [
-    "/dashboard",
+    ...COMMON,
     "/dashboard/laborant",
     "/patients",
     "/analyses",
@@ -105,7 +107,7 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
     "/prelevements",
   ],
   viewer: [
-    "/dashboard",
+    ...COMMON,
     "/dashboard/viewer",
     "/patients",
     "/analyses",
@@ -122,10 +124,9 @@ export function useRoleGuard() {
 
     const roles = user.roles || [];
     const primaryRole = roles[0] || "viewer";
-    const allowed = ROLE_ALLOWED_ROUTES[primaryRole] || [];
+    const allowed = ROLE_ALLOWED_ROUTES[primaryRole] || COMMON;
 
     const currentPath = pathname;
-
     const isAllowed =
       allowed.some((route) => currentPath.startsWith(route)) ||
       currentPath === "/dashboard";
@@ -141,10 +142,7 @@ export function getRoleDashboard(role: string): string {
   return ROLE_ROUTES[role] || "/dashboard/viewer";
 }
 
-export function hasRolePermission(
-  userRoles: string[],
-  requiredRoles: string[]
-): boolean {
+export function hasRolePermission(userRoles: string[], requiredRoles: string[]): boolean {
   return requiredRoles.some((r) => userRoles.includes(r));
 }
 

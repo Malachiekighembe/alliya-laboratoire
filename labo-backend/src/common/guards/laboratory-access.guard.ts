@@ -1,4 +1,4 @@
-import {
+﻿import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
@@ -11,28 +11,34 @@ export class LaboratoryAccessGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || !user.laboratory_id) {
+    if (!user) {
       throw new ForbiddenException('Accès non autorisé');
     }
 
-    // Vérifier laboratory_id depuis le corps de requête ou les paramètres
+    const roles: string[] = user.roles || [];
+    const perms: string[] = user.permissions || [];
+    const isSuperAdmin = roles.includes('super_admin') || perms.includes('system.admin');
+
     const bodyLaboratoryId = request.body?.laboratory_id;
     const paramLaboratoryId = request.params?.laboratory_id;
     const queryLaboratoryId = request.query?.laboratory_id;
+    const requestedLaboratoryId = bodyLaboratoryId || paramLaboratoryId || queryLaboratoryId;
 
-    const requestedLaboratoryId =
-      bodyLaboratoryId || paramLaboratoryId || queryLaboratoryId;
-
-    // Si un laboratory_id est spécifié dans la requête, il doit correspondre à celui du token
-    if (requestedLaboratoryId && requestedLaboratoryId !== user.laboratory_id) {
-      throw new ForbiddenException(
-        "Accès interdit à un autre laboratoire",
-      );
+    if (isSuperAdmin) {
+      // Super admin peut agir globalement ou cibler un laboratoire précis
+      request.laboratory_id = requestedLaboratoryId || user.laboratory_id || null;
+      return true;
     }
 
-    // Attacher le laboratory_id du token à la requête
+    if (!user.laboratory_id) {
+      throw new ForbiddenException('Accès non autorisé');
+    }
+
+    if (requestedLaboratoryId && requestedLaboratoryId !== user.laboratory_id) {
+      throw new ForbiddenException('Accès interdit à un autre laboratoire');
+    }
+
     request.laboratory_id = user.laboratory_id;
-    
     return true;
   }
 }

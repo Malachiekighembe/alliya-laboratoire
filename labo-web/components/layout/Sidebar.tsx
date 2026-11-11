@@ -1,44 +1,18 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  FlaskConical,
-  ClipboardCheck,
-  BarChart3,
-  UserCog,
-  Settings,
-  LogOut,
-  ChevronLeft,
-  X,
-  Clock,
-  Activity,
-  CreditCard,
-  Stethoscope,
-  Building2,
-  ShieldCheck,
+  LayoutDashboard, Users, FileText, FlaskConical, ClipboardCheck, BarChart3, UserCog,
+  Settings, LogOut, ChevronLeft, X, Clock, Activity, CreditCard, Stethoscope, Building2, ShieldCheck, UserCircle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn, getInitials } from "@/lib/utils";
 
-type NavItem = {
-  label: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  roles?: string[];
-};
+type NavItem = { label: string; href: string; icon: React.ComponentType<{ className?: string }>; roles?: string[] };
+type NavSection = { title: string; items: NavItem[]; roles?: string[] };
 
-type NavSection = {
-  title: string;
-  items: NavItem[];
-  roles?: string[];
-};
-
-// ── Super Admin : administration du système (moi) ──
 const SYSTEM_SECTIONS: NavSection[] = [
   {
     title: "Système",
@@ -48,11 +22,11 @@ const SYSTEM_SECTIONS: NavSection[] = [
       { label: "Laboratoires", href: "/admin/laboratoires", icon: Building2 },
       { label: "Abonnements", href: "/admin/abonnements", icon: CreditCard },
       { label: "Utilisateurs système", href: "/admin/utilisateurs", icon: UserCog },
+      { label: "Mon profil", href: "/profil", icon: UserCircle },
     ],
   },
 ];
 
-// ── Admin/Lab Manager/DIR : propriétaire/responsable du labo ──
 const LAB_OWNER_SECTIONS: NavSection[] = [
   {
     title: "Mon laboratoire",
@@ -62,6 +36,7 @@ const LAB_OWNER_SECTIONS: NavSection[] = [
       { label: "Personnel", href: "/personnel", icon: Users },
       { label: "Facturation", href: "/facturation", icon: CreditCard },
       { label: "Rapports", href: "/rapports", icon: BarChart3 },
+      { label: "Profil & infos", href: "/profil", icon: UserCircle },
       { label: "Paramètres", href: "/parametres", icon: Settings },
     ],
   },
@@ -79,7 +54,6 @@ const LAB_OWNER_SECTIONS: NavSection[] = [
   },
 ];
 
-// ── Réceptionniste : accueil et enregistrement ──
 const RECEPTION_SECTIONS: NavSection[] = [
   {
     title: "Réception",
@@ -87,15 +61,13 @@ const RECEPTION_SECTIONS: NavSection[] = [
     items: [
       { label: "Tableau de bord", href: "/dashboard/receptionist", icon: LayoutDashboard },
       { label: "Patients", href: "/patients", icon: Users },
-      { label: "Nouveau patient", href: "/patients/nouveau", icon: Users },
-      { label: "Dossiers", href: "/patients/dossiers", icon: FileText },
       { label: "Visites", href: "/visites", icon: Activity },
       { label: "Rendez-vous", href: "/rendez-vous", icon: Clock },
+      { label: "Mon profil", href: "/profil", icon: UserCircle },
     ],
   },
 ];
 
-// ── Technicien / Laborantin : prélèvements et analyses ──
 const TECH_SECTIONS: NavSection[] = [
   {
     title: "Laboratoire",
@@ -106,11 +78,11 @@ const TECH_SECTIONS: NavSection[] = [
       { label: "Analyses", href: "/analyses", icon: FlaskConical },
       { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
       { label: "Patients", href: "/patients", icon: Users },
+      { label: "Mon profil", href: "/profil", icon: UserCircle },
     ],
   },
 ];
 
-// ── Médecin / Biologiste : validation et consultation ──
 const DOCTOR_SECTIONS: NavSection[] = [
   {
     title: "Médecin",
@@ -121,15 +93,12 @@ const DOCTOR_SECTIONS: NavSection[] = [
       { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
       { label: "Analyses", href: "/analyses", icon: FlaskConical },
       { label: "Patients", href: "/patients", icon: Users },
-      { label: "Dossiers", href: "/patients/dossiers", icon: FileText },
       { label: "Rapports", href: "/rapports", icon: BarChart3 },
-      { label: "Visites", href: "/visites", icon: Activity },
-      { label: "Rendez-vous", href: "/rendez-vous", icon: Clock },
+      { label: "Mon profil", href: "/profil", icon: UserCircle },
     ],
   },
 ];
 
-// ── Viewer : lecture seule ──
 const VIEWER_SECTIONS: NavSection[] = [
   {
     title: "Consultation",
@@ -139,7 +108,7 @@ const VIEWER_SECTIONS: NavSection[] = [
       { label: "Patients", href: "/patients", icon: Users },
       { label: "Analyses", href: "/analyses", icon: FlaskConical },
       { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
-      { label: "Rapports", href: "/rapports", icon: BarChart3 },
+      { label: "Mon profil", href: "/profil", icon: UserCircle },
     ],
   },
 ];
@@ -160,88 +129,43 @@ export interface SidebarProps {
   onMobileClose: () => void;
 }
 
-export default function Sidebar({
-  collapsed,
-  onToggle,
-  mobileOpen,
-  onMobileClose,
-}: SidebarProps) {
+export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, hasRole } = useAuth();
 
-  const handleLogout = async () => {
-    await logout();
-    router.push("/login");
-  };
-
-  const canSeeItem = (item: NavItem) => {
-    if (!item.roles) return true;
-    return item.roles.some((r) => hasRole(r));
-  };
-
-  const canSeeSection = (section: NavSection) => {
-    if (!section.roles) return true;
-    return section.roles.some((r) => hasRole(r));
-  };
+  const handleLogout = async () => { await logout(); router.push("/login"); };
+  const canSeeItem = (item: NavItem) => !item.roles || item.roles.some((r) => hasRole(r));
+  const canSeeSection = (section: NavSection) => !section.roles || section.roles.some((r) => hasRole(r));
 
   const NavLink = ({ item }: { item: NavItem }) => {
     const Icon = item.icon;
-    const active =
-      pathname === item.href ||
-      (item.href !== "/dashboard" && pathname.startsWith(item.href));
+    const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
     return (
-      <Link
-        href={item.href}
-        onClick={onMobileClose}
+      <Link href={item.href} onClick={onMobileClose}
         className={cn(
           "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-          active
-            ? "bg-alliya-turquoise-50 text-alliya-turquoise-700 border border-alliya-turquoise-200"
-            : "text-slate-400 hover:bg-muted hover:text-foreground"
+          active ? "bg-teal-50 text-teal-800 border border-teal-200" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
         )}
         title={collapsed ? item.label : undefined}
       >
-        <Icon
-          className={cn(
-            "h-5 w-5 shrink-0",
-            active
-              ? "text-alliya-turquoise-700"
-              : "text-slate-500"
-          )}
-        />
-        {!collapsed && <span className="truncate text-foreground">{item.label}</span>}
+        <Icon className={cn("h-5 w-5 shrink-0", active ? "text-teal-700" : "text-slate-400")} />
+        {!collapsed && <span className="truncate">{item.label}</span>}
       </Link>
     );
   };
 
-  const isSuperAdmin = hasRole("super_admin");
-
   const sidebarContent = (
-    <div className="flex h-full flex-col">
-      <div className="flex h-14 items-center justify-between border-b border-border/50 px-4 bg-background/50">
+    <div className="flex h-full flex-col bg-white">
+      <div className="flex h-14 items-center justify-between border-b border-slate-200 px-4">
         {!collapsed && (
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-alliya-turquoise text-white font-bold text-[10px]">
-              AL
-            </div>
-            <span className="font-semibold text-foreground tracking-tight">
-              Alliya Labo
-            </span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-white font-bold text-[10px]">AL</div>
+            <span className="font-semibold text-slate-900 tracking-tight">Alliya Labo</span>
           </Link>
         )}
-        {collapsed && (
-          <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-lg bg-alliya-turquoise text-white font-bold text-[10px]">
-            AL
-          </div>
-        )}
-        <button
-          onClick={onToggle}
-          className={cn(
-            "hidden lg:flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-muted hover:text-foreground",
-            collapsed && "hidden"
-          )}
-        >
+        {collapsed && <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-white font-bold text-[10px]">AL</div>}
+        <button onClick={onToggle} className={cn("hidden lg:flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700", collapsed && "hidden")}>
           <ChevronLeft className="h-4 w-4" />
         </button>
       </div>
@@ -252,50 +176,28 @@ export default function Sidebar({
           if (visibleItems.length === 0) return null;
           return (
             <div key={section.title}>
-              {!collapsed && (
-                <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                  {section.title}
-                </p>
-              )}
-              <div className="space-y-1">
-                {visibleItems.map((item) => (
-                  <NavLink key={item.href} item={item} />
-                ))}
-              </div>
+              {!collapsed && <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{section.title}</p>}
+              <div className="space-y-1">{visibleItems.map((item) => <NavLink key={item.href} item={item} />)}</div>
             </div>
           );
         })}
       </nav>
 
-      <div className="border-t border-border/50 p-3 bg-background/30">
+      <div className="border-t border-slate-200 p-3">
         {user && (
-          <div className={cn("flex items-center gap-3 rounded-lg px-2 py-2", collapsed && "justify-center")}>
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alliya-turquoise-100 text-alliya-turquoise-700 text-[10px] font-bold">
-              {getInitials(user.first_name, user.last_name)}
+          <Link href="/profil" className={cn("flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-50", collapsed && "justify-center")} title="Mon profil">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-700 text-[10px] font-bold">
+              {getInitials(user.first_name || "", user.last_name || "")}
             </div>
-        {!collapsed && (
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-foreground">
-              {user.first_name} {user.last_name}
-            </p>
-            <p className="truncate text-xs text-slate-400">
-              {user.roles?.[0] === "super_admin"
-                ? "Super Admin (Système)"
-                : user.roles?.[0] === "admin" || user.roles?.[0] === "lab_manager"
-                ? "Admin Labo"
-                : user.roles?.[0] || "Utilisateur"}
-            </p>
-          </div>
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-slate-900">{(user.first_name || "") + " " + (user.last_name || "") || "Mon profil"}</p>
+                <p className="truncate text-xs text-slate-400">{user.roles?.[0] || "Utilisateur"}</p>
+              </div>
+            )}
+          </Link>
         )}
-          </div>
-        )}
-        <button
-          onClick={handleLogout}
-          className={cn(
-            "mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-muted hover:text-foreground transition-colors",
-            collapsed && "justify-center"
-          )}
-        >
+        <button onClick={handleLogout} className={cn("mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors", collapsed && "justify-center")}>
           <LogOut className="h-4 w-4 shrink-0" />
           {!collapsed && <span>Déconnexion</span>}
         </button>
@@ -305,27 +207,14 @@ export default function Sidebar({
 
   return (
     <>
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 hidden flex-col bg-background transition-all duration-300 lg:flex",
-          collapsed ? "w-[64px]" : "w-64"
-        )}
-      >
+      <aside className={cn("fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-slate-200 bg-white transition-all duration-300 lg:flex", collapsed ? "w-[64px]" : "w-64")}>
         {sidebarContent}
       </aside>
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="fixed inset-0 bg-black/40"
-            onClick={onMobileClose}
-          />
-          <aside className="fixed inset-y-0 left-0 w-64 bg-background shadow-xl">
-            <button
-              onClick={onMobileClose}
-              className="absolute right-3 top-4 text-slate-400 hover:text-foreground"
-            >
-              <X className="h-5 w-5" />
-            </button>
+          <div className="fixed inset-0 bg-black/40" onClick={onMobileClose} />
+          <aside className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl">
+            <button onClick={onMobileClose} className="absolute right-3 top-4 text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
             {sidebarContent}
           </aside>
         </div>
@@ -333,4 +222,3 @@ export default function Sidebar({
     </>
   );
 }
-

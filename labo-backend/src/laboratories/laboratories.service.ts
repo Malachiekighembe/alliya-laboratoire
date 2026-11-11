@@ -1,4 +1,5 @@
 ﻿import { Injectable, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 import { DatabaseService } from '../database/database.service.js';
 import { CacheService } from '../cache/cache.service.js';
 
@@ -71,8 +72,13 @@ export class LaboratoriesService {
     const subscription = await this.prisma.subscriptions.findFirst({
       where: { laboratory_id: lab.id },
     });
+    const users = await this.prisma.users.findMany({
+      where: { laboratory_id: lab.id, deleted_at: null },
+      select: { id: true, first_name: true, last_name: true, email: true, phone: true, roles: true, is_active: true },
+      orderBy: { created_at: 'asc' },
+    });
 
-    return { ...lab, subscription, stats: null };
+    return { ...lab, subscription, users, stats: null };
   }
 
   async create(dto: any, user: any) {
@@ -81,24 +87,51 @@ export class LaboratoriesService {
       throw new NotFoundException('Accès réservé au super administrateur');
     }
 
-    const existing = await this.prisma.laboratories.findFirst({
-      where: { code: dto.code },
-    });
+    const code = dto.code || `LAB-${Date.now().toString().slice(-6)}`;
+    const name = dto.name || 'Nouveau laboratoire';
+    const slug = dto.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `lab-${Date.now()}`;
+
+    const existing = await this.prisma.laboratories.findFirst({ where: { code } });
     if (existing) throw new Error('Un laboratoire avec ce code existe déjà');
 
     const lab = await this.prisma.laboratories.create({
       data: {
-        code: dto.code,
-        name: dto.name,
-        slug: dto.slug,
+        code,
+        name,
+        slug,
         email: dto.email || null,
         phone: dto.phone || null,
         address: dto.address || null,
         is_active: dto.is_active !== false,
       },
     });
+
+    let adminUser: any = null;
+    const admin = dto.admin;
+    if (admin && (admin.email || admin.first_name || admin.last_name || admin.password)) {
+      const password_hash = admin.password ? await bcrypt.hash(admin.password, 10) : null;
+      const roles: string[] = Array.isArray(admin.roles) && admin.roles.length ? admin.roles : ['admin'];
+      adminUser = await this.prisma.users.create({
+        data: {
+          laboratory_id: lab.id,
+          email: admin.email || null,
+          password_hash,
+          first_name: admin.first_name || '',
+          last_name: admin.last_name || '',
+          phone: admin.phone || null,
+          roles,
+          permissions: [],
+          is_active: admin.is_active !== false,
+        },
+      });
+      if (adminUser) {
+        const { password_hash: _ph, ...safe } = adminUser as any;
+        adminUser = safe;
+      }
+    }
+
     await this.cache.delByPattern('labs:*');
-    return lab;
+    return { ...lab, admin: adminUser };
   }
 
   async update(id: string, dto: any, user: any) {
@@ -111,18 +144,16 @@ export class LaboratoriesService {
     const existing = await this.prisma.laboratories.findFirst({ where });
     if (!existing) throw new NotFoundException('Laboratoire introuvable');
 
-    const updated = await this.prisma.laboratories.update({
-      where: { id },
-      data: {
-        code: dto.code,
-        name: dto.name,
-        slug: dto.slug,
-        email: dto.email || null,
-        phone: dto.phone || null,
-        address: dto.address || null,
-        is_active: dto.is_active,
-      },
-    });
+    const data: any = {};
+    if (dto.code !== undefined) data.code = dto.code;
+    if (dto.name !== undefined) data.name = dto.name;
+    if (dto.slug !== undefined) data.slug = dto.slug;
+    if (dto.email !== undefined) data.email = dto.email || null;
+    if (dto.phone !== undefined) data.phone = dto.phone || null;
+    if (dto.address !== undefined) data.address = dto.address || null;
+    if (dto.is_active !== undefined) data.is_active = dto.is_active;
+
+    const updated = await this.prisma.laboratories.update({ where: { id }, data });
     await this.cache.delByPattern('labs:*');
     return updated;
   }
