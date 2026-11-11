@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+﻿import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module.js';
 import { CommonModule } from './common/common.module.js';
@@ -18,6 +18,7 @@ import { ResultValidationsModule } from './result-validations/result-validations
 import { LaboratoriesModule } from './laboratories/laboratories.module.js';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
+import { CacheModule } from './cache/cache.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { createConfiguration, validateEnvironment } from './config/index.js';
@@ -56,4 +57,5 @@ import { createConfiguration, validateEnvironment } from './config/index.js';
   providers: [AppService],
 })
 export class AppModule {}
+
 

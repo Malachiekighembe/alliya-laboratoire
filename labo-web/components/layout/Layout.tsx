@@ -7,7 +7,7 @@ import Sidebar from "./Sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { LabProvider } from "@/components/lab/LabProvider";
-import { supabaseDb } from "@/lib/supabase";
+import { api } from "@/lib/api-client";
 import type { Laboratory } from "@/lib/api-client";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -20,10 +20,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [laboratories, setLaboratories] = React.useState<Laboratory[]>([]);
 
   React.useEffect(() => {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-    if (!token && !pathname.startsWith("/login")) {
-      router.replace("/login");
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("access_token");
+      if (!token && !pathname.startsWith("/login")) {
+        router.replace("/login");
+      }
     }
   }, [pathname, router]);
 
@@ -33,11 +34,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       if (!user) return;
       try {
         if (user.roles.includes("super_admin")) {
-          const res = await supabaseDb.getLaboratories();
-          if (!cancelled) setLaboratories(Array.isArray(res.data) ? res.data : []);
+          const res = await api.safeGet<Laboratory[]>("/laboratories");
+          if (!cancelled) setLaboratories(!res.error && Array.isArray(res.data) ? res.data : []);
         } else if (user.laboratory_id) {
-          const res = await supabaseDb.getLaboratory(user.laboratory_id);
-          if (!cancelled && res.data) setLaboratories([res.data]);
+          const res = await api.safeGet<Laboratory>(`/laboratories/${user.laboratory_id}`);
+          if (!cancelled && !res.error && res.data) setLaboratories([res.data]);
         }
       } catch {
         if (!cancelled) setLaboratories([]);

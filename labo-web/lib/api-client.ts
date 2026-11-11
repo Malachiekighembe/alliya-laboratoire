@@ -1,4 +1,4 @@
-// API client shared types and helpers for Alliya Laboratoire
+﻿// API client shared types and helpers for Alliya Laboratoire
 
 export interface ApiEnvelope<T = unknown> {
   success: boolean;
@@ -259,8 +259,16 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 const DEFAULT_TIMEOUT = 15000;
 const MAX_RETRIES = 2;
 
+type AuthHandlers = {
+  getRefreshToken: () => string | null;
+  onTokens: (tokens: { access_token: string; refresh_token: string }) => void;
+  onUnauthorized: () => void;
+};
+
 class ApiClient {
   private token: string | null = null;
+  private authHandlers: AuthHandlers | null = null;
+  private refreshPromise: Promise<string | null> | null = null;
 
   setToken(token: string | null) {
     this.token = token;
@@ -268,6 +276,10 @@ class ApiClient {
 
   getToken(): string | null {
     return this.token;
+  }
+
+  setAuthHandlers(handlers: AuthHandlers | null) {
+    this.authHandlers = handlers;
   }
 
   private async fetchWithTimeout(
@@ -284,6 +296,37 @@ class ApiClient {
     } finally {
       clearTimeout(timer);
     }
+  }
+
+  private async tryRefreshToken(): Promise<string | null> {
+    if (!this.authHandlers) return null;
+    if (!this.refreshPromise) {
+      this.refreshPromise = (async () => {
+        const rt = this.authHandlers?.getRefreshToken();
+        if (!rt) return null;
+        try {
+          const res = await this.fetchWithTimeout(`${API_BASE}/api/v1/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: rt }),
+          });
+          if (!res.ok) return null;
+          const json = (await res.json().catch(() => ({}))) as ApiEnvelope<{ access_token: string; refresh_token: string }>;
+          const data = json.data as any;
+          if (data?.access_token && data?.refresh_token) {
+            this.setToken(data.access_token);
+            this.authHandlers?.onTokens({ access_token: data.access_token, refresh_token: data.refresh_token });
+            return data.access_token as string;
+          }
+          return null;
+        } catch {
+          return null;
+        }
+      })().finally(() => {
+        this.refreshPromise = null;
+      });
+    }
+    return this.refreshPromise;
   }
 
   async request<T>(
@@ -307,6 +350,25 @@ class ApiClient {
             body: body ? JSON.stringify(body) : undefined,
           },
         );
+
+        if (res.status === 401 && path !== '/auth/refresh' && path !== '/auth/login') {
+          const newToken = await this.tryRefreshToken();
+          if (newToken) {
+            headers['Authorization'] = `Bearer ${newToken}`;
+            const retryRes = await this.fetchWithTimeout(
+              `${API_BASE}/api/v1${path}`,
+              { method, headers, body: body ? JSON.stringify(body) : undefined },
+            );
+            if (retryRes.ok) return (await retryRes.json()) as ApiEnvelope<T>;
+            const retryErr = (await retryRes.json().catch(() => ({}))) as ApiError;
+            if (retryRes.status === 401) {
+              this.authHandlers?.onUnauthorized();
+            }
+            throw new Error(retryErr.message || `HTTP ${retryRes.status}`);
+          } else {
+            this.authHandlers?.onUnauthorized();
+          }
+        }
 
         if (!res.ok) {
           const err = (await res.json().catch(() => ({}))) as ApiError;

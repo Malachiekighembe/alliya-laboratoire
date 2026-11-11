@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+﻿import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
+import { CacheService } from '../cache/cache.service.js';
 
 @Injectable()
 export class SubscriptionsService {
-  constructor(private readonly prisma: DatabaseService) {}
+  constructor(
+    private readonly prisma: DatabaseService,
+    private readonly cache: CacheService,
+  ) {}
 
   private isSuperAdmin(user: any): boolean {
     return !!user && (user.roles?.includes('super_admin') || user.permissions?.includes('system.admin'));
@@ -11,12 +15,18 @@ export class SubscriptionsService {
 
   async findAll(user: any) {
     const superAdmin = this.isSuperAdmin(user);
+    const cacheKey = superAdmin ? 'subs:all:super' : `subs:all:${user?.laboratory_id || 'none'}`;
+    const cached = await this.cache.get<any[]>(cacheKey);
+    if (cached) return cached;
+
     const where: any = {};
     if (!superAdmin && user?.laboratory_id) {
       where.laboratory_id = user.laboratory_id;
     }
 
-    return this.prisma.subscriptions.findMany({ where, orderBy: { created_at: 'desc' } });
+    const data = await this.prisma.subscriptions.findMany({ where, orderBy: { created_at: 'desc' } });
+    await this.cache.set(cacheKey, data, 60);
+    return data;
   }
 
   async findById(id: string, user: any) {
@@ -53,7 +63,7 @@ export class SubscriptionsService {
     });
     if (existing) throw new Error('Un abonnement existe déjà pour ce laboratoire');
 
-    return this.prisma.subscriptions.create({
+    const created = await this.prisma.subscriptions.create({
       data: {
         laboratory_id: dto.laboratory_id,
         plan: dto.plan,
@@ -69,6 +79,9 @@ export class SubscriptionsService {
         auto_renew: dto.auto_renew !== false,
       },
     });
+    await this.cache.delByPattern('subs:*');
+    await this.cache.delByPattern('labs:*');
+    return created;
   }
 
   async update(id: string, dto: any, user: any) {
@@ -81,7 +94,7 @@ export class SubscriptionsService {
     const existing = await this.prisma.subscriptions.findFirst({ where });
     if (!existing) throw new NotFoundException('Abonnement introuvable');
 
-    return this.prisma.subscriptions.update({
+    const updated = await this.prisma.subscriptions.update({
       where: { id },
       data: {
         plan: dto.plan,
@@ -97,6 +110,9 @@ export class SubscriptionsService {
         auto_renew: dto.auto_renew,
       },
     });
+    await this.cache.delByPattern('subs:*');
+    await this.cache.delByPattern('labs:*');
+    return updated;
   }
 
   async remove(id: string, user: any) {
@@ -113,5 +129,7 @@ export class SubscriptionsService {
       where: { id },
       data: { status: 'cancelled' },
     });
+    await this.cache.delByPattern('subs:*');
+    await this.cache.delByPattern('labs:*');
   }
 }

@@ -1,29 +1,40 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api-client";
-import { PageHeader, Card, CardContent, CardHeader, CardTitle, Button } from "@/components/ui";
-import { Building2, Plus, Users, Activity, ShieldCheck, X } from "lucide-react";
+import { PageHeader, Card, CardContent, CardHeader, CardTitle, Button, Input, Label } from "@/components/ui";
+import { Building2, Plus, Users, Activity, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const MotionDiv = motion.div;
 const fadeUp: any = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+
+const initialForm = {
+  code: "",
+  name: "",
+  slug: "",
+  email: "",
+  phone: "",
+  address: "",
+  is_active: true,
+};
 
 export default function AdminLaboratoiresPage() {
   const { user } = useAuth();
   const [labs, setLabs] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [showForm, setShowForm] = React.useState(false);
-  const [form, setForm] = React.useState({ code: "", name: "", slug: "", email: "", phone: "", address: "" });
+  const [open, setOpen] = React.useState(false);
+  const [form, setForm] = React.useState({ ...initialForm });
   const [error, setError] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
   const load = React.useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get<any[]>("/laboratories");
-      setLabs(Array.isArray(res.data) ? res.data : []);
+      const res = await api.safeGet<any[]>("/laboratories");
+      setLabs(!res.error && Array.isArray(res.data) ? res.data : []);
     } catch {
       setLabs([]);
     } finally {
@@ -38,9 +49,18 @@ export default function AdminLaboratoiresPage() {
     setError("");
     setSaving(true);
     try {
-      await api.post("/laboratories", { ...form, is_active: true });
-      setShowForm(false);
-      setForm({ code: "", name: "", slug: "", email: "", phone: "", address: "" });
+      // Champs alignés sur la table laboratories (code,name,slug,email,phone,address,is_active)
+      await api.post("/laboratories", {
+        code: form.code,
+        name: form.name,
+        slug: form.slug,
+        email: form.email || null,
+        phone: form.phone || null,
+        address: form.address || null,
+        is_active: form.is_active,
+      });
+      setOpen(false);
+      setForm({ ...initialForm });
       await load();
     } catch (err: any) {
       setError(err?.message || "Erreur lors de la création");
@@ -59,35 +79,57 @@ export default function AdminLaboratoiresPage() {
         title="Laboratoires"
         description="Gestion des laboratoires du système"
         action={
-          <Button onClick={() => setShowForm(true)} className="bg-[#111827] text-white hover:bg-[#374151]">
+          <Button onClick={() => { setError(""); setForm({ ...initialForm }); setOpen(true); }} className="bg-[#111827] text-white hover:bg-[#374151]">
             <Plus className="h-4 w-4 mr-2" /> Nouveau laboratoire
           </Button>
         }
       />
 
-      {showForm && (
-        <Card className="border border-[#E5E7EB]">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Ajouter un laboratoire</CardTitle>
-            <button onClick={() => setShowForm(false)}><X className="h-4 w-4 text-slate-500" /></button>
-          </CardHeader>
-          <CardContent>
-            {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
-            <form onSubmit={create} className="grid gap-4 sm:grid-cols-2">
-              <input required placeholder="Code (ex: LAB001)" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm" />
-              <input required placeholder="Nom du laboratoire" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm" />
-              <input placeholder="Slug (ex: labo-centre)" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className="border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm" />
-              <input type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm" />
-              <input placeholder="Téléphone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm" />
-              <input placeholder="Adresse" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm sm:col-span-2" />
-              <div className="sm:col-span-2 flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Annuler</Button>
-                <Button type="submit" disabled={saving} className="bg-[#111827] text-white hover:bg-[#374151]">{saving ? "Création…" : "Créer"}</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Ajouter un laboratoire</DialogTitle>
+          </DialogHeader>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <form onSubmit={create} className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label htmlFor="code">Code *</Label>
+              <Input id="code" required value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="LAB001" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="name">Nom *</Label>
+              <Input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nom du laboratoire" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="slug">Slug *</Label>
+              <Input id="slug" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="labo-centre" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="phone">Téléphone</Label>
+              <Input id="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="is_active">Actif</Label>
+              <select id="is_active" value={form.is_active ? "true" : "false"} onChange={(e) => setForm({ ...form, is_active: e.target.value === "true" })} className="w-full border border-[#D1D5DB] rounded-md px-3 py-2 text-sm bg-white">
+                <option value="true">Oui</option>
+                <option value="false">Non</option>
+              </select>
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <Label htmlFor="address">Adresse</Label>
+              <Input id="address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            </div>
+            <DialogFooter className="sm:col-span-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
+              <Button type="submit" disabled={saving} className="bg-[#111827] text-white hover:bg-[#374151]">{saving ? "Création…" : "Créer"}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {loading ? (
         <p className="text-muted-foreground">Chargement…</p>
@@ -112,15 +154,9 @@ export default function AdminLaboratoiresPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Users className="h-3.5 w-3.5" /> {lab.stats?.users_count || 0} utilisateurs
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Activity className="h-3.5 w-3.5" /> {lab.stats?.patients_count || 0} patients
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <ShieldCheck className="h-3.5 w-3.5" /> Plan: {lab.subscription?.plan || "—"} ({lab.subscription?.status || "—"})
-                </div>
+                <div className="flex items-center gap-2 text-muted-foreground"><Users className="h-3.5 w-3.5" /> {lab.stats?.users_count || 0} utilisateurs</div>
+                <div className="flex items-center gap-2 text-muted-foreground"><Activity className="h-3.5 w-3.5" /> {lab.stats?.patients_count || 0} patients</div>
+                <div className="flex items-center gap-2 text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5" /> Plan: {lab.subscription?.plan || "—"} ({lab.subscription?.status || "—"})</div>
               </CardContent>
             </Card>
           ))}

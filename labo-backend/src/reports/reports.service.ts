@@ -1,11 +1,19 @@
-import { Injectable } from '@nestjs/common';
+﻿import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
+import { CacheService } from '../cache/cache.service.js';
 
 @Injectable()
 export class ReportsService {
-  constructor(private readonly prisma: DatabaseService) {}
+  constructor(
+    private readonly prisma: DatabaseService,
+    private readonly cache: CacheService,
+  ) {}
 
   async getDashboard(laboratory_id: string, dateFrom?: string, dateTo?: string) {
+    const cacheKey = `dashboard:${laboratory_id}:${dateFrom || ''}:${dateTo || ''}`;
+    const cached = await this.cache.get<any>(cacheKey);
+    if (cached) return cached;
+
     const where: any = { laboratory_id, deleted_at: null };
     if (dateFrom) where.created_at = { gte: new Date(dateFrom) };
     if (dateTo) where.created_at = { ...where.created_at, lte: new Date(dateTo) };
@@ -26,7 +34,7 @@ export class ReportsService {
     const lowStock = (activeProducts ?? []).filter((p: any) => (p.current_stock ?? 0) <= (p.min_stock ?? 0)).length;
     const expiring = Array.isArray(expiringLots) ? expiringLots.length : (expiringLots ?? 0);
 
-    return {
+    const data = {
       patients, visits, orders, specimens, results,
       pending_validations: pending,
       invoices_total: Number(invoices?._sum?.total || 0),
@@ -34,6 +42,8 @@ export class ReportsService {
       low_stock_alerts: lowStock,
       expiring_lots: expiring,
     };
+    await this.cache.set(cacheKey, data, 30);
+    return data;
   }
 
   async getAuditLogs(laboratory_id: string, page = 1, limit = 20) {

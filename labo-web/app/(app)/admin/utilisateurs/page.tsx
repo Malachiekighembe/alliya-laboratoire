@@ -17,29 +17,32 @@ export default function AdminUtilisateursPage() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
+    let cancelled = false;
     (async () => {
       setLoading(true);
       try {
-        const res = await api.get<any[]>("/laboratories");
-        const labList = Array.isArray(res.data) ? res.data : [];
+        const res = await api.safeGet<any[]>("/laboratories");
+        const labList = !res.error && Array.isArray(res.data) ? res.data : [];
+        if (cancelled) return;
         setLabs(labList);
         const entries = await Promise.all(
           labList.map(async (lab) => {
             try {
-              const u = await api.get<any[]>(`/users?laboratory_id=${lab.id}`);
-              return [lab.id, Array.isArray(u.data) ? u.data : []] as [string, any[]];
+              const u = await api.safeGet<any[]>(`/users?laboratory_id=${lab.id}`);
+              return [lab.id, !u.error && Array.isArray(u.data) ? u.data : []] as [string, any[]];
             } catch {
               return [lab.id, []] as [string, any[]];
             }
           })
         );
-        setUsersByLab(Object.fromEntries(entries));
+        if (!cancelled) setUsersByLab(Object.fromEntries(entries));
       } catch {
-        setLabs([]);
+        if (!cancelled) setLabs([]);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
+    return () => { cancelled = true; };
   }, []);
 
   if (user && !user.roles?.includes("super_admin")) {

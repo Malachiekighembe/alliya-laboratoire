@@ -34,8 +34,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-xl border-[#E5E7EB] bg-white overflow-hidden border border-[#E5E7EB]">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5F8FA] to-[#EEF7F7] flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Background decoration */}
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#07122E] via-[#1E2A47] to-[#3D9597] opacity-5 rounded-full blur-3xl transform translate-x-[-50%] translate-y-[-50%]"></div>
+        
+        <Card className="relative shadow-2xl border-[#E5E7EB] bg-white/95 backdrop-blur-sm overflow-hidden border border-[#E5E7EB]">
         <CardHeader className="px-8 pt-9 pb-4 text-center">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#111827] text-white mb-5 shadow-md mx-auto">
             <ShieldCheck className="h-6 w-6" />
@@ -144,7 +148,8 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

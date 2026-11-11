@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+﻿import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
+import { CacheService } from '../cache/cache.service.js';
 
 @Injectable()
 export class LaboratoriesService {
-  constructor(private readonly prisma: DatabaseService) {}
+  constructor(
+    private readonly prisma: DatabaseService,
+    private readonly cache: CacheService,
+  ) {}
 
   private isSuperAdmin(user: any): boolean {
     return !!user && (user.roles?.includes('super_admin') || user.permissions?.includes('system.admin'));
@@ -11,6 +15,10 @@ export class LaboratoriesService {
 
   async findAll(user: any) {
     const superAdmin = this.isSuperAdmin(user);
+    const cacheKey = superAdmin ? 'labs:all:super' : `labs:all:${user?.laboratory_id || 'none'}`;
+    const cached = await this.cache.get<any[]>(cacheKey);
+    if (cached) return cached;
+
     const where: any = { deleted_at: null };
     if (!superAdmin && user?.laboratory_id) {
       where.id = user.laboratory_id;
@@ -21,13 +29,9 @@ export class LaboratoriesService {
       orderBy: { created_at: 'desc' },
     });
 
-    const result = [];
-    for (const lab of labs) {
-      const subscription = await this.prisma.subscriptions.findFirst({
-        where: { laboratory_id: lab.id },
-      });
-
-      const [usersCount, patientsCount, analysesCount, resultsCount, visitsCount] = await Promise.all([
+    const result = await Promise.all(labs.map(async (lab: any) => {
+      const [subscription, usersCount, patientsCount, analysesCount, resultsCount, visitsCount] = await Promise.all([
+        this.prisma.subscriptions.findFirst({ where: { laboratory_id: lab.id } }),
         this.prisma.users.count({ where: { laboratory_id: lab.id, deleted_at: null } }),
         this.prisma.patients.count({ where: { laboratory_id: lab.id, deleted_at: null } }),
         this.prisma.results.count({ where: { laboratory_id: lab.id } }),
@@ -35,7 +39,7 @@ export class LaboratoriesService {
         this.prisma.visits.count({ where: { laboratory_id: lab.id } }),
       ]);
 
-      result.push({
+      return {
         ...lab,
         subscription,
         stats: {
@@ -47,9 +51,10 @@ export class LaboratoriesService {
           visits_count: visitsCount,
           last_activity: null,
         },
-      });
-    }
+      };
+    }));
 
+    await this.cache.set(cacheKey, result, 60);
     return result;
   }
 
@@ -92,6 +97,7 @@ export class LaboratoriesService {
         is_active: dto.is_active !== false,
       },
     });
+    await this.cache.delByPattern('labs:*');
     return lab;
   }
 
@@ -105,7 +111,7 @@ export class LaboratoriesService {
     const existing = await this.prisma.laboratories.findFirst({ where });
     if (!existing) throw new NotFoundException('Laboratoire introuvable');
 
-    return this.prisma.laboratories.update({
+    const updated = await this.prisma.laboratories.update({
       where: { id },
       data: {
         code: dto.code,
@@ -117,6 +123,8 @@ export class LaboratoriesService {
         is_active: dto.is_active,
       },
     });
+    await this.cache.delByPattern('labs:*');
+    return updated;
   }
 
   async remove(id: string, user: any) {
@@ -133,5 +141,6 @@ export class LaboratoriesService {
       where: { id },
       data: { deleted_at: new Date(), is_active: false },
     });
+    await this.cache.delByPattern('labs:*');
   }
 }

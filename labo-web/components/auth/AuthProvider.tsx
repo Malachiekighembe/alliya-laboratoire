@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { api, User } from "@/lib/api-client";
@@ -7,6 +7,7 @@ export interface AuthContextType {
   user: User | null;
   tokens: { access_token: string; refresh_token: string } | null;
   error: string | null;
+  ready: boolean;
   login: (identifier: string, password: string) => Promise<{ user: User; tokens: { access_token: string; refresh_token: string } }>;
   register: (dto: {
     email: string;
@@ -25,36 +26,69 @@ export interface AuthContextType {
 const AuthContext = React.createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const storedUser =
-    typeof window !== "undefined" ? localStorage.getItem("user") : null;
-  const storedToken =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-  const storedRefresh =
-    typeof window !== "undefined" ? localStorage.getItem("refresh_token") : null;
-
-  const [user, setUser] = React.useState<User | null>(() => {
-    if (storedUser) {
-      try {
-        return JSON.parse(storedUser);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  });
-  const [tokens, setTokens] = React.useState<{ access_token: string; refresh_token: string } | null>(() => {
-    if (storedToken) {
-      return { access_token: storedToken, refresh_token: storedRefresh || "" };
-    }
-    return null;
-  });
+  const [user, setUser] = React.useState<User | null>(null);
+  const [tokens, setTokens] = React.useState<{ access_token: string; refresh_token: string } | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  const [ready, setReady] = React.useState(false);
 
-  // S'assurer que le token est configure sur l'instance API AVANT tout render des enfants
-  // pour eviter les requetes sans Authorization header (cause de deconnexion)
-  if (tokens) {
-    api.setToken(tokens.access_token);
+  // Hydratation client: charger session stockée avant d'autoriser les requêtes/pages
+  React.useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      const access = localStorage.getItem("access_token");
+      const refresh = localStorage.getItem("refresh_token") || "";
+      if (storedUser && access) {
+        const parsed = JSON.parse(storedUser) as User;
+        setUser(parsed);
+        setTokens({ access_token: access, refresh_token: refresh });
+        api.setToken(access);
+      } else {
+        api.setToken(null);
+      }
+    } catch {
+      localStorage.removeItem("user");
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      api.setToken(null);
+      setUser(null);
+      setTokens(null);
+    } finally {
+      setReady(true);
+    }
+  }, []);
+
+  // Toujours synchroniser le token courant sur l'instance API (avant les effets enfants)
+  const activeToken = tokens?.access_token || (typeof window !== "undefined" ? localStorage.getItem("access_token") : null);
+  if (activeToken) {
+    api.setToken(activeToken);
+  } else if (ready) {
+    api.setToken(null);
   }
+
+  // Rafraîchissement automatique des tokens (401 -> refresh -> retry)
+  React.useEffect(() => {
+    api.setAuthHandlers({
+      getRefreshToken: () => (typeof window !== "undefined" ? localStorage.getItem("refresh_token") : null),
+      onTokens: (next) => {
+        localStorage.setItem("access_token", next.access_token);
+        localStorage.setItem("refresh_token", next.refresh_token);
+        setTokens(next);
+        api.setToken(next.access_token);
+      },
+      onUnauthorized: () => {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
+        api.setToken(null);
+        setTokens(null);
+        setUser(null);
+        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+          window.location.replace("/login");
+        }
+      },
+    });
+    return () => api.setAuthHandlers(null);
+  }, []);
 
   const login = React.useCallback(async (identifier: string, password: string) => {
     setError(null);
@@ -106,7 +140,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = React.useCallback(async () => {
-    try { await api.post("/auth/logout"); } catch {}
+    const refreshToken = typeof window !== "undefined" ? localStorage.getItem("refresh_token") : null;
+    try { await api.post("/auth/logout", refreshToken ? { refresh_token: refreshToken } : undefined); } catch {}
     api.setToken(null);
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
@@ -120,8 +155,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hasRole = React.useCallback((role: string): boolean => !!user && user.roles.includes(role), [user]);
 
   const value = React.useMemo<AuthContextType>(
-    () => ({ user, tokens, error, login, register, logout, hasPermission, hasRole }),
-    [user, tokens, error, login, register, logout, hasPermission, hasRole]
+    () => ({ user, tokens, error, ready, login, register, logout, hasPermission, hasRole }),
+    [user, tokens, error, ready, login, register, logout, hasPermission, hasRole]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,22 +1,38 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api-client";
-import { PageHeader, Card, CardContent, CardHeader, CardTitle, Button } from "@/components/ui";
-import { CreditCard, Plus, X, RefreshCw } from "lucide-react";
+import { PageHeader, Card, CardContent, Button, Input, Label } from "@/components/ui";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const MotionDiv = motion.div;
 const fadeUp: any = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+
+const initialForm = {
+  laboratory_id: "",
+  plan: "starter",
+  plan_name: "Starter",
+  status: "trial",
+  started_at: "",
+  expires_at: "",
+  price_monthly: "0",
+  currency: "EUR",
+  max_users: "",
+  max_patients: "",
+  max_analyses: "",
+  auto_renew: true,
+};
 
 export default function AdminAbonnementsPage() {
   const { user } = useAuth();
   const [subs, setSubs] = React.useState<any[]>([]);
   const [labs, setLabs] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [showForm, setShowForm] = React.useState(false);
-  const [form, setForm] = React.useState({ laboratory_id: "", plan: "starter", status: "trial", price_monthly: 0 });
+  const [open, setOpen] = React.useState(false);
+  const [form, setForm] = React.useState({ ...initialForm });
   const [error, setError] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
@@ -24,11 +40,11 @@ export default function AdminAbonnementsPage() {
     setLoading(true);
     try {
       const [s, l] = await Promise.all([
-        api.get<any[]>("/subscriptions"),
-        api.get<any[]>("/laboratories"),
+        api.safeGet<any[]>("/subscriptions"),
+        api.safeGet<any[]>("/laboratories"),
       ]);
-      setSubs(Array.isArray(s.data) ? s.data : []);
-      setLabs(Array.isArray(l.data) ? l.data : []);
+      setSubs(!s.error && Array.isArray(s.data) ? s.data : []);
+      setLabs(!l.error && Array.isArray(l.data) ? l.data : []);
     } catch {
       setSubs([]); setLabs([]);
     } finally {
@@ -43,9 +59,23 @@ export default function AdminAbonnementsPage() {
     setError("");
     setSaving(true);
     try {
-      await api.post("/subscriptions", { ...form, price_monthly: Number(form.price_monthly) });
-      setShowForm(false);
-      setForm({ laboratory_id: "", plan: "starter", status: "trial", price_monthly: 0 });
+      // Champs alignés sur la table subscriptions
+      await api.post("/subscriptions", {
+        laboratory_id: form.laboratory_id,
+        plan: form.plan,
+        plan_name: form.plan_name || form.plan,
+        status: form.status,
+        started_at: form.started_at || undefined,
+        expires_at: form.expires_at || undefined,
+        price_monthly: form.price_monthly === "" ? 0 : Number(form.price_monthly),
+        currency: form.currency || "EUR",
+        max_users: form.max_users === "" ? null : Number(form.max_users),
+        max_patients: form.max_patients === "" ? null : Number(form.max_patients),
+        max_analyses: form.max_analyses === "" ? null : Number(form.max_analyses),
+        auto_renew: form.auto_renew,
+      });
+      setOpen(false);
+      setForm({ ...initialForm });
       await load();
     } catch (err: any) {
       setError(err?.message || "Erreur lors de la création");
@@ -73,45 +103,89 @@ export default function AdminAbonnementsPage() {
         title="Abonnements"
         description="Gestion des abonnements des laboratoires"
         action={
-          <Button onClick={() => setShowForm(true)} className="bg-[#111827] text-white hover:bg-[#374151]">
+          <Button onClick={() => { setError(""); setForm({ ...initialForm }); setOpen(true); }} className="bg-[#111827] text-white hover:bg-[#374151]">
             <Plus className="h-4 w-4 mr-2" /> Nouvel abonnement
           </Button>
         }
       />
 
-      {showForm && (
-        <Card className="border border-[#E5E7EB]">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Créer un abonnement</CardTitle>
-            <button onClick={() => setShowForm(false)}><X className="h-4 w-4 text-slate-500" /></button>
-          </CardHeader>
-          <CardContent>
-            {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
-            <form onSubmit={create} className="grid gap-4 sm:grid-cols-2">
-              <select required value={form.laboratory_id} onChange={(e) => setForm({ ...form, laboratory_id: e.target.value })} className="border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Créer un abonnement</DialogTitle>
+          </DialogHeader>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <form onSubmit={create} className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1 sm:col-span-2">
+              <Label htmlFor="laboratory_id">Laboratoire (laboratory_id) *</Label>
+              <select id="laboratory_id" required value={form.laboratory_id} onChange={(e) => setForm({ ...form, laboratory_id: e.target.value })} className="w-full border border-[#D1D5DB] rounded-md px-3 py-2 text-sm bg-white">
                 <option value="">Sélectionner un laboratoire</option>
                 {labs.map((l) => <option key={l.id} value={l.id}>{l.name} ({l.code})</option>)}
               </select>
-              <select value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })} className="border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm">
-                <option value="starter">Starter</option>
-                <option value="professional">Professional</option>
-                <option value="enterprise">Enterprise</option>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="plan">Plan *</Label>
+              <select id="plan" value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })} className="w-full border border-[#D1D5DB] rounded-md px-3 py-2 text-sm bg-white">
+                <option value="starter">starter</option>
+                <option value="professional">professional</option>
+                <option value="enterprise">enterprise</option>
               </select>
-              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm">
-                <option value="trial">Essai</option>
-                <option value="active">Actif</option>
-                <option value="expired">Expiré</option>
-                <option value="cancelled">Annulé</option>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="plan_name">Nom du plan (plan_name)</Label>
+              <Input id="plan_name" value={form.plan_name} onChange={(e) => setForm({ ...form, plan_name: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="status">Statut (status)</Label>
+              <select id="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full border border-[#D1D5DB] rounded-md px-3 py-2 text-sm bg-white">
+                <option value="trial">trial</option>
+                <option value="active">active</option>
+                <option value="expired">expired</option>
+                <option value="cancelled">cancelled</option>
               </select>
-              <input type="number" placeholder="Prix mensuel" value={form.price_monthly} onChange={(e) => setForm({ ...form, price_monthly: Number(e.target.value) })} className="border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm" />
-              <div className="sm:col-span-2 flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Annuler</Button>
-                <Button type="submit" disabled={saving} className="bg-[#111827] text-white hover:bg-[#374151]">{saving ? "Création…" : "Créer"}</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="currency">Devise (currency)</Label>
+              <Input id="currency" value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="started_at">Début (started_at)</Label>
+              <Input id="started_at" type="datetime-local" value={form.started_at} onChange={(e) => setForm({ ...form, started_at: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="expires_at">Expiration (expires_at)</Label>
+              <Input id="expires_at" type="datetime-local" value={form.expires_at} onChange={(e) => setForm({ ...form, expires_at: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="price_monthly">Prix mensuel (price_monthly)</Label>
+              <Input id="price_monthly" type="number" step="0.01" value={form.price_monthly} onChange={(e) => setForm({ ...form, price_monthly: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="max_users">Max utilisateurs (max_users)</Label>
+              <Input id="max_users" type="number" value={form.max_users} onChange={(e) => setForm({ ...form, max_users: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="max_patients">Max patients (max_patients)</Label>
+              <Input id="max_patients" type="number" value={form.max_patients} onChange={(e) => setForm({ ...form, max_patients: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="max_analyses">Max analyses (max_analyses)</Label>
+              <Input id="max_analyses" type="number" value={form.max_analyses} onChange={(e) => setForm({ ...form, max_analyses: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="auto_renew">Renouvellement auto (auto_renew)</Label>
+              <select id="auto_renew" value={form.auto_renew ? "true" : "false"} onChange={(e) => setForm({ ...form, auto_renew: e.target.value === "true" })} className="w-full border border-[#D1D5DB] rounded-md px-3 py-2 text-sm bg-white">
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+            </div>
+            <DialogFooter className="sm:col-span-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
+              <Button type="submit" disabled={saving} className="bg-[#111827] text-white hover:bg-[#374151]">{saving ? "Création…" : "Créer"}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {loading ? (
         <p className="text-muted-foreground">Chargement…</p>

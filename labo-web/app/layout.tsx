@@ -14,8 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
-      <body className="font-sans antialiased bg-white overflow-hidden">
+    <html lang="fr" data-scroll-behavior="smooth">
+      <body className="font-sans antialiased overflow-hidden">
         <AuthProvider>
           <ClientShell>{children}</ClientShell>
         </AuthProvider>
