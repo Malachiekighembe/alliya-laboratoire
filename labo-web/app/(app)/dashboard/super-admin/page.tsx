@@ -77,11 +77,6 @@ export default function SuperAdminDashboard() {
         <PageHeader
           title="Administration du réseau"
           description={`Connecté en tant que ${user?.first_name} ${user?.last_name} (Super Administrateur)`}
-          action={
-            <a href="/admin" className="bg-slate-800 hover:bg-slate-900 text-slate-100 rounded-md px-4 py-2 text-sm font-medium transition-colors">
-              Panneau admin
-            </a>
-          }
         />
       </MotionDiv>
 

@@ -45,9 +45,9 @@ const MANAGEMENT_ITEMS: NavItem[] = [
 ];
 
 const ADMIN_ITEMS: NavItem[] = [
-  { label: "Laboratoires", href: "/admin/laboratoires", icon: Activity, roles: ["super_admin", "ADMIN"] },
-  { label: "Utilisateurs", href: "/admin/utilisateurs", icon: UserCog, roles: ["super_admin", "ADMIN"] },
-  { label: "Abonnements", href: "/admin/abonnements", icon: CreditCard, roles: ["super_admin", "ADMIN", "DIR"] },
+  { label: "Administration", href: "/dashboard/super-admin", icon: UserCog, roles: ["super_admin"] },
+  { label: "Gestion labo", href: "/dashboard/lab-admin", icon: Settings, roles: ["admin", "lab_manager", "DIR"] },
+  { label: "Personnel", href: "/personnel", icon: Users, roles: ["super_admin", "admin", "lab_manager", "DIR"] },
   { label: "Paramètres", href: "/parametres", icon: Settings },
 ];
 
@@ -100,7 +100,7 @@ export default function Sidebar({
             "h-5 w-5 shrink-0",
             active
               ? "text-alliya-turquoise-700"
-              : "text-slate-500 group-hover:text-foreground"
+              : "text-slate-500"
           )}
         />
         {!collapsed && <span className="truncate text-foreground">{item.label}</span>}

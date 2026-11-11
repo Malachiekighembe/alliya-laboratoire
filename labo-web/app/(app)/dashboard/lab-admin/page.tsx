@@ -125,11 +125,6 @@ export default function LabAdminDashboard() {
         <p className="text-muted-foreground">
           {activeLab?.name || "—"} ({activeLab?.code || "—"})
         </p>
-        {isSuperAdmin && (
-          <a href="/admin" className="border border-input rounded-md px-4 py-2 text-sm font-medium hover:bg-muted transition-colors">
-            Accéder au panneau super admin
-          </a>
-        )}
       </MotionCard>
     </MotionDiv>
   );
