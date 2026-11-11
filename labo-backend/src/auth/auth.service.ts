@@ -1,7 +1,7 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+﻿import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DatabaseService } from '../database/database.service.js';
-import { PasswordUtil, MetricUtil, UuidUtil } from '../common/index.js';
+import { PasswordUtil, UuidUtil } from '../common/index.js';
 import { LoginDto, RegisterDto, RefreshTokenDto, ChangePasswordDto } from './auth.dtos.js';
 
 export interface AuthTokens {
@@ -12,8 +12,8 @@ export interface AuthTokens {
 
 export interface UserProfile {
   id: string;
-  laboratory_id: string;
-  email: string;
+  laboratory_id: string | null;
+  email: string | null;
   first_name: string;
   last_name: string;
   phone: string | null;
@@ -26,10 +26,15 @@ export class AuthService {
   constructor(
     private readonly prisma: DatabaseService,
     private readonly jwtService: JwtService,
-    private readonly passwordUtil: PasswordUtil,
-    private readonly metricUtil: MetricUtil,
-    private readonly uuidUtil: UuidUtil,
   ) {}
+
+  private async verifyPassword(plain: string, stored: string | null): Promise<boolean> {
+    if (!stored) return false;
+    if (stored.startsWith('$2a$') || stored.startsWith('$2b$') || stored.startsWith('$2y$')) {
+      return PasswordUtil.verify(plain, stored);
+    }
+    return plain === stored;
+  }
 
   async register(dto: RegisterDto): Promise<UserProfile> {
     const existing = await this.prisma.users.findFirst({
@@ -37,29 +42,26 @@ export class AuthService {
     });
     if (existing) throw new ConflictException('Email déjà utilisé');
 
-    const user = await this.prisma.$transaction(async (tx: any) => {
-      const created = await tx.users.create({
-        data: {
-          laboratory_id: dto.laboratory_id,
-          email: dto.email,
-          password_hash: dto.password,
-          first_name: dto.first_name,
-          last_name: dto.last_name,
-          phone: dto.phone ?? null,
-        },
-      });
-      return created;
+    const password_hash = dto.password ? await PasswordUtil.hash(dto.password) : null;
+    const user = await this.prisma.users.create({
+      data: {
+        laboratory_id: dto.laboratory_id,
+        email: dto.email,
+        password_hash,
+        first_name: dto.first_name,
+        last_name: dto.last_name,
+        phone: dto.phone ?? null,
+      },
     });
 
-    const profile = await this.buildProfile(user.id, user.laboratory_id);
-    return profile;
+    return this.buildProfile(user.id, user.laboratory_id);
   }
 
   async login(dto: LoginDto): Promise<AuthTokens & { user: UserProfile }> {
     const user = await this.prisma.users.findFirst({
       where: { email: dto.email, deleted_at: null, is_active: true },
     });
-    if (!user || dto.password !== user.password_hash) {
+    if (!user || !(await this.verifyPassword(dto.password, user.password_hash))) {
       throw new UnauthorizedException('Identifiants invalides');
     }
 
@@ -100,7 +102,8 @@ export class AuthService {
 
   async changePassword(userId: string, dto: ChangePasswordDto): Promise<{ message: string }> {
     const user = await this.prisma.users.findUnique({ where: { id: userId } });
-    if (!user || dto.current_password !== user.password_hash) {
+    if (!user) throw new UnauthorizedException('Utilisateur introuvable');
+    if (user.password_hash && !(await this.verifyPassword(dto.current_password, user.password_hash))) {
       throw new UnauthorizedException('Mot de passe actuel incorrect');
     }
     const hash = await PasswordUtil.hash(dto.new_password);
@@ -112,7 +115,7 @@ export class AuthService {
     return this.buildProfile(userId, laboratory_id);
   }
 
-  private async generateTokens(userId: string, laboratory_id: string, device_id?: string): Promise<AuthTokens> {
+  private async generateTokens(userId: string, laboratory_id: string | null, device_id?: string): Promise<AuthTokens> {
     const payload = { sub: userId, laboratory_id };
     const access_token = this.jwtService.sign(payload);
     const refresh_token = UuidUtil.generate();
@@ -140,32 +143,18 @@ export class AuthService {
     };
   }
 
-  private async buildProfile(userId: string, laboratoryId: string): Promise<UserProfile> {
+  private async buildProfile(userId: string, laboratoryId: string | null): Promise<UserProfile> {
     const user = await this.prisma.users.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
     return {
       id: user.id,
-      laboratory_id: laboratoryId,
+      laboratory_id: laboratoryId ?? user.laboratory_id ?? null,
       email: user.email,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      phone: user.phone,
+      first_name: user.first_name || '',
+      last_name: user.last_name || '',
+      phone: user.phone ?? null,
       roles: user.roles ?? [],
       permissions: user.permissions ?? [],
     };
-  }
-
-  private async getPermissions(userId: string, laboratory_id: string): Promise<string[]> {
-    const roles = await this.prisma.user_roles.findMany({
-      where: { user_id: userId, laboratory_id },
-      include: { role: true },
-    });
-    const perms = new Set<string>();
-    for (const ur of roles) {
-      for (const rp of ur.role.permissions) {
-        perms.add(`${rp.module}.${rp.action}`);
-      }
-    }
-    return Array.from(perms);
   }
 }
