@@ -19,6 +19,9 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
     "/dashboard",
     "/dashboard/super-admin",
     "/admin",
+    "/admin/laboratoires",
+    "/admin/abonnements",
+    "/admin/utilisateurs",
     "/parametres",
     "/personnel",
   ],
@@ -146,9 +149,11 @@ export function hasRolePermission(
 }
 
 export const ROLE_LABELS: Record<string, string> = {
-  super_admin: "Super Administrateur",
-  admin: "Administrateur",
-  doctor: "Médecin",
+  super_admin: "Super Administrateur (Système)",
+  admin: "Administrateur Labo",
+  lab_manager: "Responsable Labo",
+  DIR: "Directeur",
+  doctor: "Médecin / Biologiste",
   technician: "Technicien",
   receptionist: "Réceptionniste",
   laborant: "Laborantin",

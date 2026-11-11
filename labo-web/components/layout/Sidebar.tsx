@@ -19,6 +19,8 @@ import {
   Activity,
   CreditCard,
   Stethoscope,
+  Building2,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn, getInitials } from "@/lib/utils";
@@ -30,25 +32,125 @@ type NavItem = {
   roles?: string[];
 };
 
-const MANAGEMENT_ITEMS: NavItem[] = [
-  { label: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "technician", "laborant", "doctor", "viewer"] },
-  { label: "Patients", href: "/patients", icon: Users, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "doctor", "viewer"] },
-  { label: "Carnets", href: "/patients", icon: FileText, roles: ["super_admin", "admin", "lab_manager", "DIR", "technician", "laborant", "doctor", "viewer"] },
-  { label: "Dossiers", href: "/patients/dossiers", icon: FileText, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "doctor", "viewer"] },
-  { label: "Visites", href: "/visites", icon: Activity, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "doctor"] },
-  { label: "Prelevements", href: "/prelevements", icon: Stethoscope, roles: ["super_admin", "admin", "lab_manager", "DIR", "technician", "laborant"] },
-  { label: "Analyses", href: "/analyses", icon: FlaskConical, roles: ["super_admin", "admin", "lab_manager", "DIR", "technician", "laborant", "doctor", "viewer"] },
-  { label: "Resultats", href: "/resultats", icon: ClipboardCheck, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "technician", "laborant", "doctor", "viewer"] },
-  { label: "Validations", href: "/validations", icon: ClipboardCheck, roles: ["super_admin", "admin", "lab_manager", "DIR", "doctor"] },
-  { label: "Rendez-vous", href: "/rendez-vous", icon: Clock, roles: ["super_admin", "admin", "lab_manager", "DIR", "receptionist", "doctor"] },
-  { label: "Rapports", href: "/rapports", icon: BarChart3, roles: ["super_admin", "admin", "lab_manager", "DIR", "doctor", "viewer"] },
+type NavSection = {
+  title: string;
+  items: NavItem[];
+  roles?: string[];
+};
+
+// ── Super Admin : administration du système (moi) ──
+const SYSTEM_SECTIONS: NavSection[] = [
+  {
+    title: "Système",
+    roles: ["super_admin"],
+    items: [
+      { label: "Vue d'ensemble", href: "/dashboard/super-admin", icon: LayoutDashboard },
+      { label: "Laboratoires", href: "/admin/laboratoires", icon: Building2 },
+      { label: "Abonnements", href: "/admin/abonnements", icon: CreditCard },
+      { label: "Utilisateurs système", href: "/admin/utilisateurs", icon: UserCog },
+    ],
+  },
 ];
 
-const ADMIN_ITEMS: NavItem[] = [
-  { label: "Administration", href: "/dashboard/super-admin", icon: UserCog, roles: ["super_admin"] },
-  { label: "Gestion labo", href: "/dashboard/lab-admin", icon: Settings, roles: ["admin", "lab_manager", "DIR"] },
-  { label: "Personnel", href: "/personnel", icon: Users, roles: ["super_admin", "admin", "lab_manager", "DIR"] },
-  { label: "Paramètres", href: "/parametres", icon: Settings },
+// ── Admin/Lab Manager/DIR : propriétaire/responsable du labo ──
+const LAB_OWNER_SECTIONS: NavSection[] = [
+  {
+    title: "Mon laboratoire",
+    roles: ["admin", "lab_manager", "DIR"],
+    items: [
+      { label: "Tableau de bord", href: "/dashboard/lab-admin", icon: LayoutDashboard },
+      { label: "Personnel", href: "/personnel", icon: Users },
+      { label: "Facturation", href: "/facturation", icon: CreditCard },
+      { label: "Rapports", href: "/rapports", icon: BarChart3 },
+      { label: "Paramètres", href: "/parametres", icon: Settings },
+    ],
+  },
+  {
+    title: "Activité",
+    roles: ["admin", "lab_manager", "DIR"],
+    items: [
+      { label: "Patients", href: "/patients", icon: Users },
+      { label: "Visites", href: "/visites", icon: Activity },
+      { label: "Prélèvements", href: "/prelevements", icon: Stethoscope },
+      { label: "Analyses", href: "/analyses", icon: FlaskConical },
+      { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
+      { label: "Validations", href: "/validations", icon: ShieldCheck },
+    ],
+  },
+];
+
+// ── Réceptionniste : accueil et enregistrement ──
+const RECEPTION_SECTIONS: NavSection[] = [
+  {
+    title: "Réception",
+    roles: ["receptionist"],
+    items: [
+      { label: "Tableau de bord", href: "/dashboard/receptionist", icon: LayoutDashboard },
+      { label: "Patients", href: "/patients", icon: Users },
+      { label: "Nouveau patient", href: "/patients/nouveau", icon: Users },
+      { label: "Dossiers", href: "/patients/dossiers", icon: FileText },
+      { label: "Visites", href: "/visites", icon: Activity },
+      { label: "Rendez-vous", href: "/rendez-vous", icon: Clock },
+    ],
+  },
+];
+
+// ── Technicien / Laborantin : prélèvements et analyses ──
+const TECH_SECTIONS: NavSection[] = [
+  {
+    title: "Laboratoire",
+    roles: ["technician", "laborant"],
+    items: [
+      { label: "Tableau de bord", href: "/dashboard/technician", icon: LayoutDashboard },
+      { label: "Prélèvements", href: "/prelevements", icon: Stethoscope },
+      { label: "Analyses", href: "/analyses", icon: FlaskConical },
+      { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
+      { label: "Patients", href: "/patients", icon: Users },
+    ],
+  },
+];
+
+// ── Médecin / Biologiste : validation et consultation ──
+const DOCTOR_SECTIONS: NavSection[] = [
+  {
+    title: "Médecin",
+    roles: ["doctor"],
+    items: [
+      { label: "Tableau de bord", href: "/dashboard/doctor", icon: LayoutDashboard },
+      { label: "Validations", href: "/validations", icon: ShieldCheck },
+      { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
+      { label: "Analyses", href: "/analyses", icon: FlaskConical },
+      { label: "Patients", href: "/patients", icon: Users },
+      { label: "Dossiers", href: "/patients/dossiers", icon: FileText },
+      { label: "Rapports", href: "/rapports", icon: BarChart3 },
+      { label: "Visites", href: "/visites", icon: Activity },
+      { label: "Rendez-vous", href: "/rendez-vous", icon: Clock },
+    ],
+  },
+];
+
+// ── Viewer : lecture seule ──
+const VIEWER_SECTIONS: NavSection[] = [
+  {
+    title: "Consultation",
+    roles: ["viewer"],
+    items: [
+      { label: "Tableau de bord", href: "/dashboard/viewer", icon: LayoutDashboard },
+      { label: "Patients", href: "/patients", icon: Users },
+      { label: "Analyses", href: "/analyses", icon: FlaskConical },
+      { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
+      { label: "Rapports", href: "/rapports", icon: BarChart3 },
+    ],
+  },
+];
+
+const ALL_SECTIONS: NavSection[] = [
+  ...SYSTEM_SECTIONS,
+  ...LAB_OWNER_SECTIONS,
+  ...RECEPTION_SECTIONS,
+  ...TECH_SECTIONS,
+  ...DOCTOR_SECTIONS,
+  ...VIEWER_SECTIONS,
 ];
 
 export interface SidebarProps {
@@ -73,9 +175,14 @@ export default function Sidebar({
     router.push("/login");
   };
 
-  const canSee = (item: NavItem) => {
+  const canSeeItem = (item: NavItem) => {
     if (!item.roles) return true;
     return item.roles.some((r) => hasRole(r));
+  };
+
+  const canSeeSection = (section: NavSection) => {
+    if (!section.roles) return true;
+    return section.roles.some((r) => hasRole(r));
   };
 
   const NavLink = ({ item }: { item: NavItem }) => {
@@ -139,31 +246,25 @@ export default function Sidebar({
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
-        <div>
-          {!collapsed && (
-            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              Espace de gestion
-            </p>
-          )}
-          <div className="space-y-1">
-              {MANAGEMENT_ITEMS.filter(canSee).map(
-                (item, index) => <NavLink key={`${item.label}-${index}`} item={item} />
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+        {ALL_SECTIONS.filter(canSeeSection).map((section) => {
+          const visibleItems = section.items.filter(canSeeItem);
+          if (visibleItems.length === 0) return null;
+          return (
+            <div key={section.title}>
+              {!collapsed && (
+                <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                  {section.title}
+                </p>
               )}
-          </div>
-        </div>
-        <div>
-          {!collapsed && (
-            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              Administration
-            </p>
-          )}
-          <div className="space-y-1">
-            {ADMIN_ITEMS.filter(canSee).map(
-              (item) => <NavLink key={item.href} item={item} />
-            )}
-          </div>
-        </div>
+              <div className="space-y-1">
+                {visibleItems.map((item) => (
+                  <NavLink key={item.href} item={item} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </nav>
 
       <div className="border-t border-border/50 p-3 bg-background/30">
@@ -172,16 +273,20 @@ export default function Sidebar({
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alliya-turquoise-100 text-alliya-turquoise-700 text-[10px] font-bold">
               {getInitials(user.first_name, user.last_name)}
             </div>
-            {!collapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">
-                  {user.first_name} {user.last_name}
-                </p>
-                <p className="truncate text-xs text-slate-400">
-                  {user.roles?.[0] || "Utilisateur"}
-                </p>
-              </div>
-            )}
+        {!collapsed && (
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-foreground">
+              {user.first_name} {user.last_name}
+            </p>
+            <p className="truncate text-xs text-slate-400">
+              {user.roles?.[0] === "super_admin"
+                ? "Super Admin (Système)"
+                : user.roles?.[0] === "admin" || user.roles?.[0] === "lab_manager"
+                ? "Admin Labo"
+                : user.roles?.[0] || "Utilisateur"}
+            </p>
+          </div>
+        )}
           </div>
         )}
         <button
