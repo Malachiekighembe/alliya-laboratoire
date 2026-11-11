@@ -114,7 +114,7 @@ export default function ProfilPage() {
             <div className="space-y-1"><Label>Téléphone (phone)</Label><Input value={uForm.phone} onChange={(e) => setUForm({ ...uForm, phone: e.target.value })} /></div>
             <div className="space-y-1"><Label>Rôles (roles[])</Label><div className="text-sm px-3 py-2 rounded-md border bg-slate-50">{Array.isArray(me?.roles) ? me.roles.join(", ") : "—"}</div></div>
             <div className="space-y-1"><Label>Laboratoire (laboratory_id)</Label><div className="text-sm px-3 py-2 rounded-md border bg-slate-50 truncate">{me?.laboratory_id || "— (non affecté)"}</div></div>
-            <div className="sm:col-span-2 flex justify-end"><Button type="submit" disabled={savingUser} className="bg-[#0f766e] text-white hover:bg-[#115e59]">{savingUser ? "Enregistrement…" : "Enregistrer mon profil"}</Button></div>
+            <div className="sm:col-span-2 flex justify-end"><Button type="submit" disabled={savingUser} className="bg-[ #1d4ed8] text-white hover:bg-[#1e40af]">{savingUser ? "Enregistrement…" : "Enregistrer mon profil"}</Button></div>
           </form>
         </CardContent>
       </Card>
@@ -137,7 +137,7 @@ export default function ProfilPage() {
                 <div className="space-y-1"><Label>Email (email)</Label><Input type="email" value={lForm.email} onChange={(e) => setLForm({ ...lForm, email: e.target.value })} /></div>
                 <div className="space-y-1"><Label>Téléphone (phone)</Label><Input value={lForm.phone} onChange={(e) => setLForm({ ...lForm, phone: e.target.value })} /></div>
                 <div className="space-y-1 sm:col-span-2"><Label>Adresse (address)</Label><Input value={lForm.address} onChange={(e) => setLForm({ ...lForm, address: e.target.value })} /></div>
-                <div className="sm:col-span-2 flex justify-end"><Button type="submit" disabled={savingLab} className="bg-[#0f766e] text-white hover:bg-[#115e59]">{savingLab ? "Enregistrement…" : "Enregistrer le laboratoire"}</Button></div>
+                <div className="sm:col-span-2 flex justify-end"><Button type="submit" disabled={savingLab} className="bg-[ #1d4ed8] text-white hover:bg-[#1e40af]">{savingLab ? "Enregistrement…" : "Enregistrer le laboratoire"}</Button></div>
               </form>
             )}
           </CardContent>
@@ -146,3 +146,5 @@ export default function ProfilPage() {
     </div>
   );
 }
+
+

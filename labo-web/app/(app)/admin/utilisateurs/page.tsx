@@ -84,7 +84,7 @@ export default function AdminUtilisateursPage() {
         title="Administration — Utilisateurs"
         description="Créer et gérer les responsables/admins et utilisateurs des laboratoires. La création n'est pas bloquée : complétez les profils ensuite."
         action={
-          <Button onClick={() => { setError(""); setForm({ ...emptyUser }); setOpen(true); }} className="bg-[#0f766e] text-white hover:bg-[#115e59]">
+          <Button onClick={() => { setError(""); setForm({ ...emptyUser }); setOpen(true); }} className="bg-[ #1d4ed8] text-white hover:bg-[#1e40af]">
             <Plus className="h-4 w-4 mr-2" /> Nouvel utilisateur
           </Button>
         }
@@ -124,7 +124,7 @@ export default function AdminUtilisateursPage() {
             </div>
             <DialogFooter className="sm:col-span-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={saving} className="bg-[#0f766e] text-white hover:bg-[#115e59]">{saving ? "Création…" : "Créer l'utilisateur"}</Button>
+              <Button type="submit" disabled={saving} className="bg-[ #1d4ed8] text-white hover:bg-[#1e40af]">{saving ? "Création…" : "Créer l'utilisateur"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -145,7 +145,7 @@ export default function AdminUtilisateursPage() {
               <Card key={lab.id} className="border border-[#E5E7EB]">
                 <CardContent className="pt-5">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2"><Building2 className="h-4 w-4 text-teal-700" /><span className="font-semibold">{lab.name || lab.code}</span><span className="text-xs text-muted-foreground">({users.length})</span></div>
+                    <div className="flex items-center gap-2"><Building2 className="h-4 w-4 text-[#07122E]" /><span className="font-semibold">{lab.name || lab.code}</span><span className="text-xs text-muted-foreground">({users.length})</span></div>
                     <Button size="sm" variant="outline" onClick={() => { setError(""); setForm({ ...emptyUser, laboratory_id: lab.id }); setOpen(true); }}><UserCog className="h-3.5 w-3.5 mr-1" /> Ajouter</Button>
                   </div>
                   {users.length === 0 ? <p className="text-sm text-muted-foreground">Aucun utilisateur — assignez un responsable (admin).</p> : (
@@ -178,3 +178,5 @@ export default function AdminUtilisateursPage() {
     </MotionDiv>
   );
 }
+
+

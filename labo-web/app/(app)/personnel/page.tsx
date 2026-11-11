@@ -72,7 +72,7 @@ export default function PersonnelPage() {
       <PageHeader
         title="Personnel du laboratoire"
         description="Créez et gérez les utilisateurs de votre laboratoire et leurs rôles. Les informations manquantes peuvent être complétées plus tard."
-        action={<Button onClick={() => { setError(""); setForm({ ...emptyUser }); setOpen(true); }} className="bg-[#0f766e] text-white hover:bg-[#115e59]"><Plus className="h-4 w-4 mr-2" /> Nouvel utilisateur</Button>}
+        action={<Button onClick={() => { setError(""); setForm({ ...emptyUser }); setOpen(true); }} className="bg-[ #1d4ed8] text-white hover:bg-[#1e40af]"><Plus className="h-4 w-4 mr-2" /> Nouvel utilisateur</Button>}
       />
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -99,7 +99,7 @@ export default function PersonnelPage() {
             </div>
             <DialogFooter className="sm:col-span-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={saving} className="bg-[#0f766e] text-white hover:bg-[#115e59]">{saving ? "Création…" : "Créer"}</Button>
+              <Button type="submit" disabled={saving} className="bg-[ #1d4ed8] text-white hover:bg-[#1e40af]">{saving ? "Création…" : "Créer"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -133,3 +133,5 @@ export default function PersonnelPage() {
     </div>
   );
 }
+
+
