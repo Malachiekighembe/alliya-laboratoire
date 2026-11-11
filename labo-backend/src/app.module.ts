@@ -52,6 +52,7 @@ import { createConfiguration, validateEnvironment } from './config/index.js';
     LaboratoriesModule,
     SubscriptionsModule,
     SupabaseModule,
+    CacheModule,
   ],
   controllers: [AppController],
   providers: [AppService],
