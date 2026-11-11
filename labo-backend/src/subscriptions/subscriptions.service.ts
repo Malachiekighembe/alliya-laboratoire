@@ -94,22 +94,20 @@ export class SubscriptionsService {
     const existing = await this.prisma.subscriptions.findFirst({ where });
     if (!existing) throw new NotFoundException('Abonnement introuvable');
 
-    const updated = await this.prisma.subscriptions.update({
-      where: { id },
-      data: {
-        plan: dto.plan,
-        plan_name: dto.plan_name,
-        status: dto.status,
-        started_at: dto.started_at ? new Date(dto.started_at) : undefined,
-        expires_at: dto.expires_at ? new Date(dto.expires_at) : undefined,
-        price_monthly: dto.price_monthly,
-        currency: dto.currency,
-        max_users: dto.max_users,
-        max_patients: dto.max_patients,
-        max_analyses: dto.max_analyses,
-        auto_renew: dto.auto_renew,
-      },
-    });
+    const data: any = {};
+    if (dto.plan !== undefined) data.plan = dto.plan;
+    if (dto.plan_name !== undefined) data.plan_name = dto.plan_name ?? dto.plan ?? existing.plan_name;
+    if (dto.status !== undefined) data.status = dto.status;
+    if (dto.started_at !== undefined) data.started_at = dto.started_at ? new Date(dto.started_at) : null;
+    if (dto.expires_at !== undefined) data.expires_at = dto.expires_at ? new Date(dto.expires_at) : null; // null = durée indéterminée
+    if (dto.price_monthly !== undefined) data.price_monthly = dto.price_monthly === '' || dto.price_monthly === null ? null : Number(dto.price_monthly);
+    if (dto.currency !== undefined) data.currency = dto.currency || existing.currency || 'USD';
+    if (dto.max_users !== undefined) data.max_users = dto.max_users === '' || dto.max_users === null ? null : Number(dto.max_users);
+    if (dto.max_patients !== undefined) data.max_patients = dto.max_patients === '' || dto.max_patients === null ? null : Number(dto.max_patients);
+    if (dto.max_analyses !== undefined) data.max_analyses = dto.max_analyses === '' || dto.max_analyses === null ? null : Number(dto.max_analyses);
+    if (dto.auto_renew !== undefined) data.auto_renew = !!dto.auto_renew;
+
+    const updated = await this.prisma.subscriptions.update({ where: { id }, data });
     await this.cache.delByPattern('subs:*');
     await this.cache.delByPattern('labs:*');
     return updated;

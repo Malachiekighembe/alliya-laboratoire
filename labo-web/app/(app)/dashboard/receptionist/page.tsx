@@ -1,189 +1,56 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { useAuth } from "@/hooks/useAuth";
 import { useLab } from "@/components/lab/LabProvider";
 import { api } from "@/lib/api-client";
-import {
-  StatCard,
-  PageHeader,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui";
+import { PageHeader } from "@/components/ui";
 import { Users, Calendar, Phone, Mail } from "lucide-react";
 
-const MotionDiv = motion.div;
-const MotionCard = motion.div;
-
-const fadeUp: React.ComponentProps<typeof MotionDiv>["variants"] = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-};
-
-const staggerContainer: any = {
-  hidden: {},
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
-  },
-};
-
-const staggerItem: any = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-};
+const fadeUp: any = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
+const stagger: any = { visible: { transition: { staggerChildren: 0.06 } } };
 
 export default function ReceptionistDashboard() {
   const { activeLabId } = useLab();
   const [loading, setLoading] = React.useState(true);
-  const [stats, setStats] = React.useState({
-    patients: 0,
-    appointments: 0,
-    today: 0,
-  });
+  const [stats, setStats] = React.useState({ patients: 0, appointments: 0, today: 0 });
 
   React.useEffect(() => {
-    if (!activeLabId) {
-      setLoading(false);
-      return;
-    }
-    const filter = `?laboratory_id=${activeLabId}`;
-    api.get<any[]>(`/patients${filter}`).then((res) => {
-      const patients =
-    res.success
-      ? (Array.isArray(res.data) ? res.data : [])
-      : [];
+    if (!activeLabId) { setLoading(false); return; }
+    api.get<any[]>(`/patients?laboratory_id=${activeLabId}`).then((res) => {
+      const patients = res.success && Array.isArray(res.data) ? res.data : [];
       setStats((s) => ({ ...s, patients: patients.length }));
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
   }, [activeLabId]);
 
+  const cards = [
+    { label: "Patients", value: stats.patients, icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
+    { label: "Rendez-vous", value: stats.appointments, icon: <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
+    { label: "Aujourd'hui", value: stats.today, icon: <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
+    { label: "Contacts", value: "—", icon: <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
+  ];
+
   return (
-    <MotionDiv
-      variants={fadeUp}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6"
-    >
-      <MotionDiv
-        variants={fadeUp}
-        initial="hidden"
-        animate="visible"
-        className="mb-2"
-      >
-        <PageHeader
-          title="Accueil - Réception"
-          description="Gestion des patients et rendez-vous"
-        />
-      </MotionDiv>
-
-      <MotionDiv
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-      >
-        <MotionDiv
-          variants={staggerItem}
-          className="p-4"
-        >
-          <StatCard
-            label="Patients inscrits"
-            value={loading ? "…" : stats.patients}
-            icon={<Users className="h-5 w-5 text-alliya-turquoise-700" />}
-            variant="alliya-turquoise"
-          />
-        </MotionDiv>
-        <MotionDiv
-          variants={staggerItem}
-          className="p-4"
-        >
-          <StatCard
-            label="Rendez-vous"
-            value={loading ? "…" : stats.appointments}
-            icon={<Calendar className="h-5 w-5 text-alliya-dark-700" />}
-            variant="alliya-dark"
-          />
-        </MotionDiv>
-        <MotionDiv
-          variants={staggerItem}
-          className="p-4"
-        >
-          <StatCard
-            label="Aujourd'hui"
-            value={loading ? "…" : stats.today}
-            icon={<Phone className="h-5 w-5 text-warning" />}
-            variant="outline"
-          />
-        </MotionDiv>
-        <MotionDiv
-          variants={staggerItem}
-          className="p-4"
-        >
-          <StatCard
-            label="Contacts"
-            value="—"
-            icon={<Mail className="h-5 w-5 text-success" />}
-            variant="outline"
-          />
-        </MotionDiv>
-      </MotionDiv>
-
-      <MotionDiv
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        className="grid gap-6 lg:grid-cols-3"
-      >
-        <MotionCard
-          variants={staggerItem}
-          whileHover={{ y: -4 }}
-          transition={{ duration: 0.2 }}
-          className="rounded-xl border border-border bg-white p-6 shadow-sm"
-        >
-          <CardHeader>
-            <CardTitle className="text-base">Nouveau patient</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Enregistrer un nouveau patient.
-            </p>
-          </CardContent>
-        </MotionCard>
-        <MotionCard
-          variants={staggerItem}
-          whileHover={{ y: -4 }}
-          transition={{ duration: 0.2 }}
-          className="rounded-xl border border-border bg-white p-6 shadow-sm"
-        >
-          <CardHeader>
-            <CardTitle className="text-base">Rendez-vous du jour</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Consulter les rendez-vous planifiés.
-            </p>
-          </CardContent>
-        </MotionCard>
-        <MotionCard
-          variants={staggerItem}
-          whileHover={{ y: -4 }}
-          transition={{ duration: 0.2 }}
-          className="rounded-xl border border-border bg-white p-6 shadow-sm"
-        >
-          <CardHeader>
-            <CardTitle className="text-base">Recherche patient</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Rechercher un patient existant.
-            </p>
-          </CardContent>
-        </MotionCard>
-      </MotionDiv>
-    </MotionDiv>
+    <motion.div variants={stagger} initial="hidden" animate="visible" className="space-y-3 sm:space-y-5">
+      <motion.div variants={fadeUp}><PageHeader title="Accueil — Réception" description="Patients et rendez-vous" /></motion.div>
+      <motion.div variants={stagger} className="grid grid-cols-2 xl:grid-cols-4 gap-1.5 sm:gap-3">
+        {cards.map((c) => (
+          <motion.div key={c.label} variants={fadeUp}>
+            <div className="flex items-center gap-2 sm:gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2 sm:p-3 h-full">
+              <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-md sm:rounded-lg bg-[#3D9597]/10 text-[#07122E] flex items-center justify-center shrink-0">{c.icon}</div>
+              <div className="min-w-0 leading-tight"><p className="text-[10px] sm:text-xs text-slate-500 truncate">{c.label}</p><p className="text-sm sm:text-xl font-bold text-slate-900">{loading ? "…" : c.value}</p></div>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+      <motion.div variants={stagger} className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-3">
+        {[{ title: "Nouveau patient", text: "Enregistrer." }, { title: "RDV du jour", text: "Planifiés." }, { title: "Recherche", text: "Patient existant." }].map((b) => (
+          <motion.div key={b.title} variants={fadeUp} className={b.title === "Recherche" ? "col-span-2 sm:col-span-1" : ""}>
+            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 sm:p-3 h-full"><p className="text-[11px] sm:text-sm font-semibold text-slate-800">{b.title}</p><p className="text-[10px] sm:text-xs text-slate-500 mt-0.5">{b.text}</p></div>
+          </motion.div>
+        ))}
+      </motion.div>
+    </motion.div>
   );
 }

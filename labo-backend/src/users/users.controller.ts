@@ -26,16 +26,27 @@ export class UsersController {
 
   @Patch('me')
   async updateMe(@Body() dto: UpdateUserDto, @CurrentUser() user: any) {
-    // self profile: only allow safe fields
+    // self profile: only allow safe fields (email changes go through OTP)
     const safe = {
       first_name: dto.first_name,
       last_name: dto.last_name,
       phone: dto.phone,
-      email: dto.email,
       avatar_url: dto.avatar_url,
     };
     const data = await this.usersService.update(user.id, null, safe);
     return ApiResponseDto.success(data, 'Profil mis à jour');
+  }
+
+  @Post('me/email/request-otp')
+  async requestEmailOtp(@Body() body: { email?: string }, @CurrentUser() user: any) {
+    const result = await this.usersService.requestEmailOtp(user.id, body?.email || '');
+    return ApiResponseDto.success(result, 'Code OTP envoyé');
+  }
+
+  @Post('me/email/verify-otp')
+  async verifyEmailOtp(@Body() body: { email?: string; code?: string }, @CurrentUser() user: any) {
+    const data = await this.usersService.verifyEmailOtp(user.id, body?.email || '', body?.code || '');
+    return ApiResponseDto.success(data, 'Adresse email mise à jour');
   }
 
   @Get()

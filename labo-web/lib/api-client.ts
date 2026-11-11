@@ -29,6 +29,7 @@ export interface User {
   last_name: string;
   phone: string | null;
   avatar_url?: string | null;
+  matricule?: string | null;
   roles: string[];
   permissions: string[];
 }
@@ -188,6 +189,7 @@ export interface Laboratory {
   email: string | null;
   phone: string | null;
   address: string | null;
+  logo_url?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

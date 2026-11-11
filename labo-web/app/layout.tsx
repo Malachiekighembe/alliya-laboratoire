@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" data-scroll-behavior="smooth">
-      <body className="font-sans antialiased overflow-hidden">
+      <body className="font-sans antialiased overflow-x-hidden">
         <AuthProvider>
           <ClientShell>{children}</ClientShell>
         </AuthProvider>

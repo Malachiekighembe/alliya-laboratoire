@@ -5,12 +5,11 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api-client";
-import { PageHeader, Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
+import { PageHeader } from "@/components/ui";
 import { Building2, Users, CreditCard, AlertCircle, ArrowRight, Plus, Activity } from "lucide-react";
 
-const MotionDiv = motion.div;
-const fadeUp: any = { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
-const stagger: any = { visible: { transition: { staggerChildren: 0.08 } } };
+const fadeUp: any = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
+const stagger: any = { visible: { transition: { staggerChildren: 0.06 } } };
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
@@ -26,11 +25,7 @@ export default function SuperAdminDashboard() {
         if (cancelled) return;
         setLabs(!l.error && Array.isArray(l.data) ? l.data : []);
         setSubs(!s.error && Array.isArray(s.data) ? s.data : []);
-      } catch {
-        // ne bloque pas l'UI
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      } catch {} finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
   }, []);
@@ -41,92 +36,83 @@ export default function SuperAdminDashboard() {
   const activeSubs = subs.filter((s) => s.status === "active").length;
   const incompleteLabs = labs.filter((l) => !l.address || !l.phone || !l.email);
 
+  const stats = [
+    { label: "Laboratoires", value: totalLabs, sub: `${activeLabs} actifs`, icon: <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, href: "/admin/laboratoires" },
+    { label: "Utilisateurs", value: totalUsers, sub: "tous labos", icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, href: "/admin/utilisateurs" },
+    { label: "Abonnements", value: activeSubs, sub: `${subs.length} total`, icon: <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, href: "/admin/abonnements" },
+    { label: "Incomplets", value: incompleteLabs.length, sub: "profils", icon: <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, href: "/admin/laboratoires" },
+  ];
+
+  const actions = [
+    { href: "/admin/laboratoires", label: "Créer labo", icon: <Plus className="h-3.5 w-3.5" /> },
+    { href: "/admin/utilisateurs", label: "Responsable", icon: <Users className="h-3.5 w-3.5" /> },
+    { href: "/admin/abonnements", label: "Abonnements", icon: <CreditCard className="h-3.5 w-3.5" /> },
+    { href: "/profil", label: "Mon profil", icon: <AlertCircle className="h-3.5 w-3.5" /> },
+  ];
+
   return (
-    <MotionDiv variants={stagger} initial="hidden" animate="visible" className="space-y-6">
-      <MotionDiv variants={fadeUp}>
-        <PageHeader
-          title="Administration du système"
-          description={`Bienvenue ${user?.first_name || ""} ${user?.last_name || ""} — gérez les laboratoires, responsables et abonnements.`}
-        />
-      </MotionDiv>
+    <motion.div variants={stagger} initial="hidden" animate="visible" className="space-y-3 sm:space-y-5">
+      <motion.div variants={fadeUp}>
+        <PageHeader title="Administration du système" description={`Bienvenue ${user?.first_name || ""} — gérez laboratoires, responsables et abonnements.`} />
+      </motion.div>
 
-      <MotionDiv variants={stagger} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          { label: "Laboratoires", value: totalLabs, sub: `${activeLabs} actif(s)`, icon: <Building2 className="h-5 w-5" />, href: "/admin/laboratoires" },
-          { label: "Utilisateurs", value: totalUsers, sub: "tous laboratoires", icon: <Users className="h-5 w-5" />, href: "/admin/utilisateurs" },
-          { label: "Abonnements actifs", value: activeSubs, sub: `${subs.length} au total`, icon: <CreditCard className="h-5 w-5" />, href: "/admin/abonnements" },
-          { label: "Profils incomplets", value: incompleteLabs.length, sub: "laboratoires à compléter", icon: <AlertCircle className="h-5 w-5" />, href: "/admin/laboratoires" },
-        ].map((c) => (
-          <MotionDiv key={c.label} variants={fadeUp}>
-            <Link href={c.href}>
-              <Card className="border-slate-200 hover:border-[#3D9597]/50 hover:shadow-sm transition-all cursor-pointer h-full">
-                <CardContent className="pt-5 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-slate-500">{c.label}</p>
-                    <p className="text-2xl font-bold text-slate-900 mt-0.5">{loading ? "…" : c.value}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{c.sub}</p>
-                  </div>
-                  <div className="h-10 w-10 rounded-xl bg-[#3D9597]/10 text-[#07122E] flex items-center justify-center">{c.icon}</div>
-                </CardContent>
-              </Card>
+      <motion.div variants={stagger} className="grid grid-cols-2 xl:grid-cols-4 gap-1.5 sm:gap-3">
+        {stats.map((c) => (
+          <motion.div key={c.label} variants={fadeUp}>
+            <Link href={c.href} className="flex items-center gap-2 sm:gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2 sm:p-3 hover:border-[#3D9597]/40 hover:shadow-sm transition-all h-full">
+              <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-md sm:rounded-lg bg-[#3D9597]/10 text-[#07122E] flex items-center justify-center shrink-0">{c.icon}</div>
+              <div className="min-w-0 leading-tight flex-1">
+                <p className="text-[10px] sm:text-xs text-slate-500 truncate">{c.label}</p>
+                <p className="text-sm sm:text-xl font-bold text-slate-900">{loading ? "…" : c.value}</p>
+                <p className="text-[10px] text-slate-400 truncate">{c.sub}</p>
+              </div>
             </Link>
-          </MotionDiv>
+          </motion.div>
         ))}
-      </MotionDiv>
+      </motion.div>
 
-      <MotionDiv variants={fadeUp} className="grid gap-6 lg:grid-cols-2">
-        <Card className="border-slate-200">
-          <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Actions rapides</CardTitle>
-            <Activity className="h-4 w-4 text-[#3D9597]" />
-          </CardHeader>
-          <CardContent className="grid gap-2 sm:grid-cols-2">
-            <Link href="/admin/laboratoires" className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 hover:border-[#3D9597]/50 hover:bg-[#07122E]/5 transition-colors">
-              <span className="text-sm font-medium text-slate-800 flex items-center gap-2"><Plus className="h-4 w-4 text-[#07122E]" /> Créer un laboratoire</span><ArrowRight className="h-4 w-4 text-slate-400" />
-            </Link>
-            <Link href="/admin/utilisateurs" className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 hover:border-[#3D9597]/50 hover:bg-[#07122E]/5 transition-colors">
-              <span className="text-sm font-medium text-slate-800 flex items-center gap-2"><Users className="h-4 w-4 text-[#07122E]" /> Ajouter un responsable</span><ArrowRight className="h-4 w-4 text-slate-400" />
-            </Link>
-            <Link href="/admin/abonnements" className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 hover:border-[#3D9597]/50 hover:bg-[#07122E]/5 transition-colors">
-              <span className="text-sm font-medium text-slate-800 flex items-center gap-2"><CreditCard className="h-4 w-4 text-[#07122E]" /> Gérer les abonnements</span><ArrowRight className="h-4 w-4 text-slate-400" />
-            </Link>
-            <Link href="/profil" className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 hover:border-[#3D9597]/50 hover:bg-[#07122E]/5 transition-colors">
-              <span className="text-sm font-medium text-slate-800 flex items-center gap-2"><AlertCircle className="h-4 w-4 text-[#07122E]" /> Compléter mon profil</span><ArrowRight className="h-4 w-4 text-slate-400" />
-            </Link>
-          </CardContent>
-        </Card>
+      <motion.div variants={fadeUp} className="grid gap-2 sm:gap-4 lg:grid-cols-2">
+        <div className="rounded-lg border border-slate-200 bg-white p-2.5 sm:p-4">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <p className="text-xs sm:text-sm font-semibold text-slate-800">Actions rapides</p>
+            <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#3D9597]" />
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+            {actions.map((a) => (
+              <Link key={a.href} href={a.href} className="flex items-center justify-between gap-1 rounded-md border border-slate-200 px-2 py-1.5 sm:px-3 sm:py-2 hover:border-[#3D9597]/40 hover:bg-[#07122E]/5 transition-colors min-w-0">
+                <span className="text-[11px] sm:text-xs font-medium text-slate-700 flex items-center gap-1.5 min-w-0 truncate">{a.icon}<span className="truncate">{a.label}</span></span>
+                <ArrowRight className="h-3 w-3 text-slate-400 shrink-0" />
+              </Link>
+            ))}
+          </div>
+        </div>
 
-        <Card className="border-slate-200">
-          <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Laboratoires récents</CardTitle>
-            <Link href="/admin/laboratoires" className="text-xs text-[#07122E] hover:underline">Voir tout</Link>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />)}</div>
-            ) : labs.length === 0 ? (
-              <div className="text-sm text-slate-500 py-6 text-center">
-                Aucun laboratoire. <Link href="/admin/laboratoires" className="text-[#07122E] underline">Créez le premier</Link> avec son responsable.
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {labs.slice(0, 5).map((l) => (
-                  <div key={l.id} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate">{l.name || "(Sans nom)"}</p>
-                      <p className="text-xs text-slate-400">{l.code || "—"} · {l.stats?.users_count ?? 0} utilisateur(s)</p>
-                    </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${l.is_active !== false ? "bg-[#3D9597]/10 text-[#07122E] border border-[#3D9597]/20" : "bg-slate-100 text-slate-600"}`}>{l.is_active !== false ? "Actif" : "Inactif"}</span>
+        <div className="rounded-lg border border-slate-200 bg-white p-2.5 sm:p-4">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <p className="text-xs sm:text-sm font-semibold text-slate-800">Laboratoires récents</p>
+            <Link href="/admin/laboratoires" className="text-[10px] sm:text-xs text-[#07122E] hover:underline">Voir tout</Link>
+          </div>
+          {loading ? (
+            <div className="space-y-1.5">{[1,2,3].map(i => <div key={i} className="h-8 bg-slate-100 rounded animate-pulse" />)}</div>
+          ) : labs.length === 0 ? (
+            <div className="text-[11px] sm:text-xs text-slate-500 py-3 text-center">Aucun laboratoire. <Link href="/admin/laboratoires" className="text-[#07122E] underline">Créer</Link></div>
+          ) : (
+            <div className="space-y-1.5">
+              {labs.slice(0, 5).map((l) => (
+                <div key={l.id} className="flex items-center justify-between gap-2 rounded-md border border-slate-100 px-2 py-1.5 sm:px-2.5 sm:py-2">
+                  <div className="min-w-0">
+                    <p className="text-[11px] sm:text-xs font-medium text-slate-800 truncate">{l.name || "(Sans nom)"}</p>
+                    <p className="text-[10px] text-slate-400 truncate">{l.code || "—"} · {l.stats?.users_count ?? 0} util.</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </MotionDiv>
+                  <span className={`text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${l.is_active !== false ? "bg-[#3D9597]/10 text-[#07122E] border border-[#3D9597]/20" : "bg-slate-100 text-slate-600"}`}>{l.is_active !== false ? "Actif" : "Inactif"}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </motion.div>
 
-      {loading && <p className="text-xs text-slate-400">Chargement des données… (l’interface reste disponible)</p>}
-    </MotionDiv>
+      {loading && <p className="text-[10px] text-slate-400">Chargement…</p>}
+    </motion.div>
   );
 }
-

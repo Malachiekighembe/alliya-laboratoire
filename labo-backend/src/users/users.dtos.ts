@@ -33,6 +33,10 @@ export class CreateUserDto {
   avatar_url?: string | null;
 
   @IsOptional()
+  @IsString()
+  matricule?: string | null;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   roles?: string[];
@@ -77,6 +81,10 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   avatar_url?: string | null;
+
+  @IsOptional()
+  @IsString()
+  matricule?: string | null;
 
   @IsOptional()
   @IsArray()

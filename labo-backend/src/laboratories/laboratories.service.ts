@@ -102,6 +102,7 @@ export class LaboratoriesService {
         email: dto.email || null,
         phone: dto.phone || null,
         address: dto.address || null,
+        logo_url: dto.logo_url || null,
         is_active: dto.is_active !== false,
       },
     });
@@ -151,6 +152,7 @@ export class LaboratoriesService {
     if (dto.email !== undefined) data.email = dto.email || null;
     if (dto.phone !== undefined) data.phone = dto.phone || null;
     if (dto.address !== undefined) data.address = dto.address || null;
+    if (dto.logo_url !== undefined) data.logo_url = dto.logo_url || null;
     if (dto.is_active !== undefined) data.is_active = dto.is_active;
 
     const updated = await this.prisma.laboratories.update({ where: { id }, data });

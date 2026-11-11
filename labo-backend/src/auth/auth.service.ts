@@ -37,8 +37,9 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto): Promise<UserProfile> {
+    const email = dto.email ? String(dto.email).trim().toLowerCase() : dto.email;
     const existing = await this.prisma.users.findFirst({
-      where: { laboratory_id: dto.laboratory_id, email: dto.email, deleted_at: null },
+      where: { email, deleted_at: null },
     });
     if (existing) throw new ConflictException('Email déjà utilisé');
 
@@ -46,7 +47,7 @@ export class AuthService {
     const user = await this.prisma.users.create({
       data: {
         laboratory_id: dto.laboratory_id,
-        email: dto.email,
+        email,
         password_hash,
         first_name: dto.first_name,
         last_name: dto.last_name,
@@ -58,8 +59,9 @@ export class AuthService {
   }
 
   async login(dto: LoginDto): Promise<AuthTokens & { user: UserProfile }> {
+    const email = dto.email ? String(dto.email).trim().toLowerCase() : dto.email;
     const user = await this.prisma.users.findFirst({
-      where: { email: dto.email, deleted_at: null, is_active: true },
+      where: { email, deleted_at: null, is_active: true },
     });
     if (!user || !(await this.verifyPassword(dto.password, user.password_hash))) {
       throw new UnauthorizedException('Identifiants invalides');

@@ -36,6 +36,8 @@ export default function PatientsPage() {
   const [form, setForm] = React.useState({ ...initialForm });
   const [saving, setSaving] = React.useState(false);
   const [formError, setFormError] = React.useState("");
+  const [visibleCount, setVisibleCount] = React.useState(10);
+  const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
 
   const carnetResult = useAsync(async () => {
     if (!user?.laboratory_id) return { data: null, error: null, loading: false };
@@ -51,12 +53,22 @@ export default function PatientsPage() {
     `${p.first_name || ""} ${p.last_name || ""} ${p.matricule || ""}`.toLowerCase().includes(search.toLowerCase())
   );
 
+  React.useEffect(() => { setVisibleCount(10); }, [filtered.length, search]);
+  React.useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) setVisibleCount((c) => c + 10);
+    }, { rootMargin: "200px" });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [filtered.length, visibleCount]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
     setSaving(true);
     try {
-      // Champs alignés sur la table patients (matricule/laboratory_id gérés côté backend)
       await api.post("/patients", {
         first_name: form.first_name,
         last_name: form.last_name,
@@ -77,8 +89,10 @@ export default function PatientsPage() {
     }
   };
 
+  const visible = filtered.slice(0, visibleCount);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {error && (
         <Alert variant="destructive" className="text-sm">
           <AlertTitle>Erreur</AlertTitle>
@@ -90,7 +104,7 @@ export default function PatientsPage() {
         title="Patients"
         description="Gestion des dossiers patients de votre laboratoire"
         action={
-          <Button variant="alliya-turquoise" size="sm" onClick={() => { setFormError(""); setForm({ ...initialForm }); setOpen(true); }}>
+          <Button size="sm" onClick={() => { setFormError(""); setForm({ ...initialForm }); setOpen(true); }} className="!bg-[#1E2A47] !text-white hover:!bg-[#162544] w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" /> Nouveau patient
           </Button>
         }
@@ -102,54 +116,54 @@ export default function PatientsPage() {
             <DialogTitle>Nouveau patient</DialogTitle>
           </DialogHeader>
           {formError && <p className="text-sm text-red-600">{formError}</p>}
-          <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+          <form onSubmit={submit} className="grid gap-4 grid-cols-1 sm:grid-cols-2">
             <div className="space-y-1">
-              <Label htmlFor="first_name">Prénom (first_name) *</Label>
+              <Label htmlFor="first_name">Prénom *</Label>
               <Input id="first_name" required value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="last_name">Nom (last_name) *</Label>
+              <Label htmlFor="last_name">Nom *</Label>
               <Input id="last_name" required value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="birth_date">Date de naissance (birth_date)</Label>
+              <Label htmlFor="birth_date">Date de naissance</Label>
               <Input id="birth_date" type="date" value={form.birth_date} onChange={(e) => setForm({ ...form, birth_date: e.target.value })} />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="gender">Genre (gender)</Label>
+              <Label htmlFor="gender">Genre</Label>
               <select id="gender" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:border-[#3D9597]/60 focus:ring-2 focus:ring-[#3D9597]/20">
-                <option value="UNKNOWN">UNKNOWN</option>
+                <option value="UNKNOWN">Inconnu</option>
                 <option value="M">M</option>
                 <option value="F">F</option>
-                <option value="OTHER">OTHER</option>
+                <option value="OTHER">Autre</option>
               </select>
             </div>
             <div className="space-y-1">
-              <Label htmlFor="phone">Téléphone (phone)</Label>
+              <Label htmlFor="phone">Téléphone</Label>
               <Input id="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="email">Email (email)</Label>
+              <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             </div>
             <div className="space-y-1 sm:col-span-2">
-              <Label htmlFor="address">Adresse (address)</Label>
+              <Label htmlFor="address">Adresse</Label>
               <Input id="address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
             </div>
             <div className="space-y-1 sm:col-span-2">
-              <Label htmlFor="ssn">N° sécurité sociale (ssn)</Label>
+              <Label htmlFor="ssn">N° sécurité sociale</Label>
               <Input id="ssn" value={form.ssn} onChange={(e) => setForm({ ...form, ssn: e.target.value })} />
             </div>
             <DialogFooter className="sm:col-span-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" variant="alliya-turquoise" disabled={saving}>{saving ? "Enregistrement…" : "Enregistrer"}</Button>
+              <Button type="submit" disabled={saving} className="!bg-[#1E2A47] !text-white hover:!bg-[#162544]">{saving ? "Enregistrement…" : "Enregistrer"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
       <div className="flex items-center gap-2">
-        <Search className="h-4 w-4 text-muted-foreground" />
+        <Search className="h-4 w-4 text-muted-foreground shrink-0" />
         <Input
           type="text"
           value={search}
@@ -161,52 +175,60 @@ export default function PatientsPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-semibold">Liste des patients</CardTitle>
+        <CardHeader className="pb-2 sm:pb-4">
+          <CardTitle className="text-sm sm:text-base font-semibold">Liste des patients</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-semibold text-muted-foreground">Matricule</TableHead>
-                  <TableHead className="font-semibold text-muted-foreground">Nom</TableHead>
-                  <TableHead className="font-semibold text-muted-foreground">Prénom</TableHead>
-                  <TableHead className="font-semibold text-muted-foreground">Téléphone</TableHead>
-                  <TableHead className="font-semibold text-muted-foreground">Statut</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <SkeletonTableRow />
-                ) : filtered.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-muted-foreground text-center py-8">
-                      Aucun patient trouvé.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filtered.map((p) => (
-                    <TableRow key={p.id} className="hover:bg-muted/30 transition-colors">
-                      <TableCell className="font-mono text-sm">{p.matricule}</TableCell>
-                      <TableCell className="font-medium">{p.last_name}</TableCell>
-                      <TableCell className="font-medium">{p.first_name}</TableCell>
-                      <TableCell className="text-sm">{p.phone || "—"}</TableCell>
-                      <TableCell>
-                        <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", p.is_active ? "bg-[#3D9597]/10 text-[#2E7A7C] border border-[#3D9597]/20" : "bg-red-50 text-red-700 border border-red-100")}>
-                          {p.is_active ? "Actif" : "Inactif"}
-                        </span>
-                      </TableCell>
+          {loading ? (
+            <div className="space-y-2"><SkeletonTableRow /><SkeletonTableRow /></div>
+          ) : filtered.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8 text-sm">Aucun patient trouvé.</p>
+          ) : (
+            <>
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-semibold text-muted-foreground">Matricule</TableHead>
+                      <TableHead className="font-semibold text-muted-foreground">Nom</TableHead>
+                      <TableHead className="font-semibold text-muted-foreground">Prénom</TableHead>
+                      <TableHead className="font-semibold text-muted-foreground">Téléphone</TableHead>
+                      <TableHead className="font-semibold text-muted-foreground">Statut</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {visible.map((p) => (
+                      <TableRow key={p.id} className="hover:bg-muted/30 transition-colors">
+                        <TableCell className="font-mono text-xs">{p.matricule || "—"}</TableCell>
+                        <TableCell className="font-medium">{p.last_name || "—"}</TableCell>
+                        <TableCell className="font-medium">{p.first_name || "—"}</TableCell>
+                        <TableCell className="text-sm">{p.phone || "—"}</TableCell>
+                        <TableCell>
+                          <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", p.is_active ? "bg-[#3D9597]/10 text-[#2E7A7C] border border-[#3D9597]/20" : "bg-red-50 text-red-700 border border-red-100")}>
+                            {p.is_active ? "Actif" : "Inactif"}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="md:hidden grid grid-cols-2 gap-2">
+                {visible.map((p) => (
+                  <div key={p.id} className="rounded-lg border border-slate-200 bg-white p-2.5 space-y-1 min-w-0">
+                    <p className="text-xs font-semibold text-slate-900 truncate">{`${p.first_name || ""} ${p.last_name || ""}`.trim()}</p>
+                    <p className="text-[10px] text-slate-500 font-mono truncate">{p.matricule || "—"}</p>
+                    <div className="flex items-center justify-between gap-1 pt-0.5">
+                      <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full", p.is_active ? "bg-[#3D9597]/10 text-[#2E7A7C]" : "bg-red-50 text-red-700")}>{p.is_active ? "Actif" : "Inactif"}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {filtered.length > visibleCount && <div ref={loadMoreRef} className="h-8 flex items-center justify-center text-xs text-slate-400">Chargement…</div>}
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 }
-
-

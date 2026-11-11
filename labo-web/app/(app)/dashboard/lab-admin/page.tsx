@@ -4,13 +4,11 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/ui/page-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FlaskConical, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api-client";
 
-const MotionDiv = motion.div;
-const fadeUp: any = { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
-const stagger: any = { visible: { transition: { staggerChildren: 0.08 } } };
+const fadeUp: any = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
+const stagger: any = { visible: { transition: { staggerChildren: 0.06 } } };
 
 export default function LabAdminDashboard() {
   const { user } = useAuth();
@@ -44,64 +42,57 @@ export default function LabAdminDashboard() {
             setProfileMiss(m);
           }
         }
-      } catch {
-        // UI non bloquée
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      } catch {} finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
   }, [user]);
 
   const cards = [
-    { label: "Patients", value: stats.patients, icon: <Users className="h-5 w-5" />, sub: "Inscrits" },
-    { label: "Analyses", value: stats.analyses, icon: <FlaskConical className="h-5 w-5" />, sub: "Total" },
-    { label: "En attente", value: stats.pending, icon: <Clock className="h-5 w-5" />, sub: "À traiter" },
-    { label: "Validés", value: stats.validated, icon: <CheckCircle className="h-5 w-5" />, sub: "Résultats" },
+    { label: "Patients", value: stats.patients, icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, sub: "Inscrits" },
+    { label: "Analyses", value: stats.analyses, icon: <FlaskConical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, sub: "Total" },
+    { label: "En attente", value: stats.pending, icon: <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, sub: "À traiter" },
+    { label: "Validés", value: stats.validated, icon: <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, sub: "Résultats" },
   ];
 
   return (
-    <MotionDiv variants={stagger} initial="hidden" animate="visible" className="space-y-6">
-      <MotionDiv variants={fadeUp}>
-        <PageHeader title="Tableau de bord — Responsable labo" description={`Bienvenue ${user?.first_name || ""} ${user?.last_name || ""}. Gérez votre laboratoire et votre équipe.`} />
-      </MotionDiv>
+    <motion.div variants={stagger} initial="hidden" animate="visible" className="space-y-3 sm:space-y-5">
+      <motion.div variants={fadeUp}>
+        <PageHeader title="Tableau de bord — Responsable" description={`Bienvenue ${user?.first_name || ""}. Gérez votre laboratoire.`} />
+      </motion.div>
 
       {profileMiss.length > 0 && (
-        <MotionDiv variants={fadeUp} className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 text-sm">
-          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-          <div><p className="font-medium">Profil du laboratoire incomplet</p><p>À compléter : {profileMiss.join(", ")}. Rendez-vous dans <a href="/profil" className="underline font-medium">Profil & infos</a>.</p></div>
-        </MotionDiv>
+        <motion.div variants={fadeUp} className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 sm:px-3 sm:py-2.5 text-amber-800 text-[11px] sm:text-xs">
+          <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+          <div><span className="font-medium">Profil labo incomplet :</span> {profileMiss.join(", ")}. <a href="/profil" className="underline font-medium">Compléter</a></div>
+        </motion.div>
       )}
 
-      <MotionDiv variants={stagger} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <motion.div variants={stagger} className="grid grid-cols-2 xl:grid-cols-4 gap-1.5 sm:gap-3">
         {cards.map((c) => (
-          <MotionDiv key={c.label} variants={fadeUp}>
-            <Card className="border-slate-200 hover:border-[#3D9597]/30 transition-colors">
-              <CardContent className="pt-5 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500">{c.label}</p>
-                  <p className="text-2xl font-bold text-slate-900 mt-0.5">{loading ? "…" : c.value}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{c.sub}</p>
-                </div>
-                <div className="h-10 w-10 rounded-xl bg-[#3D9597]/10 text-[#07122E] flex items-center justify-center">{c.icon}</div>
-              </CardContent>
-            </Card>
-          </MotionDiv>
+          <motion.div key={c.label} variants={fadeUp}>
+            <div className="flex items-center gap-2 sm:gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2 sm:p-3 h-full">
+              <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-md sm:rounded-lg bg-[#3D9597]/10 text-[#07122E] flex items-center justify-center shrink-0">{c.icon}</div>
+              <div className="min-w-0 leading-tight">
+                <p className="text-[10px] sm:text-xs text-slate-500 truncate">{c.label}</p>
+                <p className="text-sm sm:text-xl font-bold text-slate-900">{loading ? "…" : c.value}</p>
+                <p className="text-[10px] text-slate-400 truncate">{c.sub}</p>
+              </div>
+            </div>
+          </motion.div>
         ))}
-      </MotionDiv>
+      </motion.div>
 
-      <MotionDiv variants={fadeUp}>
-        <Card className="border-slate-200">
-          <CardHeader><CardTitle className="text-base">Actions rapides</CardTitle></CardHeader>
-          <CardContent className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {[{ href: "/personnel", label: "Gérer le personnel" }, { href: "/patients", label: "Patients" }, { href: "/analyses", label: "Analyses" }, { href: "/profil", label: "Compléter le profil" }].map(a => (
-              <a key={a.href} href={a.href} className="rounded-lg border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 hover:border-[#3D9597]/50 hover:bg-[#07122E]/5 transition-colors">{a.label}</a>
+      <motion.div variants={fadeUp}>
+        <div className="rounded-lg border border-slate-200 bg-white p-2.5 sm:p-4">
+          <p className="text-xs sm:text-sm font-semibold text-slate-800 mb-2 sm:mb-3">Actions rapides</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2">
+            {[{ href: "/personnel", label: "Personnel" }, { href: "/patients", label: "Patients" }, { href: "/analyses", label: "Analyses" }, { href: "/profil", label: "Profil" }].map(a => (
+              <a key={a.href} href={a.href} className="rounded-md border border-slate-200 px-2 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs font-medium text-slate-700 text-center hover:border-[#3D9597]/40 hover:bg-[#07122E]/5 transition-colors">{a.label}</a>
             ))}
-          </CardContent>
-        </Card>
-      </MotionDiv>
-      {loading && <p className="text-xs text-slate-400">Chargement des données… (l’interface reste disponible)</p>}
-    </MotionDiv>
+          </div>
+        </div>
+      </motion.div>
+      {loading && <p className="text-[10px] text-slate-400">Chargement…</p>}
+    </motion.div>
   );
 }
-

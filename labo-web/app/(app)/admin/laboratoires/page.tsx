@@ -8,7 +8,7 @@ import { Building2, Plus, Users, Mail, Phone, MapPin, Shield, AlertCircle, Penci
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
-const MotionDiv = motion.div;
+
 const fadeUp: any = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 
 const emptyLab = { code: "", name: "", slug: "", email: "", phone: "", address: "", is_active: true };
@@ -31,6 +31,8 @@ export default function AdminLaboratoiresPage() {
   const { user } = useAuth();
   const [labs, setLabs] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [visibleCount, setVisibleCount] = React.useState(10);
+  const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = React.useState(false);
   const [editLab, setEditLab] = React.useState<any | null>(null);
   const [labForm, setLabForm] = React.useState({ ...emptyLab });
@@ -47,6 +49,16 @@ export default function AdminLaboratoiresPage() {
   }, []);
 
   React.useEffect(() => { load(); }, [load]);
+  React.useEffect(() => { setVisibleCount(10); }, [labs.length]);
+  React.useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) setVisibleCount((c) => c + 10);
+    }, { rootMargin: "200px" });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [labs.length, visibleCount]);
 
   const openCreate = () => {
     setError(""); setEditLab(null);
@@ -69,7 +81,6 @@ export default function AdminLaboratoiresPage() {
     try {
       if (editLab) {
         await api.patch(`/laboratories/${editLab.id}`, {
-          code: labForm.code || undefined,
           name: labForm.name || undefined,
           slug: labForm.slug || undefined,
           email: labForm.email || null,
@@ -78,10 +89,8 @@ export default function AdminLaboratoiresPage() {
           is_active: labForm.is_active,
         });
       } else {
-        // Création labo + responsable (admin) — champs non bloquants côté admin
         const payload: any = {
           name: labForm.name || "Nouveau laboratoire",
-          code: labForm.code || undefined,
           slug: labForm.slug || (labForm.name ? slugify(labForm.name) : undefined),
           email: labForm.email || null,
           phone: labForm.phone || null,
@@ -114,12 +123,12 @@ export default function AdminLaboratoiresPage() {
   }
 
   return (
-    <MotionDiv variants={fadeUp} initial="hidden" animate="visible" className="space-y-6">
+    <motion.div variants={fadeUp} initial="hidden" animate="visible" className="space-y-6">
       <PageHeader
         title="Administration — Laboratoires"
-        description="Créer les laboratoires et leur responsable. Les informations manquantes pourront être complétées plus tard dans les profils."
+        description="Créer les laboratoires et leur responsable. Les informations manquantes pourront être complétées plus tard."
         action={
-          <Button onClick={openCreate} className="!bg-[#1E2A47] !text-white hover:!bg-[#162544] shadow-sm border-0">
+          <Button onClick={openCreate} className="!bg-[#1E2A47] !text-white hover:!bg-[#162544] shadow-sm border-0 w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" /> Nouveau laboratoire
           </Button>
         }
@@ -140,8 +149,8 @@ export default function AdminLaboratoiresPage() {
                   <Input id="name" value={labForm.name} onChange={(e) => { const v = e.target.value; setLabForm({ ...labForm, name: v, slug: editLab ? labForm.slug : (labForm.slug || slugify(v)) }); }} placeholder="Ex : Laboratoire Central" />
                 </div>
                 <div>
-                  <Label htmlFor="code">Code</Label>
-                  <Input id="code" value={labForm.code} onChange={(e) => setLabForm({ ...labForm, code: e.target.value })} placeholder="Auto si vide (ex : LAB-001)" />
+                  <Label htmlFor="code">Matricule / Code (généré par le système)</Label>
+                  <div className="h-10 flex items-center text-sm px-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 font-mono">{labForm.code || "Auto (généré à la création)"}</div>
                 </div>
                 <div>
                   <Label htmlFor="slug">Slug</Label>
@@ -217,44 +226,46 @@ export default function AdminLaboratoiresPage() {
       ) : labs.length === 0 ? (
         <Card className="border-dashed"><CardContent className="py-12 text-center text-muted-foreground">Aucun laboratoire. Créez le premier et assignez son responsable admin.</CardContent></Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {labs.map((lab) => {
-            const miss = missingLab(lab);
-            return (
-              <Card key={lab.id} className="border border-[#E5E7EB] hover:shadow-sm transition-shadow">
-                <CardContent className="pt-5 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#1E2A47] to-[#3D9597]/80 text-white flex items-center justify-center shrink-0"><Building2 className="h-5 w-5" /></div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-slate-900 truncate">{lab.name || "(Sans nom)"}</p>
-                        <p className="text-xs text-slate-500 font-mono">{lab.code || "—"} · {lab.slug || "—"}</p>
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
+            {labs.slice(0, visibleCount).map((lab) => {
+              const miss = missingLab(lab);
+              return (
+                <Card key={lab.id} className="border border-[#E5E7EB] hover:shadow-sm transition-shadow">
+                  <CardContent className="p-3 sm:pt-5 sm:p-6 space-y-2 sm:space-y-3">
+                    <div className="flex items-start justify-between gap-1.5">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-[#1E2A47] to-[#3D9597]/80 text-white flex items-center justify-center shrink-0 text-[10px] sm:text-xs font-semibold overflow-hidden">
+                          {lab.logo_url ? <img src={lab.logo_url} alt="" className="h-full w-full object-cover" /> : <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-slate-900 truncate text-xs sm:text-sm leading-tight">{lab.name || "(Sans nom)"}</p>
+                          <p className="text-[10px] sm:text-xs text-slate-500 font-mono truncate">{lab.code || "—"}</p>
+                        </div>
                       </div>
+                      <button onClick={() => openEdit(lab)} className="p-1 sm:p-1.5 rounded-md hover:bg-slate-100 text-slate-500 shrink-0" title="Modifier"><Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></button>
                     </div>
-                    <button onClick={() => openEdit(lab)} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500" title="Modifier"><Pencil className="h-4 w-4" /></button>
-                  </div>
-                  <div className="grid grid-cols-1 gap-1.5 text-sm text-slate-600">
-                    <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-slate-400" /><span className="truncate">{lab.address || <span className="text-amber-600">Adresse manquante</span>}</span></div>
-                    <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-slate-400" /><span className="truncate">{lab.email || <span className="text-slate-400">Email non renseigné</span>}</span></div>
-                    <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-slate-400" /><span>{lab.phone || <span className="text-slate-400">Téléphone non renseigné</span>}</span></div>
-                    <div className="flex items-center gap-2"><Users className="h-3.5 w-3.5 text-slate-400" /><span>{lab.stats?.users_count ?? 0} utilisateur(s)</span></div>
-                  </div>
-                  <div className="flex items-center justify-between pt-1">
-                    <span className={`text-xs px-2.5 py-1 rounded-full ${lab.is_active ? "bg-[#3D9597]/10 text-[#2E7A7C] border border-[#3D9597]/20" : "bg-slate-100 text-slate-600 border border-slate-200"}`}>{lab.is_active ? "Actif" : "Inactif"}</span>
-                    {miss.length > 0 && (
-                      <span className="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full"><AlertCircle className="h-3 w-3" /> Profil incomplet ({miss.length})</span>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    <div className="hidden sm:grid grid-cols-1 gap-1.5 text-sm text-slate-600">
+                      <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-slate-400" /><span className="truncate">{lab.address || <span className="text-amber-600">Adresse manquante</span>}</span></div>
+                      <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-slate-400" /><span className="truncate">{lab.email || <span className="text-slate-400">Email non renseigné</span>}</span></div>
+                      <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-slate-400" /><span>{lab.phone || <span className="text-slate-400">Téléphone non renseigné</span>}</span></div>
+                    </div>
+                    <div className="flex items-center justify-between gap-1 pt-0.5 sm:pt-1 flex-wrap">
+                      <span className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full ${lab.is_active ? "bg-[#3D9597]/10 text-[#2E7A7C] border border-[#3D9597]/20" : "bg-slate-100 text-slate-600 border border-slate-200"}`}>{lab.is_active ? "Actif" : "Inactif"}</span>
+                      <span className="text-[10px] sm:text-xs text-slate-500 flex items-center gap-1"><Users className="h-3 w-3" />{lab.stats?.users_count ?? 0}</span>
+                      {miss.length > 0 && <span className="hidden sm:inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full"><AlertCircle className="h-3 w-3" /> Incomplet</span>}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          {labs.length > visibleCount && <div ref={loadMoreRef} className="h-8 flex items-center justify-center text-xs text-slate-400">Chargement…</div>}
+        </>
       )}
-    </MotionDiv>
+    </motion.div>
   );
 }
-
 
 
 

@@ -9,6 +9,7 @@ import {
   Settings, LogOut, ChevronLeft, ChevronRight, X, Clock, Activity, CreditCard, Stethoscope, Building2, ShieldCheck, UserCircle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLab } from "@/components/lab/LabProvider";
 import { cn, getInitials } from "@/lib/utils";
 
 type NavItem = { label: string; href: string; icon: React.ComponentType<{ className?: string }>; roles?: string[] };
@@ -92,6 +93,10 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, hasRole } = useAuth();
+  const { activeLab } = useLab();
+  const labName = activeLab?.name || "Alliya Labo";
+  const labSub = activeLab?.code ? `Matricule: ${activeLab.code}` : "Système de laboratoire";
+  const labLogo = activeLab?.logo_url as string | undefined;
 
   const handleLogout = async () => { try { await logout(); } finally { router.push("/login"); } };
   const canSeeItem = (item: NavItem) => !item.roles || item.roles.some((r) => hasRole(r));
@@ -126,12 +131,14 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
     <div className="flex h-full flex-col" style={{ background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY_2} 100%)` }}>
       {/* Header */}
       <div className="flex h-16 items-center justify-between px-3 border-b border-white/[0.08]">
-        <Link href="/dashboard" className={cn("flex items-center gap-2.5", collapsed && "mx-auto")}> 
-          <div className="h-9 w-9 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br from-[#3D9597]/80 to-[#2E7A7C]/80">AL</div>
+        <Link href="/dashboard" className={cn("flex items-center gap-2.5 min-w-0", collapsed && "mx-auto")}> 
+          <div className="h-9 w-9 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br from-[#3D9597]/80 to-[#2E7A7C]/80 overflow-hidden shrink-0">
+            {labLogo ? <img src={labLogo} alt={labName} className="h-full w-full object-cover" /> : getInitials(labName, "") || "AL"}
+          </div>
           {!collapsed && (
-            <div className="leading-tight">
-              <p className="text-slate-100 font-semibold tracking-tight">Alliya Labo</p>
-              <p className="text-[10px] text-slate-400/80">Système de laboratoire</p>
+            <div className="leading-tight min-w-0">
+              <p className="text-slate-100 font-semibold tracking-tight truncate" title={labName}>{labName}</p>
+              <p className="text-[10px] text-slate-400/80 truncate" title={labSub}>{labSub}</p>
             </div>
           )}
         </Link>
@@ -188,10 +195,10 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
       </aside>
       <AnimatePresence>
         {mobileOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50" onClick={onMobileClose} />
-            <motion.aside initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }} transition={{ type: "spring", stiffness: 320, damping: 30 }} className="fixed inset-y-0 left-0 w-72 shadow-2xl">
-              <button onClick={onMobileClose} className="absolute right-3 top-4 z-10 h-8 w-8 inline-flex items-center justify-center rounded-md text-slate-300 hover:bg-white/10 hover:text-white"><X className="h-4 w-4" /></button>
+          <div className="fixed inset-0 z-[60] lg:hidden">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/45 backdrop-blur-[1px]" onClick={onMobileClose} />
+            <motion.aside initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }} transition={{ type: "spring", stiffness: 320, damping: 32 }} className="absolute inset-y-0 left-0 w-[min(18rem,86vw)] shadow-2xl border-r border-white/10 overflow-hidden">
+              <button onClick={onMobileClose} className="absolute right-2.5 top-3 z-10 h-8 w-8 inline-flex items-center justify-center rounded-md text-slate-300 hover:bg-white/10 hover:text-white" aria-label="Fermer le menu"><X className="h-4 w-4" /></button>
               {content}
             </motion.aside>
           </div>

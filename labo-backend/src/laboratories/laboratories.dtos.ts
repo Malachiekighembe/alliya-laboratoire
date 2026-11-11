@@ -1,10 +1,11 @@
 export class CreateLaboratoryDto {
-  code: string;
-  name: string;
-  slug: string;
+  code?: string;
+  name?: string;
+  slug?: string;
   email?: string;
   phone?: string;
   address?: string;
+  logo_url?: string | null;
   is_active?: boolean;
 }
 
@@ -15,5 +16,7 @@ export class UpdateLaboratoryDto {
   email?: string;
   phone?: string;
   address?: string;
+  logo_url?: string | null;
   is_active?: boolean;
 }
+
