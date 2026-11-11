@@ -106,6 +106,11 @@ export default function ProfilPage() {
   const [emailMsg, setEmailMsg] = React.useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [sendingOtp, setSendingOtp] = React.useState(false);
   const [verifyingOtp, setVerifyingOtp] = React.useState(false);
+  const [devCode, setDevCode] = React.useState<string | null>(null);
+  const [origin, setOrigin] = React.useState("");
+  const [publicToken, setPublicToken] = React.useState<string>("");
+
+  React.useEffect(() => { if (typeof window !== "undefined") setOrigin(window.location.origin); }, []);
 
   const load = React.useCallback(async () => {
     if (!user) return;
