@@ -121,6 +121,8 @@ export default function ProfilPage() {
         setLForm({ name: labRes.data.name || "", code: labRes.data.code || "", slug: labRes.data.slug || "", email: labRes.data.email || "", phone: labRes.data.phone || "", address: labRes.data.address || "", logo_url: labRes.data.logo_url || "" });
       }
     }
+    const tokRes = await api.safeGet<any>("/users/me/public-profile-token");
+    if (!tokRes.error && tokRes.data?.token) setPublicToken(tokRes.data.token);
     setLoading(false);
   }, [user]);
 

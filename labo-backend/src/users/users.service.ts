@@ -1,4 +1,5 @@
 ﻿import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { DatabaseService } from '../database/database.service.js';
 import { PasswordUtil } from '../common/utils/password.util.js';
 import { PaginationDto } from '../common/dto/pagination.dto.js';
@@ -214,12 +215,40 @@ export class UsersService {
       const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
       const user = process.env.SMTP_USER;
       const pass = process.env.SMTP_PASS;
-      const from = process.env.SMTP_FROM || user;
-      if (host && from) {
+      const from = process.env.SMTP_FROM || user || 'no-reply@alliya-labo.app';
+      if (host) {
         const nodemailer: any = await (Function('return import("nodemailer")')() as Promise<any>).catch(() => null);
         if (nodemailer) {
           const transporter = nodemailer.createTransport({ host, port: port || 587, secure: port === 465, auth: user && pass ? { user, pass } : undefined } as any);
-          await transporter.sendMail({ from, to: email, subject: 'Code de vérification - Alliya Labo', text: `Votre code de vérification est : ${code}. Il expire dans 10 minutes.`, html: `<p>Votre code de vérification est : <b>${code}</b></p><p>Il expire dans 10 minutes.</p>` });
+          const subject = 'Code de vérification de votre adresse email — Alliya Laboratoire';
+          const text = `Bonjour ${existing.first_name || ''},\n\nVotre code de vérification Alliya Laboratoire est : ${code}\n\nCe code expire dans 10 minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.\n\n— Alliya Laboratoire`;
+          const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+<body style="margin:0;padding:0;background:#F5F8FA;font-family:Arial,Helvetica,sans-serif;color:#1E2A47;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #E5E7EB;">
+        <tr><td style="background:linear-gradient(135deg,#07122E,#1E2A47 55%,#3D9597);padding:28px 28px 22px;">
+          <div style="font-size:20px;font-weight:700;color:#ffffff;letter-spacing:0.2px;">Alliya Laboratoire</div>
+          <div style="margin-top:6px;font-size:13px;color:rgba(255,255,255,0.85);">Vérification de votre adresse email</div>
+        </td></tr>
+        <tr><td style="padding:28px;">
+          <p style="margin:0 0 12px;font-size:15px;line-height:1.6;">Bonjour <strong>${(existing.first_name || '').replace(/</g,'&lt;')}</strong>,</p>
+          <p style="margin:0 0 18px;font-size:14px;line-height:1.6;color:#475569;">Utilisez le code ci-dessous pour confirmer le changement de votre adresse email. Ce code est valable pendant <strong>10 minutes</strong>.</p>
+          <div style="text-align:center;margin:22px 0;">
+            <div style="display:inline-block;background:#F0FAFA;border:1px solid #BFE7E8;border-radius:12px;padding:14px 22px;">
+              <span style="font-size:30px;line-height:1;letter-spacing:8px;font-weight:700;color:#1E2A47;">${code}</span>
+            </div>
+          </div>
+          <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#64748B;">Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email en toute sécurité. Votre adresse actuelle ne sera pas modifiée.</p>
+        </td></tr>
+        <tr><td style="padding:16px 28px;background:#F8FAFC;border-top:1px solid #E5E7EB;">
+          <p style="margin:0;font-size:12px;color:#94A3B8;line-height:1.5;">Cet email a été envoyé automatiquement par Alliya Laboratoire. Merci de ne pas y répondre.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+          await transporter.sendMail({ from, to: email, subject, text, html });
           sent = true;
         }
       }
@@ -248,11 +277,43 @@ export class UsersService {
     return this.sanitize(updated);
   }
 
-  async findPublicById(id: string) {
+  private getPublicProfileSecret() {
+    return process.env.PUBLIC_PROFILE_SECRET || process.env.JWT_ACCESS_SECRET || 'alliya-public-profile-secret';
+  }
+
+  createPublicProfileToken(userId: string): string {
+    const payload = Buffer.from(JSON.stringify({ uid: userId, t: 'p' })).toString('base64url');
+    const sig = crypto.createHmac('sha256', this.getPublicProfileSecret()).update(payload).digest('base64url');
+    return `${payload}.${sig}`;
+  }
+
+  verifyPublicProfileToken(token: string): string | null {
+    try {
+      if (!token || typeof token !== 'string') return null;
+      const parts = token.split('.');
+      if (parts.length !== 2) return null;
+      const [payload, sig] = parts;
+      const expected = crypto.createHmac('sha256', this.getPublicProfileSecret()).update(payload).digest('base64url');
+      const a = Buffer.from(sig); const b = Buffer.from(expected);
+      if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+      const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+      if (!data?.uid || data.t !== 'p') return null;
+      return String(data.uid);
+    } catch { return null; }
+  }
+
+  async getPublicProfileTokenForUser(userId: string) {
+    const existing = await this.prisma.users.findFirst({ where: { id: userId, deleted_at: null, is_active: true }, select: { id: true } });
+    if (!existing) throw new NotFoundException('Utilisateur introuvable');
+    return { token: this.createPublicProfileToken(userId) };
+  }
+
+  async findPublicByToken(token: string) {
+    const userId = this.verifyPublicProfileToken(token);
+    if (!userId) throw new NotFoundException('Profil introuvable');
     const user = await this.prisma.users.findFirst({
-      where: { id, deleted_at: null, is_active: true },
+      where: { id: userId, deleted_at: null, is_active: true },
       select: {
-        id: true,
         first_name: true,
         last_name: true,
         avatar_url: true,
@@ -261,12 +322,12 @@ export class UsersService {
         laboratory_id: true,
       },
     });
-    if (!user) throw new NotFoundException('Utilisateur introuvable');
+    if (!user) throw new NotFoundException('Profil introuvable');
     let laboratory: any = null;
     if (user.laboratory_id) {
       const lab = await this.prisma.laboratories.findFirst({
         where: { id: user.laboratory_id, deleted_at: null },
-        select: { id: true, name: true, code: true, logo_url: true },
+        select: { name: true, code: true, logo_url: true },
       }).catch(() => null);
       laboratory = lab || null;
     }

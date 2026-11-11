@@ -6,9 +6,9 @@ import { ApiResponseDto } from '../common/dto/api-response.dto.js';
 export class UsersPublicController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get(':id')
-  async getPublicProfile(@Param('id') id: string) {
-    const data = await this.usersService.findPublicById(id);
+  @Get(':token')
+  async getPublicProfile(@Param('token') token: string) {
+    const data = await this.usersService.findPublicByToken(token);
     return ApiResponseDto.success(data);
   }
 }
