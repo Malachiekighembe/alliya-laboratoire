@@ -32,6 +32,7 @@ export class UsersController {
       last_name: dto.last_name,
       phone: dto.phone,
       email: dto.email,
+      avatar_url: dto.avatar_url,
     };
     const data = await this.usersService.update(user.id, null, safe);
     return ApiResponseDto.success(data, 'Profil mis à jour');

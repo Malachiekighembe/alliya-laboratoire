@@ -21,6 +21,7 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   hasPermission: (perm: string) => boolean;
   hasRole: (role: string) => boolean;
+  updateUser: (patch: Partial<User>) => void;
 }
 
 const AuthContext = React.createContext<AuthContextType | null>(null);
@@ -153,10 +154,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const hasPermission = React.useCallback((perm: string): boolean => !!user && user.permissions.includes(perm), [user]);
   const hasRole = React.useCallback((role: string): boolean => !!user && user.roles.includes(role), [user]);
+  const updateUser = React.useCallback((patch: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...patch } as User;
+      try { localStorage.setItem("user", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
 
   const value = React.useMemo<AuthContextType>(
-    () => ({ user, tokens, error, ready, login, register, logout, hasPermission, hasRole }),
-    [user, tokens, error, ready, login, register, logout, hasPermission, hasRole]
+    () => ({ user, tokens, error, ready, login, register, logout, hasPermission, hasRole, updateUser }),
+    [user, tokens, error, ready, login, register, logout, hasPermission, hasRole, updateUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

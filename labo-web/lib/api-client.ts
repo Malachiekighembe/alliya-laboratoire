@@ -28,6 +28,7 @@ export interface User {
   first_name: string;
   last_name: string;
   phone: string | null;
+  avatar_url?: string | null;
   roles: string[];
   permissions: string[];
 }

@@ -158,8 +158,12 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
       <div className="border-t border-white/[0.08] p-2.5 space-y-1">
         {user && (
           <Link href="/profil" className={cn("flex items-center gap-3 rounded-xl px-2.5 py-2 hover:bg-white/[0.05] transition-colors", collapsed && "justify-center")} title="Mon profil"> 
-            <div className="h-9 w-9 shrink-0 rounded-full flex items-center justify-center text-white text-xs font-semibold bg-gradient-to-br from-[#2a3d5f] to-[#3D9597]/70">
-              {getInitials(user.first_name || "", user.last_name || "")}
+            <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden flex items-center justify-center text-white text-xs font-semibold bg-gradient-to-br from-[#2a3d5f] to-[#3D9597]/70">
+              {(user as any)?.avatar_url ? (
+                <img src={(user as any).avatar_url} alt="Profil" className="h-full w-full object-cover" />
+              ) : (
+                getInitials(user.first_name || "", user.last_name || "")
+              )}
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">

@@ -29,6 +29,10 @@ export class CreateUserDto {
   phone?: string;
 
   @IsOptional()
+  @IsString()
+  avatar_url?: string | null;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   roles?: string[];
@@ -69,6 +73,10 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @IsOptional()
+  @IsString()
+  avatar_url?: string | null;
 
   @IsOptional()
   @IsArray()

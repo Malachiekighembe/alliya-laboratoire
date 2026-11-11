@@ -34,6 +34,7 @@ export class UsersService {
         first_name: createUserDto.first_name || '',
         last_name: createUserDto.last_name || '',
         phone: createUserDto.phone ?? null,
+        avatar_url: createUserDto.avatar_url ?? null,
         roles,
         permissions: Array.isArray(createUserDto.permissions) ? createUserDto.permissions : [],
         is_active: createUserDto.is_active !== false,
@@ -97,6 +98,7 @@ export class UsersService {
     if (dto.last_name !== undefined) data.last_name = dto.last_name ?? '';
     if (dto.phone !== undefined) data.phone = dto.phone ?? null;
     if (dto.email !== undefined) data.email = dto.email ?? null;
+    if (dto.avatar_url !== undefined) data.avatar_url = dto.avatar_url ?? null;
     if (dto.laboratory_id !== undefined) data.laboratory_id = dto.laboratory_id || null;
     if (dto.roles !== undefined) data.roles = Array.isArray(dto.roles) ? dto.roles : existing.roles;
     if (dto.permissions !== undefined) data.permissions = Array.isArray(dto.permissions) ? dto.permissions : existing.permissions;
