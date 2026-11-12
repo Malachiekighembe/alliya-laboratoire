@@ -17,8 +17,17 @@ export function AppBar({ onMenu }: { onMenu: () => void; collapsed?: boolean }) 
   const role = (user?.roles?.[0] || "Utilisateur").replace(/_/g, " ");
   const [open, setOpen] = React.useState(false);
   const [readIds, setReadIds] = React.useState<string[]>([]);
+  const [online, setOnline] = React.useState(true);
   const panelRef = React.useRef<HTMLDivElement>(null);
   const storageKey = user?.id ? `alliya_notif_read_${user.id}` : "alliya_notif_read";
+
+  React.useEffect(() => {
+    const update = () => setOnline(typeof navigator !== "undefined" ? navigator.onLine : true);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => { window.removeEventListener("online", update); window.removeEventListener("offline", update); };
+  }, []);
 
   const notifications = React.useMemo<Notif[]>(() => {
     const items: Notif[] = [];
@@ -78,6 +87,8 @@ export function AppBar({ onMenu }: { onMenu: () => void; collapsed?: boolean }) 
 
   const avatarUrl = (user as any)?.avatar_url as string | undefined;
   const fullName = `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || "Profil";
+  const statusDot = online ? "bg-emerald-500" : "bg-slate-300";
+  const statusTitle = online ? "En ligne" : "Hors ligne";
 
   return (
     <>
@@ -151,20 +162,26 @@ export function AppBar({ onMenu }: { onMenu: () => void; collapsed?: boolean }) 
               )}
             </div>
 
-            <Link href="/profil" className="hidden lg:flex items-center gap-2 pl-1.5 pr-1 py-1 rounded-lg hover:bg-slate-50 transition-colors min-w-0" title={fullName}>
-              <div className="h-8 w-8 rounded-full overflow-hidden ring-2 ring-slate-100 shrink-0 bg-gradient-to-br from-[#1E2A47] to-[#3D9597] text-white flex items-center justify-center text-[11px] font-semibold">
-                {avatarUrl ? <img src={avatarUrl} alt="Profil" className="h-full w-full object-cover" /> : (getInitials(user?.first_name || "", user?.last_name || "") || "U")}
-              </div>
-              <div className="flex flex-col items-start leading-tight min-w-0 max-w-[150px]">
-                <p className="text-[13px] font-semibold text-slate-800 truncate w-full">{fullName}</p>
-                <p className="text-[11px] text-[#2E7A7C] capitalize truncate w-full">{role}</p>
-              </div>
+            <Link href="/profil" className="hidden lg:flex items-center gap-2 pl-1 pr-1.5 py-1 rounded-lg hover:bg-slate-50 transition-colors min-w-0" title={`${fullName} — ${statusTitle}`}>
+              <span className="relative shrink-0">
+                <span className="block h-8 w-8 rounded-full overflow-hidden ring-2 ring-slate-100 bg-gradient-to-br from-[#1E2A47] to-[#3D9597] text-white flex items-center justify-center text-[10px] font-semibold">
+                  {avatarUrl ? <img src={avatarUrl} alt="Profil" className="h-full w-full object-cover" /> : (getInitials(user?.first_name || "", user?.last_name || "") || "U")}
+                </span>
+                <span className={`absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white ${statusDot}`} title={statusTitle} />
+              </span>
+              <span className="flex flex-col items-start leading-tight min-w-0 max-w-[140px]">
+                <span className="text-[12px] font-semibold text-slate-800 truncate w-full">{fullName}</span>
+                <span className="text-[10px] text-[#2E7A7C] capitalize truncate w-full">{role}</span>
+              </span>
             </Link>
 
-            <Link href="/profil" className="lg:hidden inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-full overflow-hidden ring-2 ring-slate-100 hover:ring-[#3D9597]/30 transition shrink-0" title={fullName}>
-              <div className="h-full w-full bg-gradient-to-br from-[#1E2A47] to-[#3D9597] text-white flex items-center justify-center text-xs font-semibold">
-                {avatarUrl ? <img src={avatarUrl} alt="Profil" className="h-full w-full object-cover" /> : (getInitials(user?.first_name || "", user?.last_name || "") || "U")}
-              </div>
+            <Link href="/profil" className="lg:hidden inline-flex items-center justify-center shrink-0" title={`${fullName} — ${statusTitle}`}>
+              <span className="relative">
+                <span className="block h-9 w-9 sm:h-10 sm:w-10 rounded-full overflow-hidden ring-2 ring-slate-100 bg-gradient-to-br from-[#1E2A47] to-[#3D9597] text-white flex items-center justify-center text-xs font-semibold">
+                  {avatarUrl ? <img src={avatarUrl} alt="Profil" className="h-full w-full object-cover" /> : (getInitials(user?.first_name || "", user?.last_name || "") || "U")}
+                </span>
+                <span className={`absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white ${statusDot}`} title={statusTitle} />
+              </span>
             </Link>
 
             <button

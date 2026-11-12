@@ -5,7 +5,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { Building2, Shield, BadgeCheck, UserCircle2 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api").replace(/\/$/, "");
+const API_ROOT = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "").replace(/\/api\/v1$/i, "");
+const API_PUBLIC_BASE = `${API_ROOT}/api/v1`;
 
 type PublicProfile = {
   id: string;
@@ -30,7 +31,7 @@ export default function PublicProfileClient({ id }: { id: string }) {
     (async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE}/users/public/${id}`, { cache: "no-store" });
+        const res = await fetch(`${API_PUBLIC_BASE}/users/public/${id}`, { cache: "no-store" });
         const json = await res.json().catch(() => null);
         if (!res.ok || !json?.data) throw new Error(json?.message || "Profil introuvable");
         if (active) setData(json.data);
@@ -52,7 +53,7 @@ export default function PublicProfileClient({ id }: { id: string }) {
 
   const fullName = `${data.first_name || ""} ${data.last_name || ""}`.trim() || "Utilisateur";
   const roleLabel = (data.roles?.[0] || "utilisateur").replace(/_/g, " ");
-  const profileUrl = origin ? `${origin}/u/${data.id}` : "";
+  const profileUrl = origin ? `${origin}/u/${id}` : "";
   const lab = data.laboratory;
 
   return (

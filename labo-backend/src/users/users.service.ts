@@ -208,18 +208,28 @@ export class UsersService {
     const code = String(Math.floor(100000 + Math.random() * 900000));
     UsersService.emailOtps.set(userId, { code, email, expiresAt: Date.now() + 10 * 60 * 1000 });
 
-    // Try to send via SMTP if configured (optional). Fallback: return devCode for environments without mail.
+    // Try to send via SMTP if configured (TurboSMTP or any SMTP provider). Fallback: return devCode for environments without mail.
     let sent = false;
     try {
       const host = process.env.SMTP_HOST;
-      const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
+      const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587;
       const user = process.env.SMTP_USER;
       const pass = process.env.SMTP_PASS;
       const from = process.env.SMTP_FROM || user || 'no-reply@alliya-labo.app';
+      const secureEnv = process.env.SMTP_SECURE;
+      const secure = secureEnv !== undefined ? ['1', 'true', 'yes'].includes(String(secureEnv).toLowerCase()) : port === 465;
       if (host) {
         const nodemailer: any = await (Function('return import("nodemailer")')() as Promise<any>).catch(() => null);
         if (nodemailer) {
-          const transporter = nodemailer.createTransport({ host, port: port || 587, secure: port === 465, auth: user && pass ? { user, pass } : undefined } as any);
+          const transporter = nodemailer.createTransport({
+            host,
+            port,
+            secure,
+            auth: user && pass ? { user, pass } : undefined,
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
+          } as any);
           const subject = 'Code de vérification de votre adresse email — Alliya Laboratoire';
           const text = `Bonjour ${existing.first_name || ''},\n\nVotre code de vérification Alliya Laboratoire est : ${code}\n\nCe code expire dans 10 minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.\n\n— Alliya Laboratoire`;
           const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>

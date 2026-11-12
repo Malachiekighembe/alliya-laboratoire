@@ -247,7 +247,7 @@ export default function ProfilPage() {
   const labLogo = (lForm.logo_url || lab?.logo_url) as string | undefined;
   const fullName = `${uForm.first_name || ""} ${uForm.last_name || ""}`.trim() || "Utilisateur";
   const roleLabel = (me?.roles?.[0] || "utilisateur").replace(/_/g, " ");
-  const qrPayload = JSON.stringify({ type: "alliya-user", id: me?.id, matricule: uForm.matricule || me?.matricule || null, name: fullName, email: uForm.email || me?.email || null, role: roleLabel, lab: lab?.name || null, lab_code: lForm.code || lab?.code || null });
+  const publicProfileUrl = origin && publicToken ? `${origin}/u/${publicToken}` : "";
   const completionFields = [uForm.first_name, uForm.last_name, uForm.email, uForm.phone, avatarUrl, uForm.matricule || me?.matricule, ...(lab ? [lForm.name, lForm.address, lForm.phone, lForm.email] : [])];
   const completionDone = completionFields.filter((v) => !!v && String(v).trim()).length;
   const completionPct = completionFields.length ? Math.round((completionDone / completionFields.length) * 100) : 0;
@@ -313,8 +313,19 @@ export default function ProfilPage() {
               <p className="font-semibold text-slate-900 text-sm">{fullName}</p>
               <p className="text-[11px] text-[#2E7A7C] capitalize">{roleLabel}</p>
               <p className="text-[11px] text-slate-500 mt-0.5">Matricule: {uForm.matricule || "—"}</p>
-              <div className="mt-3 bg-white p-2.5 rounded-lg border border-slate-200"><QRCodeSVG value={qrPayload} size={150} level="M" includeMargin /></div>
-              <p className="text-[10px] text-slate-400 mt-2">Scannez pour identifier l’utilisateur.</p>
+              <div className="mt-3 bg-white p-2.5 rounded-lg border border-slate-200">
+                {publicProfileUrl ? (
+                  <QRCodeSVG value={publicProfileUrl} size={150} level="M" includeMargin />
+                ) : (
+                  <div className="h-[150px] w-[150px] flex items-center justify-center text-[11px] text-slate-400">Génération du lien…</div>
+                )}
+              </div>
+              <p className="text-[10px] text-slate-400 mt-2">Scannez pour ouvrir le profil public (lien sécurisé).</p>
+              {publicProfileUrl && (
+                <a href={publicProfileUrl} target="_blank" rel="noopener noreferrer" className="mt-1 text-[11px] text-[#2E7A7C] hover:underline break-all">
+                  {publicProfileUrl}
+                </a>
+              )}
             </div>
           </CardContent>
         </Card>
