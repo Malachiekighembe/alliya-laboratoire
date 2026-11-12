@@ -20,6 +20,8 @@
         value: 15m
       - key: JWT_REFRESH_EXPIRES_IN
         value: 7d
+      - key: SUPABASE_URL
+        sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: FRONTEND_URL
