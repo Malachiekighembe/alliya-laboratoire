@@ -262,8 +262,10 @@ export class UsersService {
           sent = true;
         }
       }
-    } catch {
+    } catch (err: any) {
       sent = false;
+      // eslint-disable-next-line no-console
+      console.error('[SMTP] Échec envoi OTP:', err?.message || err);
     }
 
     return { email, sent, expiresIn: 600, ...(sent ? {} : { devCode: code }) };
