@@ -1,8 +1,38 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { createClient } from '@supabase/supabase-js';
 const supabase: any = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '', { auth: { persistSession: false } });
+
+export function fail(error: any): never {
+  const err = error || {};
+  const raw = typeof error === 'string' ? error : err.message || err.details || err.hint;
+  const message = typeof raw === 'string' && raw.trim() ? raw : 'Erreur base de données';
+  switch (err.code) {
+    case '23505':
+      throw new ConflictException(message);
+    case '23503':
+      throw new ConflictException(`Référence invalide : ${message}`);
+    case '23502':
+      throw new BadRequestException(`Champ requis manquant : ${message}`);
+    case '22P02':
+      throw new BadRequestException(`Données invalides : ${message}`);
+    case '42P01':
+      throw new NotFoundException(`Table introuvable : ${message}`);
+    case '42501':
+      throw new ForbiddenException(`Permission refusée : ${message}`);
+    case 'PGRST116':
+      throw new NotFoundException(message);
+    default:
+      if (err.status === 401 || err.status === 403) throw new ForbiddenException(message);
+      if (err.status === 404) throw new NotFoundException(message);
+      break;
+  }
+  const wrapped = new Error(message) as Error & { code?: string; details?: any };
+  if (err.code) wrapped.code = err.code;
+  if (err.details) wrapped.details = err.details;
+  throw wrapped;
+}
 
 function applyFilters(q: any, where: any): any {
   if (!where) return q;
@@ -48,14 +78,14 @@ function tableProxy(table: string) {
       if (args && args.skip) q = q.range(args.skip, args.skip + (args.take ?? 50) - 1);
       else if (args && args.take) q = q.limit(args.take);
       const { data, error } = await q;
-      if (error) throw error;
+      fail(error);
       return data ?? [];
     },
     findUnique: async (args: any) => {
       let q: any = from().select(args && args.select ? Object.keys(args.select).join(',') : '*');
       q = applyFilters(q, args && args.where);
       const { data, error } = await q.maybeSingle();
-      if (error) throw error;
+      fail(error);
       return data;
     },
     findFirst: async (args?: any) => {
@@ -64,12 +94,12 @@ function tableProxy(table: string) {
     },
     create: async (args: any) => {
       const { data, error } = await from().insert(args.data).select().single();
-      if (error) throw error;
+      fail(error);
       return data;
     },
     createMany: async (args: any) => {
       const { data, error } = await from().insert(args.data).select();
-      if (error) throw error;
+      fail(error);
       return { count: (data ?? []).length };
     },
     update: async (args: any) => {
@@ -83,26 +113,26 @@ function tableProxy(table: string) {
       let q: any = from().update(payload);
       q = applyFilters(q, args && args.where);
       const { data, error } = await q.select().maybeSingle();
-      if (error) throw error;
+      fail(error);
       return data;
     },
     updateMany: async (args: any) => {
       let q: any = from().update(args.data);
       q = applyFilters(q, args && args.where);
       const { data, error } = await q.select();
-      if (error) throw error;
+      fail(error);
       return { count: (data ?? []).length };
     },
     upsert: async (args: any) => {
       const { data, error } = await from().upsert(args.create ?? args.data, { onConflict: args.where ? Object.keys(args.where).join(',') : undefined }).select().single();
-      if (error) throw error;
+      fail(error);
       return data;
     },
     count: async (args?: any) => {
       let q: any = from().select('*', { count: 'exact', head: true });
       q = applyFilters(q, args && args.where);
       const { count, error } = await q;
-      if (error) throw error;
+      fail(error);
       return count ?? 0;
     },
     aggregate: async (args?: any) => {
@@ -125,14 +155,14 @@ function tableProxy(table: string) {
       let q: any = from().delete();
       q = applyFilters(q, args && args.where);
       const { data, error } = await q.select().maybeSingle();
-      if (error) throw error;
+      fail(error);
       return data;
     },
     deleteMany: async (args?: any) => {
       let q: any = from().delete();
       q = applyFilters(q, args && args.where);
       const { data, error } = await q.select();
-      if (error) throw error;
+      fail(error);
       return { count: (data ?? []).length };
     },
   };
@@ -175,18 +205,18 @@ export class DatabaseService {
 
   async getPendingSync(table: string, limit = 50) {
     const { data, error } = await (supabase as any).from(table).select('*').eq('synced', false).limit(limit);
-    if (error) throw error;
+    fail(error);
     return data ?? [];
   }
 
   async markAsSynced(table: string, id: any) {
     const { error } = await (supabase as any).from(table).update({ synced: true }).eq('id', id);
-    if (error) throw error;
+    fail(error);
   }
 
   async createLocalOnly(table: string, data: any) {
     const { data: row, error } = await (supabase as any).from(table).insert(data).select().single();
-    if (error) throw error;
+    fail(error);
     return row;
   }
 
@@ -212,7 +242,7 @@ export class DatabaseService {
 
   async rpc(functionName: string, params: any = {}): Promise<any> {
     const { data, error } = await (supabase as any).rpc(functionName, params);
-    if (error) throw error;
+    fail(error);
     return data;
   }
 }

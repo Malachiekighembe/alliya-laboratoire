@@ -34,8 +34,20 @@ export class HttpExceptionFilter implements ExceptionFilter {
         error = responseObj.error || exception.name;
       }
     } else {
+      let detail: string;
+      if (exception instanceof Error) {
+        detail = `${exception.name}: ${exception.message}`;
+      } else if (typeof exception === 'object' && exception !== null) {
+        try {
+          detail = JSON.stringify(exception);
+        } catch {
+          detail = String(exception);
+        }
+      } else {
+        detail = String(exception);
+      }
       this.logger.error(
-        `Erreur non gérée: ${exception}`,
+        `Erreur non gérée: ${detail}`,
         exception instanceof Error ? exception.stack : undefined,
       );
       // Ne pas exposer les détails des erreurs internes

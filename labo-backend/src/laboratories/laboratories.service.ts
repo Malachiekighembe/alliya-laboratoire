@@ -1,7 +1,7 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
+﻿import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import { CacheService } from '../cache/cache.service.js';
+import { PasswordUtil } from '../common/utils/password.util.js';
 
 @Injectable()
 export class LaboratoriesService {
@@ -92,7 +92,14 @@ export class LaboratoriesService {
     const slug = dto.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `lab-${Date.now()}`;
 
     const existing = await this.prisma.laboratories.findFirst({ where: { code } });
-    if (existing) throw new Error('Un laboratoire avec ce code existe déjà');
+    if (existing) throw new ConflictException('Un laboratoire avec ce code existe déjà');
+
+    const admin = dto.admin;
+    const adminEmail = admin?.email ? String(admin.email).trim().toLowerCase() : null;
+    if (adminEmail) {
+      const dup = await this.prisma.users.count({ where: { email: adminEmail, deleted_at: null } });
+      if (dup > 0) throw new ConflictException('Un utilisateur avec cet email existe déjà');
+    }
 
     const lab = await this.prisma.laboratories.create({
       data: {
@@ -108,23 +115,27 @@ export class LaboratoriesService {
     });
 
     let adminUser: any = null;
-    const admin = dto.admin;
     if (admin && (admin.email || admin.first_name || admin.last_name || admin.password)) {
-      const password_hash = admin.password ? await bcrypt.hash(admin.password, 10) : null;
+      const password_hash = admin.password ? await PasswordUtil.hash(admin.password) : null;
       const roles: string[] = Array.isArray(admin.roles) && admin.roles.length ? admin.roles : ['admin'];
-      adminUser = await this.prisma.users.create({
-        data: {
-          laboratory_id: lab.id,
-          email: admin.email || null,
-          password_hash,
-          first_name: admin.first_name || '',
-          last_name: admin.last_name || '',
-          phone: admin.phone || null,
-          roles,
-          permissions: [],
-          is_active: admin.is_active !== false,
-        },
-      });
+      try {
+        adminUser = await this.prisma.users.create({
+          data: {
+            laboratory_id: lab.id,
+            email: adminEmail,
+            password_hash,
+            first_name: admin.first_name || '',
+            last_name: admin.last_name || '',
+            phone: admin.phone || null,
+            roles,
+            permissions: [],
+            is_active: admin.is_active !== false,
+          },
+        });
+      } catch (err: any) {
+        if (err instanceof ConflictException) throw err;
+        throw new ConflictException(`Laboratoire créé mais responsable non créé : ${err?.message || 'erreur inconnue'}`);
+      }
       if (adminUser) {
         const { password_hash: _ph, ...safe } = adminUser as any;
         adminUser = safe;

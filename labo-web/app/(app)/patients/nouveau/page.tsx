@@ -24,6 +24,7 @@ export default function NouveauPatientPage() {
   const [gender, setGender] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
   const genders = [
     { value: "M", label: "Masculin" },
@@ -32,6 +33,7 @@ export default function NouveauPatientPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
     try {
       await api.post("/patients", {
@@ -44,8 +46,8 @@ export default function NouveauPatientPage() {
         phone: phone || null,
       });
       router.push("/patients");
-    } catch {
-      alert("Erreur lors de la création du patient");
+    } catch (err: any) {
+      setError(err?.message || "Erreur lors de la création du patient");
     } finally {
       setLoading(false);
     }
@@ -70,6 +72,7 @@ export default function NouveauPatientPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
+            {error && <p className="sm:col-span-2 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">{error}</p>}
             <div className="space-y-2">
               <Label htmlFor="matricule">Matricule</Label>
               <Input

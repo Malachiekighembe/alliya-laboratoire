@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common';
+﻿import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import { CacheService } from '../cache/cache.service.js';
 
@@ -61,7 +61,7 @@ export class SubscriptionsService {
     const existing = await this.prisma.subscriptions.findFirst({
       where: { laboratory_id: dto.laboratory_id },
     });
-    if (existing) throw new Error('Un abonnement existe déjà pour ce laboratoire');
+    if (existing) throw new ConflictException('Un abonnement existe déjà pour ce laboratoire');
 
     const created = await this.prisma.subscriptions.create({
       data: {
@@ -72,7 +72,7 @@ export class SubscriptionsService {
         started_at: dto.started_at ? new Date(dto.started_at) : new Date(),
         expires_at: dto.expires_at ? new Date(dto.expires_at) : null,
         price_monthly: dto.price_monthly ?? 0,
-        currency: dto.currency || 'EUR',
+        currency: dto.currency || 'USD',
         max_users: dto.max_users ?? null,
         max_patients: dto.max_patients ?? null,
         max_analyses: dto.max_analyses ?? null,
