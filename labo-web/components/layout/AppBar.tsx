@@ -151,12 +151,17 @@ export function AppBar({ onMenu }: { onMenu: () => void; collapsed?: boolean }) 
               )}
             </div>
 
-            <div className="hidden lg:flex flex-col items-end leading-tight min-w-0 mr-1">
-              <p className="text-sm font-semibold text-slate-800 truncate max-w-[200px]">{fullName}</p>
-              <p className="text-xs text-[#2E7A7C] capitalize truncate max-w-[200px]">{role}</p>
-            </div>
+            <Link href="/profil" className="hidden lg:flex items-center gap-2 pl-1.5 pr-1 py-1 rounded-lg hover:bg-slate-50 transition-colors min-w-0" title={fullName}>
+              <div className="h-8 w-8 rounded-full overflow-hidden ring-2 ring-slate-100 shrink-0 bg-gradient-to-br from-[#1E2A47] to-[#3D9597] text-white flex items-center justify-center text-[11px] font-semibold">
+                {avatarUrl ? <img src={avatarUrl} alt="Profil" className="h-full w-full object-cover" /> : (getInitials(user?.first_name || "", user?.last_name || "") || "U")}
+              </div>
+              <div className="flex flex-col items-start leading-tight min-w-0 max-w-[150px]">
+                <p className="text-[13px] font-semibold text-slate-800 truncate w-full">{fullName}</p>
+                <p className="text-[11px] text-[#2E7A7C] capitalize truncate w-full">{role}</p>
+              </div>
+            </Link>
 
-            <Link href="/profil" className="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-full overflow-hidden ring-2 ring-slate-100 hover:ring-[#3D9597]/30 transition shrink-0" title={fullName}>
+            <Link href="/profil" className="lg:hidden inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-full overflow-hidden ring-2 ring-slate-100 hover:ring-[#3D9597]/30 transition shrink-0" title={fullName}>
               <div className="h-full w-full bg-gradient-to-br from-[#1E2A47] to-[#3D9597] text-white flex items-center justify-center text-xs font-semibold">
                 {avatarUrl ? <img src={avatarUrl} alt="Profil" className="h-full w-full object-cover" /> : (getInitials(user?.first_name || "", user?.last_name || "") || "U")}
               </div>
