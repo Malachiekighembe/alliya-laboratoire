@@ -35,7 +35,7 @@ export default function VisitesPage() {
       ...(statusFilter ? { status: statusFilter } : {}),
     });
     return api.safeGet<any[]>(`/visits?${params.toString()}`);
-  }, { enabled: !!user?.laboratory_id });
+  }, { enabled: !!user?.laboratory_id, deps: [search, statusFilter] });
 
   const loading = visitsResult.loading;
   const error = visitsResult.error;

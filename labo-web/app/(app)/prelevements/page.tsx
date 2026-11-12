@@ -35,7 +35,7 @@ export default function PrelevementsPage() {
       ...(statusFilter ? { status: statusFilter } : {}),
     });
     return api.safeGet<any[]>(`/specimens?${params.toString()}`);
-  }, { enabled: !!user?.laboratory_id });
+  }, { enabled: !!user?.laboratory_id, deps: [search, statusFilter] });
 
   const loading = specimensResult.loading;
   const error = specimensResult.error;

@@ -35,7 +35,7 @@ export default function ValidationsPage() {
       ...(statusFilter ? { status: statusFilter } : {}),
     });
     return api.safeGet<any[]>(`/result-validations?${params.toString()}`);
-  }, { enabled: !!user?.laboratory_id });
+  }, { enabled: !!user?.laboratory_id, deps: [search, statusFilter] });
 
   const loading = validationsResult.loading;
   const error = validationsResult.error;
