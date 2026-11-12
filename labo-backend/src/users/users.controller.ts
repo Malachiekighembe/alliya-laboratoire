@@ -49,6 +49,12 @@ export class UsersController {
     return ApiResponseDto.success(data, 'Adresse email mise à jour');
   }
 
+  @Get('me/public-profile-token')
+  async getPublicProfileToken(@CurrentUser() user: any) {
+    const data = await this.usersService.getPublicProfileTokenForUser(user.id);
+    return ApiResponseDto.success(data);
+  }
+
   @Get()
   @RequirePermissions('users.read')
   async findAll(@CurrentLaboratory() labId: string, @CurrentUser() user: any, @Query() pagination: PaginationDto, @Query('laboratory_id') laboratory_id?: string) {

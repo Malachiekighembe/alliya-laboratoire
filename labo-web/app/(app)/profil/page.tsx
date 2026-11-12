@@ -212,12 +212,20 @@ export default function ProfilPage() {
     const email = newEmail.trim().toLowerCase();
     if (!email || !isValidEmail(email)) { setEmailMsg({ type: "err", text: "Veuillez entrer une adresse email valide." }); return; }
     if (email === (uForm.email || "").toLowerCase()) { setEmailMsg({ type: "err", text: "Cette adresse est déjà votre email actuel." }); return; }
-    setSendingOtp(true); setEmailMsg(null);
+    setSendingOtp(true); setEmailMsg(null); setDevCode(null);
     try {
       const res = await api.post<any>("/users/me/email/request-otp", { email });
       if (res?.success === false) throw new Error(res?.message || "Impossible d'envoyer le code");
+      const data = res?.data || {};
       setOtpSentTo(email); setOtpCode("");
-      setEmailMsg({ type: "ok", text: `Un code OTP a été envoyé à ${email}. Saisissez-le pour confirmer.` });
+      if (data.devCode) setDevCode(String(data.devCode));
+      if (data.sent) {
+        setEmailMsg({ type: "ok", text: `Un code OTP a été envoyé à ${email}. Saisissez-le pour confirmer (pensez à vérifier les spams).` });
+      } else if (data.devCode) {
+        setEmailMsg({ type: "ok", text: `Email non envoyé (SMTP non configuré ou indisponible). Utilisez le code de développement affiché ci-dessous.` });
+      } else {
+        setEmailMsg({ type: "ok", text: `Demande OTP enregistrée pour ${email}. Si vous ne recevez pas d'email, vérifiez la configuration SMTP.` });
+      }
     } catch (err: any) {
       setEmailMsg({ type: "err", text: err?.message || "Envoi du code OTP indisponible pour le moment (service email/OTP non configuré). Contactez l'administrateur." });
     } finally { setSendingOtp(false); }
@@ -380,7 +388,8 @@ export default function ProfilPage() {
           {otpSentTo && (
             <div className="grid gap-3 sm:grid-cols-[1fr,auto] items-end p-3 rounded-lg border border-[#3D9597]/20 bg-[#3D9597]/5">
               <div><Label htmlFor="otp-code">Code OTP reçu à <span className="font-medium">{otpSentTo}</span></Label><Input id="otp-code" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} placeholder="Entrez le code" inputMode="numeric" autoComplete="one-time-code" /></div>
-              <div className="flex gap-2"><Button type="button" variant="outline" onClick={() => { setOtpSentTo(null); setOtpCode(""); setEmailMsg(null); }} className="w-auto">Annuler</Button><Button type="button" onClick={verifyEmailOtp} disabled={verifyingOtp || otpCode.trim().length < 4} className="!bg-[#3D9597] !text-white hover:!bg-[#2E7A7C] w-auto">{verifyingOtp ? "Vérification…" : "Valider"}</Button></div>
+              <div className="flex gap-2"><Button type="button" variant="outline" onClick={() => { setOtpSentTo(null); setOtpCode(""); setDevCode(null); setEmailMsg(null); }} className="w-auto">Annuler</Button><Button type="button" onClick={verifyEmailOtp} disabled={verifyingOtp || otpCode.trim().length < 4} className="!bg-[#3D9597] !text-white hover:!bg-[#2E7A7C] w-auto">{verifyingOtp ? "Vérification…" : "Valider"}</Button></div>
+              {devCode && <div className="sm:col-span-2 text-sm px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 text-amber-800">Code de développement : <span className="font-mono font-semibold tracking-wider">{devCode}</span></div>}
             </div>
           )}
           {emailMsg && <div className={`text-sm px-3 py-2 rounded-lg border ${emailMsg.type === "ok" ? "border-[#3D9597]/25 bg-[#3D9597]/10 text-[#2E7A7C]" : "border-red-200 bg-red-50 text-red-700"}`}>{emailMsg.text}</div>}
