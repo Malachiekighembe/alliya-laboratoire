@@ -210,6 +210,7 @@ export class UsersService {
 
     // Try to send via SMTP if configured (TurboSMTP or any SMTP provider). Fallback: return devCode for environments without mail.
     let sent = false;
+    let smtpError: string | null = null;
     try {
       const host = process.env.SMTP_HOST;
       const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587;
@@ -218,8 +219,10 @@ export class UsersService {
       const from = process.env.SMTP_FROM || user || 'no-reply@alliya-labo.app';
       const secureEnv = process.env.SMTP_SECURE;
       const secure = secureEnv !== undefined ? ['1', 'true', 'yes'].includes(String(secureEnv).toLowerCase()) : port === 465;
+      if (!host) { smtpError = 'SMTP_HOST manquant'; }
       if (host) {
-        const nodemailer: any = await (Function('return import("nodemailer")')() as Promise<any>).catch(() => null);
+        const nodemailer: any = await (Function('return import("nodemailer")')() as Promise<any>).catch((e) => { smtpError = 'nodemailer import: ' + (e?.message || e); return null; });
+        if (!nodemailer) { smtpError = smtpError || 'nodemailer indisponible'; }
         if (nodemailer) {
           const transporter = nodemailer.createTransport({
             host,
@@ -258,17 +261,26 @@ export class UsersService {
     </td></tr>
   </table>
 </body></html>`;
-          await transporter.sendMail({ from, to: email, subject, text, html });
-          sent = true;
+          try {
+            const info = await transporter.sendMail({ from, to: email, subject, text, html });
+            sent = true;
+            // eslint-disable-next-line no-console
+            console.log('[SMTP] OTP envoyé:', { to: email, messageId: info?.messageId, from });
+          } catch (sendErr: any) {
+            smtpError = sendErr?.message || String(sendErr);
+            // eslint-disable-next-line no-console
+            console.error('[SMTP] Échec sendMail:', smtpError, sendErr?.code, sendErr?.command);
+          }
         }
       }
     } catch (err: any) {
       sent = false;
+      smtpError = err?.message || String(err);
       // eslint-disable-next-line no-console
-      console.error('[SMTP] Échec envoi OTP:', err?.message || err);
+      console.error('[SMTP] Erreur générale OTP:', err?.message || err);
     }
 
-    return { email, sent, expiresIn: 600, ...(sent ? {} : { devCode: code }) };
+    return { email, sent, expiresIn: 600, ...(sent ? {} : { devCode: code }), ...(smtpError ? { smtpError } : {}) };
   }
 
   async verifyEmailOtp(userId: string, newEmailRaw: string, codeRaw: string) {
