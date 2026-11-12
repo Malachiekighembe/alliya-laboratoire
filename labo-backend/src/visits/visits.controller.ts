@@ -57,7 +57,7 @@ export class VisitsController {
   @RequirePermissions('visits.create')
   async create(@Body() dto: CreateVisitDto, @CurrentLaboratory() labId: string, @CurrentUser() user: any) {
     const data = await this.visitsService.create(dto, labId, user.id);
-    return ApiResponseDto.success(data, 'Visite créée');
+    return ApiResponseDto.success(data, 'Visite crÃ©Ã©e');
   }
 
   @Post(':id/orders')
@@ -65,34 +65,34 @@ export class VisitsController {
   async createOrder(@Param('id') id: string, @Body() dto: CreateOrderDto, @CurrentLaboratory() labId: string, @CurrentUser() user: any) {
     dto.visit_id = id;
     const data = await this.visitsService.createOrder(dto, labId, user.id);
-    return ApiResponseDto.success(data, 'Demande créée');
+    return ApiResponseDto.success(data, 'Demande crÃ©Ã©e');
   }
 
   @Patch(':id')
   @RequirePermissions('visits.update')
   async update(@Param('id') id: string, @Body() dto: UpdateVisitDto, @CurrentLaboratory() labId: string) {
     const data = await this.visitsService.update(id, labId, dto);
-    return ApiResponseDto.success(data, 'Visite mise à jour');
+    return ApiResponseDto.success(data, 'Visite mise Ã  jour');
   }
 
   @Patch(':id/cancel')
   @RequirePermissions('visits.cancel')
   async cancel(@Param('id') id: string, @Body() dto: CancelVisitDto, @CurrentLaboratory() labId: string) {
     const data = await this.visitsService.cancel(id, labId, dto.reason);
-    return ApiResponseDto.success(data, 'Visite annulée');
+    return ApiResponseDto.success(data, 'Visite annulÃ©e');
   }
 
   @Patch(':id/complete')
   @RequirePermissions('visits.complete')
   async complete(@Param('id') id: string, @Body() dto: CompleteVisitDto, @CurrentLaboratory() labId: string) {
     const data = await this.visitsService.complete(id, labId);
-    return ApiResponseDto.success(data, 'Visite complétée');
+    return ApiResponseDto.success(data, 'Visite complÃ©tÃ©e');
   }
 
   @Delete(':id')
   @RequirePermissions('visits.delete')
   async remove(@Param('id') id: string, @CurrentLaboratory() labId: string) {
     await this.visitsService.remove(id, labId);
-    return ApiResponseDto.success(null, 'Visite supprimée');
+    return ApiResponseDto.success(null, 'Visite supprimÃ©e');
   }
 }

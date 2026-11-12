@@ -18,7 +18,7 @@ export default function RapportsPage() {
 
   const statsResult = useAsync(async () => {
     if (!user?.laboratory_id) return { data: null, error: null, loading: false };
-    return api.safeGet<any>(`/dashboard/stats?laboratory_id=${user.laboratory_id}`);
+    return api.safeGet<any>(`/reports/dashboard?laboratory_id=${user.laboratory_id}`);
   }, { enabled: !!user?.laboratory_id });
 
   const loading = statsResult.loading;

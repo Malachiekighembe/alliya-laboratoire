@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { SkeletonTableRow } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const initialForm = {
@@ -180,7 +180,11 @@ export default function PatientsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="space-y-2"><SkeletonTableRow /><SkeletonTableRow /></div>
+            <div className="space-y-2">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} variant="rect" width="100%" height="2.25rem" />
+              ))}
+            </div>
           ) : filtered.length === 0 ? (
             <p className="text-muted-foreground text-center py-8 text-sm">Aucun patient trouvé.</p>
           ) : (

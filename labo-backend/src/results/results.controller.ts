@@ -107,7 +107,7 @@ export class ResultsController {
     @CurrentUser() user: any,
   ) {
     const data = await this.resultsService.create(dto, labId, user.id);
-    return ApiResponseDto.success(data, 'Résultat créé');
+    return ApiResponseDto.success(data, 'RÃ©sultat crÃ©Ã©');
   }
 
   @Patch(':id')
@@ -119,7 +119,7 @@ export class ResultsController {
     @CurrentUser() user: any,
   ) {
     const data = await this.resultsService.update(id, labId, dto, user.id);
-    return ApiResponseDto.success(data, 'Résultat mis à jour');
+    return ApiResponseDto.success(data, 'RÃ©sultat mis Ã  jour');
   }
 
   @Patch(':id/validate')
@@ -131,7 +131,7 @@ export class ResultsController {
     @CurrentUser() user: any,
   ) {
     const data = await this.resultsService.validate(id, labId, user.id);
-    return ApiResponseDto.success(data, 'Résultat validé');
+    return ApiResponseDto.success(data, 'RÃ©sultat validÃ©');
   }
 
   @Patch(':id/amend')
@@ -143,7 +143,7 @@ export class ResultsController {
     @CurrentUser() user: any,
   ) {
     const data = await this.resultsService.amend(id, labId, dto, user.id);
-    return ApiResponseDto.success(data, 'Résultat amendé');
+    return ApiResponseDto.success(data, 'RÃ©sultat amendÃ©');
   }
 
   @Patch(':id/cancel')
@@ -154,6 +154,6 @@ export class ResultsController {
     @CurrentLaboratory() labId: string,
   ) {
     const data = await this.resultsService.cancel(id, labId, dto.reason);
-    return ApiResponseDto.success(data, 'Résultat annulé');
+    return ApiResponseDto.success(data, 'RÃ©sultat annulÃ©');
   }
 }

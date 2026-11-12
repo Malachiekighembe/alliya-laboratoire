@@ -17,7 +17,7 @@ export default function LaborantDashboard() {
 
   React.useEffect(() => {
     if (!activeLabId) { setLoading(false); return; }
-    api.get<any[]>(`/analyses?laboratory_id=${activeLabId}`).then((res) => {
+    api.get<any[]>(`/examinations?laboratory_id=${activeLabId}`).then((res) => {
       const analyses = res.success && Array.isArray(res.data) ? res.data : [];
       setStats((s) => ({ ...s, analyses: analyses.length })); setLoading(false);
     }).catch(() => setLoading(false));

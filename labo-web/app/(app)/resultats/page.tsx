@@ -17,7 +17,7 @@ export default function ResultatsPage() {
 
   React.useEffect(() => {
     if (!user?.laboratory_id) { setLoading(false); return; }
-    api.safeGet<any[]>(`/resultats?laboratory_id=${user.laboratory_id}`).then((res) => {
+    api.safeGet<any[]>(`/results?laboratory_id=${user.laboratory_id}`).then((res) => {
       setResults(!res.error && Array.isArray(res.data) ? res.data : []);
       setLoading(false);
     });

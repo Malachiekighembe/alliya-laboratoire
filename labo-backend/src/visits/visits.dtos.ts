@@ -38,35 +38,35 @@ export enum OrderPriority {
 
 export class CreateOrderItemDto {
   @IsNotEmpty({ message: "L'ID du test est requis" })
-  @IsUUID(4, { message: "L'ID du test doit être un UUID valide" })
+  @IsUUID(4, { message: "L'ID du test doit Ãªtre un UUID valide" })
   test_catalog_id: string;
 
   @IsOptional()
-  @IsString({ message: 'Le code doit être une chaine de carrieres' })
+  @IsString({ message: 'Le code doit Ãªtre une chaine de carrieres' })
   @MaxLength(50, { message: 'Le code ne peut pas depasser 50 carrieres' })
   item_code?: string;
 
   @IsOptional()
-  @IsString({ message: 'Le nom doit être une chaine de carrieres' })
+  @IsString({ message: 'Le nom doit Ãªtre une chaine de carrieres' })
   @MaxLength(255, { message: 'Le nom ne peut pas depasser 255 carrieres' })
   item_name?: string;
 
   @IsOptional()
-  @IsString({ message: 'Les notes doivent être une chaine de carrieres' })
+  @IsString({ message: 'Les notes doivent Ãªtre une chaine de carrieres' })
   notes?: string;
 }
 
 export class CreateOrderDto {
   @IsOptional()
-  @IsUUID(4, { message: "L'ID de la visite doit être un UUID valide" })
+  @IsUUID(4, { message: "L'ID de la visite doit Ãªtre un UUID valide" })
   visit_id?: string;
 
   @IsNotEmpty({ message: "L'ID du patient est requis" })
-  @IsUUID(4, { message: "L'ID du patient doit être un UUID valide" })
+  @IsUUID(4, { message: "L'ID du patient doit Ãªtre un UUID valide" })
   patient_id: string;
 
   @IsOptional()
-  @IsUUID(4, { message: "L'ID du praticien doit être un UUID valide" })
+  @IsUUID(4, { message: "L'ID du praticien doit Ãªtre un UUID valide" })
   practitioner_id?: string;
 
   @IsOptional()
@@ -74,7 +74,7 @@ export class CreateOrderDto {
   priority?: OrderPriority = OrderPriority.NORMAL;
 
   @IsOptional()
-  @IsString({ message: 'Les notes doivent être une chaine de carrieres' })
+  @IsString({ message: 'Les notes doivent Ãªtre une chaine de carrieres' })
   notes?: string;
 
   @IsArray({ message: 'Les items doivent etre un tableau' })
@@ -85,11 +85,11 @@ export class CreateOrderDto {
 
 export class CreateVisitDto {
   @IsNotEmpty({ message: "L'ID du patient est requis" })
-  @IsUUID(4, { message: "L'ID du patient doit être un UUID valide" })
+  @IsUUID(4, { message: "L'ID du patient doit Ãªtre un UUID valide" })
   patient_id: string;
 
   @IsOptional()
-  @IsUUID(4, { message: "L'ID du praticien doit être un UUID valide" })
+  @IsUUID(4, { message: "L'ID du praticien doit Ãªtre un UUID valide" })
   practitioner_id?: string;
 
   @IsOptional()
@@ -97,18 +97,18 @@ export class CreateVisitDto {
   visit_date?: string;
 
   @IsOptional()
-  @IsString({ message: 'Le motif doit être une chaine de carrieres' })
+  @IsString({ message: 'Le motif doit Ãªtre une chaine de carrieres' })
   @MaxLength(500, { message: 'Le motif ne peut pas depasser 500 carrieres' })
   reason?: string;
 
   @IsOptional()
-  @IsString({ message: 'Les notes doivent être une chaine de carrieres' })
+  @IsString({ message: 'Les notes doivent Ãªtre une chaine de carrieres' })
   notes?: string;
 }
 
 export class UpdateVisitDto {
   @IsOptional()
-  @IsUUID(4, { message: "L'ID du praticien doit être un UUID valide" })
+  @IsUUID(4, { message: "L'ID du praticien doit Ãªtre un UUID valide" })
   practitioner_id?: string;
 
   @IsOptional()
@@ -116,12 +116,12 @@ export class UpdateVisitDto {
   visit_date?: string;
 
   @IsOptional()
-  @IsString({ message: 'Le motif doit être une chaine de carrieres' })
+  @IsString({ message: 'Le motif doit Ãªtre une chaine de carrieres' })
   @MaxLength(500, { message: 'Le motif ne peut pas depasser 500 carrieres' })
   reason?: string;
 
   @IsOptional()
-  @IsString({ message: 'Les notes doivent être une chaine de carrieres' })
+  @IsString({ message: 'Les notes doivent Ãªtre une chaine de carrieres' })
   notes?: string;
 
   @IsOptional()
@@ -131,14 +131,14 @@ export class UpdateVisitDto {
 
 export class CancelVisitDto {
   @IsOptional()
-  @IsString({ message: "Le motif d'annulation doit être une chaine de carrieres" })
+  @IsString({ message: "Le motif d'annulation doit Ãªtre une chaine de carrieres" })
   @MaxLength(500, { message: "Le motif d'annulation ne peut pas depasser 500 carrieres" })
   reason?: string;
 }
 
 export class CompleteVisitDto {
   @IsOptional()
-  @IsString({ message: 'Les notes de completion doivent être une chaine de carrieres' })
+  @IsString({ message: 'Les notes de completion doivent Ãªtre une chaine de carrieres' })
   @MaxLength(500, { message: 'Les notes de completion ne peuvent pas depasser 500 carrieres' })
   reason?: string;
 }
@@ -153,13 +153,13 @@ export class UpdateOrderDto {
   status?: OrderStatus;
 
   @IsOptional()
-  @IsString({ message: 'Les notes doivent être une chaine de carrieres' })
+  @IsString({ message: 'Les notes doivent Ãªtre une chaine de carrieres' })
   notes?: string;
 }
 
 export class SearchVisitsDto {
   @IsOptional()
-  @IsUUID(4, { message: "L'ID du patient doit être un UUID valide" })
+  @IsUUID(4, { message: "L'ID du patient doit Ãªtre un UUID valide" })
   patient_id?: string;
 
   @IsOptional()
@@ -175,6 +175,6 @@ export class SearchVisitsDto {
   date_to?: string;
 
   @IsOptional()
-  @IsString({ message: 'La recherche doit être une chaine de carrieres' })
+  @IsString({ message: 'La recherche doit Ãªtre une chaine de carrieres' })
   search?: string;
 }

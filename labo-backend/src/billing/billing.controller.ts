@@ -49,13 +49,6 @@ export class BillingController {
     });
   }
 
-  @Get(':id')
-  @RequirePermissions('billing.read')
-  async findOne(@Param('id') id: string, @CurrentLaboratory() labId: string) {
-    const data = await this.billingService.findById(id, labId);
-    return ApiResponseDto.success(data);
-  }
-
   @Get('patient/:patientId')
   @RequirePermissions('billing.read')
   async byPatient(
@@ -69,6 +62,35 @@ export class BillingController {
       data: result.items,
       pagination: this.paginationMeta(pagination, result.total),
     });
+  }
+
+  @Get('statistics')
+  @RequirePermissions('billing.statistics')
+  async statistics(
+    @CurrentLaboratory() labId: string,
+    @Query('date_from') dateFrom?: string,
+    @Query('date_to') dateTo?: string,
+  ) {
+    const data = await this.billingService.getStatistics(labId, dateFrom, dateTo);
+    return ApiResponseDto.success(data);
+  }
+
+  @Get('cash-journal')
+  @RequirePermissions('billing.statistics')
+  async cashJournal(
+    @CurrentLaboratory() labId: string,
+    @Query('date_from') dateFrom?: string,
+    @Query('date_to') dateTo?: string,
+  ) {
+    const data = await this.billingService.getCashJournal(labId, dateFrom, dateTo);
+    return ApiResponseDto.success(data);
+  }
+
+  @Get(':id')
+  @RequirePermissions('billing.read')
+  async findOne(@Param('id') id: string, @CurrentLaboratory() labId: string) {
+    const data = await this.billingService.findById(id, labId);
+    return ApiResponseDto.success(data);
   }
 
   @Post()
@@ -138,28 +160,6 @@ export class BillingController {
   @RequirePermissions('billing.read')
   async receipts(@Param('id') id: string, @CurrentLaboratory() labId: string) {
     const data = await this.billingService.getReceipts(id, labId);
-    return ApiResponseDto.success(data);
-  }
-
-  @Get('statistics')
-  @RequirePermissions('billing.statistics')
-  async statistics(
-    @CurrentLaboratory() labId: string,
-    @Query('date_from') dateFrom?: string,
-    @Query('date_to') dateTo?: string,
-  ) {
-    const data = await this.billingService.getStatistics(labId, dateFrom, dateTo);
-    return ApiResponseDto.success(data);
-  }
-
-  @Get('cash-journal')
-  @RequirePermissions('billing.statistics')
-  async cashJournal(
-    @CurrentLaboratory() labId: string,
-    @Query('date_from') dateFrom?: string,
-    @Query('date_to') dateTo?: string,
-  ) {
-    const data = await this.billingService.getCashJournal(labId, dateFrom, dateTo);
     return ApiResponseDto.success(data);
   }
 }

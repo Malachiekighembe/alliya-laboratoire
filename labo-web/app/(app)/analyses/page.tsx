@@ -19,7 +19,7 @@ export default function AnalysesPage() {
 
   React.useEffect(() => {
     if (!user?.laboratory_id) { setLoading(false); return; }
-    api.safeGet<any[]>(`/analyses?laboratory_id=${user.laboratory_id}`).then((res) => {
+    api.safeGet<any[]>(`/examinations?laboratory_id=${user.laboratory_id}`).then((res) => {
       setAnalyses(!res.error && Array.isArray(res.data) ? res.data : []);
       setLoading(false);
     });

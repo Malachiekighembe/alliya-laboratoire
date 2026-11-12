@@ -151,6 +151,19 @@ function tableProxy(table: string) {
       }
       return result;
     },
+    groupBy: async (args: any) => {
+      const rows = await (tableProxy(table) as any).findMany({ where: args && args.where });
+      const fields: string[] = (args && args.by) || [];
+      const groups = new Map<string, any>();
+      for (const row of rows) {
+        const key = JSON.stringify(fields.map((f) => (row as any)[f] ?? null));
+        const entry = groups.get(key) || { _count: 0 };
+        for (const f of fields) entry[f] = (row as any)[f] ?? null;
+        entry._count += 1;
+        groups.set(key, entry);
+      }
+      return Array.from(groups.values());
+    },
     delete: async (args: any) => {
       let q: any = from().delete();
       q = applyFilters(q, args && args.where);

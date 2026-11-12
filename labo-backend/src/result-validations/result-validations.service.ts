@@ -16,13 +16,8 @@ export class ResultValidationsService {
         laboratory_id,
         result_id: resultId,
         validated_by_id,
-        validation_date: new Date(),
         status,
-        notes: notes || null,
-      },
-      include: {
-        result: true,
-        validated_by: true,
+        comment: notes || null,
       },
     });
 
@@ -41,14 +36,14 @@ export class ResultValidationsService {
     if (filters?.result_id) where.result_id = filters.result_id;
     if (filters?.status) where.status = filters.status;
     if (filters?.date_from || filters?.date_to) {
-      where.validation_date = {};
-      if (filters.date_from) where.validation_date.gte = new Date(filters.date_from);
-      if (filters.date_to) where.validation_date.lte = new Date(filters.date_to);
+      where.created_at = {};
+      if (filters.date_from) where.created_at.gte = new Date(filters.date_from);
+      if (filters.date_to) where.created_at.lte = new Date(filters.date_to);
     }
     if (filters?.search) {
       where.OR = [
-        { notes: { contains: filters.search, mode: "insensitive" } },
-        { status: { contains: filters.search, mode: "insensitive" } },
+        { comment: { contains: filters.search } },
+        { status: { contains: filters.search } },
       ];
     }
 
@@ -57,11 +52,7 @@ export class ResultValidationsService {
         where,
         skip,
         take: limit,
-        orderBy: { validation_date: "desc" },
-        include: {
-          result: { include: { patient: true, specimen: true, test_catalog: true } },
-          validated_by: true,
-        },
+        orderBy: { created_at: "desc" },
       }),
       this.prisma.result_validations.count({ where }),
     ]);
@@ -72,10 +63,6 @@ export class ResultValidationsService {
   async findById(id: string, laboratory_id: string) {
     const validation = await this.prisma.result_validations.findFirst({
       where: { id, laboratory_id },
-      include: {
-        result: { include: { patient: true, specimen: true, test_catalog: true } },
-        validated_by: true,
-      },
     });
     if (!validation) {
       throw new NotFoundException("Validation non trouvee");
@@ -86,8 +73,7 @@ export class ResultValidationsService {
   async findByResult(resultId: string, laboratory_id: string) {
     return this.prisma.result_validations.findMany({
       where: { result_id: resultId, laboratory_id },
-      include: { validated_by: true },
-      orderBy: { validation_date: "desc" },
+      orderBy: { created_at: "desc" },
     });
   }
 
@@ -98,11 +84,10 @@ export class ResultValidationsService {
     }
     const data: any = {};
     if (status !== undefined) data.status = status;
-    if (notes !== undefined) data.notes = notes;
+    if (notes !== undefined) data.comment = notes;
     return this.prisma.result_validations.update({
       where: { id },
       data,
-      include: { result: true, validated_by: true },
     });
   }
 
@@ -118,9 +103,9 @@ export class ResultValidationsService {
   async getStatistics(laboratory_id: string, dateFrom?: string, dateTo?: string) {
     const where: any = { laboratory_id };
     if (dateFrom || dateTo) {
-      where.validation_date = {};
-      if (dateFrom) where.validation_date.gte = new Date(dateFrom);
-      if (dateTo) where.validation_date.lte = new Date(dateTo);
+      where.created_at = {};
+      if (dateFrom) where.created_at.gte = new Date(dateFrom);
+      if (dateTo) where.created_at.lte = new Date(dateTo);
     }
     const [byStatus, total] = await Promise.all([
       this.prisma.result_validations.groupBy({ by: ["status"], where, _count: true }),
