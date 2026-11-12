@@ -78,14 +78,14 @@ function tableProxy(table: string) {
       if (args && args.skip) q = q.range(args.skip, args.skip + (args.take ?? 50) - 1);
       else if (args && args.take) q = q.limit(args.take);
       const { data, error } = await q;
-      fail(error);
+      if (error) fail(error);
       return data ?? [];
     },
     findUnique: async (args: any) => {
       let q: any = from().select(args && args.select ? Object.keys(args.select).join(',') : '*');
       q = applyFilters(q, args && args.where);
       const { data, error } = await q.maybeSingle();
-      fail(error);
+      if (error) fail(error);
       return data;
     },
     findFirst: async (args?: any) => {
@@ -94,12 +94,12 @@ function tableProxy(table: string) {
     },
     create: async (args: any) => {
       const { data, error } = await from().insert(args.data).select().single();
-      fail(error);
+      if (error) fail(error);
       return data;
     },
     createMany: async (args: any) => {
       const { data, error } = await from().insert(args.data).select();
-      fail(error);
+      if (error) fail(error);
       return { count: (data ?? []).length };
     },
     update: async (args: any) => {
@@ -113,26 +113,26 @@ function tableProxy(table: string) {
       let q: any = from().update(payload);
       q = applyFilters(q, args && args.where);
       const { data, error } = await q.select().maybeSingle();
-      fail(error);
+      if (error) fail(error);
       return data;
     },
     updateMany: async (args: any) => {
       let q: any = from().update(args.data);
       q = applyFilters(q, args && args.where);
       const { data, error } = await q.select();
-      fail(error);
+      if (error) fail(error);
       return { count: (data ?? []).length };
     },
     upsert: async (args: any) => {
       const { data, error } = await from().upsert(args.create ?? args.data, { onConflict: args.where ? Object.keys(args.where).join(',') : undefined }).select().single();
-      fail(error);
+      if (error) fail(error);
       return data;
     },
     count: async (args?: any) => {
       let q: any = from().select('*', { count: 'exact', head: true });
       q = applyFilters(q, args && args.where);
       const { count, error } = await q;
-      fail(error);
+      if (error) fail(error);
       return count ?? 0;
     },
     aggregate: async (args?: any) => {
@@ -155,14 +155,14 @@ function tableProxy(table: string) {
       let q: any = from().delete();
       q = applyFilters(q, args && args.where);
       const { data, error } = await q.select().maybeSingle();
-      fail(error);
+      if (error) fail(error);
       return data;
     },
     deleteMany: async (args?: any) => {
       let q: any = from().delete();
       q = applyFilters(q, args && args.where);
       const { data, error } = await q.select();
-      fail(error);
+      if (error) fail(error);
       return { count: (data ?? []).length };
     },
   };
@@ -205,18 +205,18 @@ export class DatabaseService {
 
   async getPendingSync(table: string, limit = 50) {
     const { data, error } = await (supabase as any).from(table).select('*').eq('synced', false).limit(limit);
-    fail(error);
+    if (error) fail(error);
     return data ?? [];
   }
 
   async markAsSynced(table: string, id: any) {
     const { error } = await (supabase as any).from(table).update({ synced: true }).eq('id', id);
-    fail(error);
+    if (error) fail(error);
   }
 
   async createLocalOnly(table: string, data: any) {
     const { data: row, error } = await (supabase as any).from(table).insert(data).select().single();
-    fail(error);
+    if (error) fail(error);
     return row;
   }
 
@@ -242,7 +242,7 @@ export class DatabaseService {
 
   async rpc(functionName: string, params: any = {}): Promise<any> {
     const { data, error } = await (supabase as any).rpc(functionName, params);
-    fail(error);
+    if (error) fail(error);
     return data;
   }
 }
