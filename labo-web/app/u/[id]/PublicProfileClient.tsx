@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { QRCodeSVG } from "qrcode.react";
 import { Building2, Shield, BadgeCheck, UserCircle2 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 
@@ -22,9 +21,6 @@ export default function PublicProfileClient({ id }: { id: string }) {
   const [data, setData] = React.useState<PublicProfile | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [origin, setOrigin] = React.useState("");
-
-  React.useEffect(() => { setOrigin(window.location.origin); }, []);
 
   React.useEffect(() => {
     let active = true;
@@ -53,7 +49,6 @@ export default function PublicProfileClient({ id }: { id: string }) {
 
   const fullName = `${data.first_name || ""} ${data.last_name || ""}`.trim() || "Utilisateur";
   const roleLabel = (data.roles?.[0] || "utilisateur").replace(/_/g, " ");
-  const profileUrl = origin ? `${origin}/u/${id}` : "";
   const lab = data.laboratory;
 
   return (
@@ -87,17 +82,6 @@ export default function PublicProfileClient({ id }: { id: string }) {
               </div>
             )}
 
-            <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-4">
-              {profileUrl && (
-                <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm">
-                  <QRCodeSVG value={profileUrl} size={120} level="M" includeMargin />
-                </div>
-              )}
-              <div className="text-center sm:text-left text-xs text-slate-500 max-w-[220px]">
-                <p className="font-medium text-slate-700 mb-1">Profil public Alliya</p>
-                <p>Scannez le QR code pour ouvrir cette page d’identification.</p>
-              </div>
-            </div>
           </div>
         </div>
         <p className="text-center text-[11px] text-white/50 mt-4">Alliya Laboratoire · Identification</p>
