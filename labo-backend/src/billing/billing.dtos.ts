@@ -1,10 +1,10 @@
 import {
   IsArray,
   IsDateString,
-  IsDecimal,
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsPositive,
   IsString,
@@ -48,12 +48,14 @@ export class CreateInvoiceItemDto {
   description: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt({ message: 'La quantité doit être un entier' })
   @Min(1, { message: 'La quantité doit être supérieure ou égale à 1' })
   quantity: number = 1;
 
   @IsNotEmpty({ message: 'Le prix unitaire est requis' })
-  @IsDecimal({}, { message: 'Le prix unitaire doit être un nombre décimal' })
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Le prix unitaire doit être un nombre' })
   @Min(0, { message: 'Le prix unitaire ne peut pas être négatif' })
   unit_price: number;
 
@@ -115,6 +117,7 @@ export class CreatePaymentDto {
   idempotency_key: string;
 
   @IsNotEmpty({ message: 'Le montant est requis' })
+  @Type(() => Number)
   @IsPositive({ message: 'Le montant doit être supérieur à 0' })
   amount: number;
 
@@ -147,6 +150,7 @@ export class UpdatePaymentDto {
   method?: PaymentMethod;
 
   @IsOptional()
+  @Type(() => Number)
   @IsPositive({ message: 'Le montant doit être supérieur à 0' })
   amount?: number;
 
@@ -179,6 +183,7 @@ export class PayInvoiceDto {
   method?: PaymentMethod;
 
   @IsOptional()
+  @Type(() => Number)
   @IsPositive({ message: 'Le montant doit être supérieur à 0' })
   amount?: number;
 

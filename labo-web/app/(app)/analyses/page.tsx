@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TestFormDialog } from "@/components/forms/test-form-dialog";
 
 export default function AnalysesPage() {
   const { user } = useAuth();
@@ -15,15 +16,22 @@ export default function AnalysesPage() {
   const [analyses, setAnalyses] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [visibleCount, setVisibleCount] = React.useState(10);
+  const [createOpen, setCreateOpen] = React.useState(false);
   const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
+
+  const load = React.useCallback(async () => {
+    if (!user?.laboratory_id) { setLoading(false); return; }
+    setLoading(true);
+    const res = await api.safeGet<any>(`/examinations?laboratory_id=${user.laboratory_id}`);
+    const list = Array.isArray(res.data) ? res.data : (res.data as any)?.data;
+    setAnalyses(Array.isArray(list) ? list : []);
+    setLoading(false);
+  }, [user]);
 
   React.useEffect(() => {
     if (!user?.laboratory_id) { setLoading(false); return; }
-    api.safeGet<any[]>(`/examinations?laboratory_id=${user.laboratory_id}`).then((res) => {
-      setAnalyses(!res.error && Array.isArray(res.data) ? res.data : []);
-      setLoading(false);
-    });
-  }, [user]);
+    void load();
+  }, [user, load]);
 
   React.useEffect(() => { setVisibleCount(10); }, [analyses.length]);
   React.useEffect(() => {
@@ -45,7 +53,7 @@ export default function AnalysesPage() {
         title="Analyses"
         description="Commandes d'analyses et suivi des échantillons"
         action={
-          <Button size="sm" className="!bg-[#1E2A47] !text-white hover:!bg-[#162544] w-full sm:w-auto">
+          <Button size="sm" className="!bg-[#1E2A47] !text-white hover:!bg-[#162544] w-full sm:w-auto" onClick={() => setCreateOpen(true)}>
             <FlaskConical className="h-4 w-4 mr-2" /> Nouvelle analyse
           </Button>
         }
@@ -100,6 +108,13 @@ export default function AnalysesPage() {
           )}
         </CardContent>
       </Card>
+
+      <TestFormDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        laboratoryId={user?.laboratory_id}
+        onCreated={() => { void load(); }}
+      />
     </div>
   );
 }

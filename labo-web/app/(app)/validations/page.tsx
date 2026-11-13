@@ -75,7 +75,7 @@ export default function ValidationsPage() {
 
   const stats = [
     { label: "Total", value: validations.length, cls: "text-[#1E2A47]" },
-    { label: "Validées", value: validations.filter((v) => v.status === "validated").length, cls: "text-emerald-600" },
+    { label: "Validées", value: validations.filter((v) => v.status === "validated").length, cls: "text-[#2E7A7C]" },
     { label: "En attente", value: validations.filter((v) => v.status === "pending").length, cls: "text-amber-600" },
     { label: "Rejetées", value: validations.filter((v) => v.status === "rejected").length, cls: "text-red-600" },
   ];

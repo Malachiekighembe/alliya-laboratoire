@@ -11,6 +11,21 @@ export class PatientCarnetsService {
     private readonly metricUtil: MetricUtil,
   ) {}
 
+  async findAll(laboratory_id: string, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    const where: any = { laboratory_id };
+    const [items, total] = await Promise.all([
+      this.prisma.patient_carnets.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { created_at: 'desc' },
+      }),
+      this.prisma.patient_carnets.count({ where }),
+    ]);
+    return { items, total };
+  }
+
   async createCarnet(laboratory_id: string, patient_id: string): Promise<PatientCarnet> {
     const existing = await this.prisma.patient_carnets.findFirst({
       where: {

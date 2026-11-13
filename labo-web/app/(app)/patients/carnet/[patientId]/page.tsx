@@ -26,6 +26,7 @@ import {
   Activity,
   ChevronRight,
 } from "lucide-react";
+import { VisitFormDialog } from "@/components/forms/visit-form-dialog";
 
 type Visit = {
   id: string;
@@ -68,22 +69,26 @@ export default function PatientCarnetPage() {
   const [carnet, setCarnet] = React.useState<Carnet | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [visitOpen, setVisitOpen] = React.useState(false);
 
-  React.useEffect(() => {
+  const load = React.useCallback(async () => {
     if (!patientId) return;
-    api
-      .get<Carnet>(`/patient-carnets/patient/${patientId}`)
-      .then((res) => {
-        setCarnet(res.data ?? null);
-        setLoading(false);
-      })
-      .catch((err: any) => {
-        setError(err?.response?.data?.message || "Erreur lors du chargement du carnet");
-        setLoading(false);
-      });
+    try {
+      const res = await api.get<Carnet>(`/patient-carnets/patient/${patientId}`);
+      setCarnet(res.data ?? null);
+      setError(null);
+    } catch (err: any) {
+      setError(err?.message || "Erreur lors du chargement du carnet");
+    } finally {
+      setLoading(false);
+    }
   }, [patientId]);
 
-  const canManage = hasRole("ADMIN") || hasRole("REC") || hasRole("BIO") || hasRole("TECH");
+  React.useEffect(() => { void load(); }, [load]);
+
+  const canManage =
+    hasRole("admin") || hasRole("super_admin") || hasRole("lab_manager") ||
+    hasRole("receptionist") || hasRole("laborant") || hasRole("technician") || hasRole("doctor");
 
   const statusColor = (status: string) => {
     switch (status) {
@@ -223,7 +228,8 @@ export default function PatientCarnetPage() {
               {canManage && (
                 <Button
                   variant="outline"
-                  onClick={() => router.push(`/patients/nouveau?carnet=${carnet.id}`)}
+                  className="mt-2"
+                  onClick={() => setVisitOpen(true)}
                 >
                   Créer une première visite
                 </Button>
@@ -279,6 +285,14 @@ export default function PatientCarnetPage() {
           )}
         </CardContent>
       </Card>
+
+      <VisitFormDialog
+        open={visitOpen}
+        onOpenChange={setVisitOpen}
+        laboratoryId={user?.laboratory_id}
+        patientId={carnet?.patient?.id}
+        onCreated={() => { void load(); }}
+      />
     </div>
   );
 }

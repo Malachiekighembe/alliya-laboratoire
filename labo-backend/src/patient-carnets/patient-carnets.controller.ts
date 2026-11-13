@@ -16,6 +16,17 @@ import { CreatePatientCarnetDto, UpdatePatientCarnetDto } from './patient-carnet
 export class PatientCarnetsController {
   constructor(private readonly carnetService: PatientCarnetsService) {}
 
+  @Get()
+  @RequirePermissions('patients.read')
+  async findAll(
+    @CurrentLaboratory() labId: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    const data = await this.carnetService.findAll(labId, Number(page), Number(limit));
+    return ApiResponseDto.success(data);
+  }
+
   @Get('patient/:patientId')
   @RequirePermissions('patients.read')
   async getByPatient(

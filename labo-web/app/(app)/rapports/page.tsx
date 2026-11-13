@@ -27,7 +27,7 @@ export default function RapportsPage() {
   const cards = [
     { label: "Patients", value: stats.patients ?? stats.total_patients ?? "—", icon: Users, href: "/patients", color: "text-[#1E2A47]", bg: "bg-slate-100" },
     { label: "Analyses", value: stats.analyses ?? stats.total_analyses ?? "—", icon: FlaskConical, href: "/analyses", color: "text-[#2E7A7C]", bg: "bg-[#3D9597]/10" },
-    { label: "Résultats", value: stats.results ?? stats.total_results ?? "—", icon: ClipboardCheck, href: "/resultats", color: "text-emerald-700", bg: "bg-emerald-50" },
+    { label: "Résultats", value: stats.results ?? stats.total_results ?? "—", icon: ClipboardCheck, href: "/resultats", color: "text-[#2E7A7C]", bg: "bg-[#3D9597]/10" },
     { label: "Rendez-vous", value: stats.appointments ?? stats.total_appointments ?? "—", icon: Calendar, href: "/rendez-vous", color: "text-amber-700", bg: "bg-amber-50" },
   ];
 

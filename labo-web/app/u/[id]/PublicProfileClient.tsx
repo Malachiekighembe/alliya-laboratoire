@@ -66,7 +66,7 @@ export default function PublicProfileClient({ id }: { id: string }) {
                 <Shield className="h-3.5 w-3.5" /> {roleLabel}
               </div>
               {data.matricule && <p className="mt-2 text-sm text-slate-500">Matricule <span className="font-mono font-medium text-slate-700">{data.matricule}</span></p>}
-              <div className="mt-2 inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full"><BadgeCheck className="h-3.5 w-3.5" /> Profil vérifié Alliya</div>
+              <div className="mt-2 inline-flex items-center gap-1 text-xs text-[#2E7A7C] bg-[#EEF7F7] px-2 py-1 rounded-full"><BadgeCheck className="h-3.5 w-3.5" /> Profil vérifié Alliya</div>
             </div>
 
             {lab && (

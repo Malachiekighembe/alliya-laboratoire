@@ -87,7 +87,7 @@ export function AppBar({ onMenu }: { onMenu: () => void; collapsed?: boolean }) 
 
   const avatarUrl = (user as any)?.avatar_url as string | undefined;
   const fullName = `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || "Profil";
-  const statusDot = online ? "bg-emerald-500" : "bg-slate-300";
+  const statusDot = online ? "bg-[#3D9597]" : "bg-slate-300";
   const statusTitle = online ? "En ligne" : "Hors ligne";
 
   return (

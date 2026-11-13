@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { VisitFormDialog } from "@/components/forms/visit-form-dialog";
 import Link from "next/link";
 
 const PAGE_SIZE = 10;
@@ -25,6 +26,7 @@ export default function VisitesPage() {
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
   const [visible, setVisible] = React.useState(PAGE_SIZE);
+  const [createOpen, setCreateOpen] = React.useState(false);
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
   const visitsResult = useAsync(async () => {
@@ -62,7 +64,7 @@ export default function VisitesPage() {
   const stats = [
     { label: "Total", value: visits.length, cls: "text-[#1E2A47]" },
     { label: "Planifiées", value: visits.filter((v) => v.status === "scheduled").length, cls: "text-[#2E7A7C]" },
-    { label: "Terminées", value: visits.filter((v) => v.status === "completed").length, cls: "text-emerald-600" },
+    { label: "Terminées", value: visits.filter((v) => v.status === "completed").length, cls: "text-[#2E7A7C]" },
     { label: "En cours", value: visits.filter((v) => v.status === "in_progress").length, cls: "text-amber-600" },
   ];
 
@@ -81,7 +83,9 @@ export default function VisitesPage() {
           <div><Label htmlFor="search" className="text-xs sm:text-sm">Rechercher</Label><Input id="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Patient, matricule…" className="h-9 sm:h-10 text-sm sm:w-56" disabled={loading} /></div>
           <div><Label htmlFor="status" className="text-xs sm:text-sm">Statut</Label><Input id="status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} placeholder="Tous" className="h-9 sm:h-10 text-sm sm:w-40" disabled={loading} /></div>
         </div>
-        <Link href="/patients/nouveau"><Button className="!bg-[#3D9597] !text-white w-auto h-9 text-xs sm:text-sm"><Plus className="h-4 w-4 mr-1.5" />Nouvelle visite</Button></Link>
+        <Button className="!bg-[#3D9597] !text-white w-auto h-9 text-xs sm:h-10 sm:text-sm" onClick={() => setCreateOpen(true)}>
+          <Plus className="h-4 w-4 mr-1.5" />Nouvelle visite
+        </Button>
       </div>
 
       <div className="space-y-2 sm:hidden">
@@ -120,6 +124,13 @@ export default function VisitesPage() {
         </Table>
         {hasMore && <div ref={sentinelRef} className="h-8 flex items-center justify-center text-xs text-slate-400">Chargement…</div>}
       </div>
+
+      <VisitFormDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        laboratoryId={user?.laboratory_id}
+        onCreated={() => { void visitsResult.refetch(); }}
+      />
     </div>
   );
 }
