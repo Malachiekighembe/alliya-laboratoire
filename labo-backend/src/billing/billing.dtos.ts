@@ -59,9 +59,15 @@ export class CreateInvoiceItemDto {
   @Min(0, { message: 'Le prix unitaire ne peut pas être négatif' })
   unit_price: number;
 
-  @IsOptional()
+@IsOptional()
   @IsUUID(4, { message: "L'ID du catalogue de tests doit être un UUID valide" })
   test_catalog_id?: string;
+
+  /** Type de frais (liste « Type de frais » de /parametres). */
+  @IsOptional()
+  @IsString({ message: 'Le type de frais doit être une chaîne de caractères' })
+  @MaxLength(50, { message: 'Le type de frais ne peut pas dépasser 50 caractères' })
+  fee_type?: string;
 }
 
 export class CreateInvoiceDto {

@@ -1,7 +1,20 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import { PaginationDto } from '../common/dto/pagination.dto.js';
 import { CreateTestCatalogDto, UpdateTestCatalogDto } from './examinations.dtos.js';
+
+const TEXT_FIELDS = [
+  'category',
+  'exam_type',
+  'section',
+  'sample_type',
+  'container',
+  'preparation',
+  'method',
+  'description',
+  'unit',
+  'reference_range',
+] as const;
 
 @Injectable()
 export class ExaminationsService {
@@ -18,29 +31,36 @@ export class ExaminationsService {
     });
 
     if (existing) {
-      throw new ConflictException('Un examen avec ce code existe d�j� pour ce laboratoire');
+      throw new ConflictException('Un examen avec ce code existe déjà pour ce laboratoire');
     }
 
     const data: any = {
       laboratory_id,
       code: createTestDto.code,
       name: createTestDto.name,
-      category: createTestDto.category || null,
-      unit: createTestDto.unit || null,
-      reference_range: createTestDto.reference_range || null,
       price: createTestDto.price !== undefined ? createTestDto.price : null,
       duration_minutes: createTestDto.duration_minutes !== undefined ? createTestDto.duration_minutes : null,
       is_active: true,
     };
 
-    const test = await this.prisma.test_catalog.create({
-      data,
-    });
+    for (const field of TEXT_FIELDS) {
+      const value = (createTestDto as any)[field];
+      data[field] = value !== undefined && value !== '' ? value : null;
+    }
+
+    const test = await this.prisma.test_catalog.create({ data });
 
     return test;
   }
 
-  async findAll(laboratory_id: string, pagination: PaginationDto, search?: string, category?: string, includeInactive?: boolean) {
+  async findAll(
+    laboratory_id: string,
+    pagination: PaginationDto,
+    search?: string,
+    category?: string,
+    includeInactive?: boolean,
+    filters?: { exam_type?: string; section?: string; sample_type?: string },
+  ) {
     const where: any = {
       laboratory_id,
     };
@@ -53,11 +73,23 @@ export class ExaminationsService {
       where.category = category;
     }
 
+    if (filters?.exam_type) {
+      where.exam_type = filters.exam_type;
+    }
+
+    if (filters?.section) {
+      where.section = filters.section;
+    }
+
+    if (filters?.sample_type) {
+      where.sample_type = filters.sample_type;
+    }
+
     if (search || pagination.search) {
       const searchTerm = search || pagination.search;
       where.OR = [
-        { name: { contains: searchTerm, mode: 'insensitive' } },
-        { code: { contains: searchTerm, mode: 'insensitive' } },
+        { name: { contains: searchTerm } },
+        { code: { contains: searchTerm } },
       ];
     }
 
@@ -83,7 +115,7 @@ export class ExaminationsService {
     });
 
     if (!test) {
-      throw new NotFoundException('Examen non trouv�');
+      throw new NotFoundException('Examen non trouvé');
     }
 
     return test;
@@ -98,7 +130,7 @@ export class ExaminationsService {
     });
 
     if (!test) {
-      throw new NotFoundException('Examen non trouv�');
+      throw new NotFoundException('Examen non trouvé');
     }
 
     return test;
@@ -113,7 +145,7 @@ export class ExaminationsService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Examen non trouv�');
+      throw new NotFoundException('Examen non trouvé');
     }
 
     if (updateTestDto.code && updateTestDto.code !== existing.code) {
@@ -127,7 +159,7 @@ export class ExaminationsService {
       });
 
       if (codeExists) {
-        throw new ConflictException('Un examen avec ce code existe d�j� pour ce laboratoire');
+        throw new ConflictException('Un examen avec ce code existe déjà pour ce laboratoire');
       }
     }
 
@@ -135,12 +167,15 @@ export class ExaminationsService {
 
     if (updateTestDto.code !== undefined) data.code = updateTestDto.code;
     if (updateTestDto.name !== undefined) data.name = updateTestDto.name;
-    if (updateTestDto.category !== undefined) data.category = updateTestDto.category || null;
-    if (updateTestDto.unit !== undefined) data.unit = updateTestDto.unit || null;
-    if (updateTestDto.reference_range !== undefined) data.reference_range = updateTestDto.reference_range || null;
     if (updateTestDto.price !== undefined) data.price = updateTestDto.price;
     if (updateTestDto.duration_minutes !== undefined) data.duration_minutes = updateTestDto.duration_minutes;
     if (updateTestDto.is_active !== undefined) data.is_active = updateTestDto.is_active;
+
+    for (const field of TEXT_FIELDS) {
+      const value = (updateTestDto as any)[field];
+      if (value === undefined) continue;
+      data[field] = value === '' ? null : value;
+    }
 
     const test = await this.prisma.test_catalog.update({
       where: { id },
@@ -150,6 +185,7 @@ export class ExaminationsService {
     return test;
   }
 
+  /** Suppression logique : les analyses historiques restent rattachées à l'examen. */
   async remove(id: string, laboratory_id: string) {
     const existing = await this.prisma.test_catalog.findFirst({
       where: {
@@ -159,58 +195,57 @@ export class ExaminationsService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Examen non trouv�');
+      throw new NotFoundException('Examen non trouvé');
     }
 
     await this.prisma.test_catalog.update({
       where: { id },
-      data: {
-        is_active: false,
-      },
+      data: { is_active: false },
     });
 
     return { success: true };
   }
 
+  /**
+   * Valeurs distinctes réellement utilisées par le catalogue, par discipline.
+   * Le client Supabase n'applique pas `distinct` : la déduplication est faite ici.
+   */
   async getCategories(laboratory_id: string) {
-    const categories = await this.prisma.test_catalog.findMany({
-      where: {
-        laboratory_id,
-        category: {
-          not: null,
-        },
-      },
-      select: {
-        category: true,
-      },
-      distinct: ['category'],
-      orderBy: {
-        category: 'asc',
-      },
+    const tests = await this.prisma.test_catalog.findMany({
+      where: { laboratory_id },
     });
 
-    return categories.map((c: any) => c.category).filter((c: any) => c !== null);
+    const unique = (values: any[]) =>
+      Array.from(new Set(values.filter((v) => typeof v === 'string' && v.trim().length > 0))).sort((a, b) =>
+        String(a).localeCompare(String(b)),
+      );
+
+    const rows = tests as any[];
+
+    return {
+      categories: unique(rows.map((t) => t.category)),
+      exam_types: unique(rows.map((t) => t.exam_type)),
+      sections: unique(rows.map((t) => t.section)),
+      sample_types: unique(rows.map((t) => t.sample_type)),
+    };
   }
 
   async getStatistics(laboratory_id: string) {
     const tests = await this.prisma.test_catalog.findMany({
-      where: {
-        laboratory_id,
-      },
-      include: {
-        order_items: true,
-      },
+      where: { laboratory_id },
+      include: { order_items: true },
     });
 
-    const stats = tests.map((test: any) => ({
+    const stats = (tests as any[]).map((test) => ({
       test_id: test.id,
       code: test.code,
       name: test.name,
       category: test.category,
-      usage_count: test.order_items.length,
+      exam_type: test.exam_type,
+      usage_count: Array.isArray(test.order_items) ? test.order_items.length : 0,
     }));
 
-    stats.sort((a: any, b: any) => b.usage_count - a.usage_count);
+    stats.sort((a, b) => b.usage_count - a.usage_count);
 
     return stats;
   }

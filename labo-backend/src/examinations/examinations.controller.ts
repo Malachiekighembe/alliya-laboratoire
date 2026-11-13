@@ -24,13 +24,18 @@ export class ExaminationsController {
     @Query() pagination: PaginationDto,
     @Query() searchDto: SearchExaminationsDto,
   ) {
-    const includeInactive = searchDto.include_inactive === true;
+const includeInactive = searchDto.include_inactive === true;
     const result = await this.examinationsService.findAll(
       labId,
       pagination,
       searchDto.search,
       searchDto.category,
       includeInactive,
+      {
+        exam_type: searchDto.exam_type,
+        section: searchDto.section,
+        sample_type: searchDto.sample_type,
+      },
     );
     return new ApiResponseDto({
       success: true,

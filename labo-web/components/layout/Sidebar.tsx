@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, FlaskConical, ClipboardCheck, BarChart3, UserCog,
   Settings, LogOut, ChevronLeft, ChevronRight, X, Clock, Activity, CreditCard, Stethoscope, Building2, ShieldCheck, UserCircle,
+  ClipboardList, BookOpen,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLab } from "@/components/lab/LabProvider";
@@ -31,6 +32,7 @@ const SYSTEM_SECTIONS: NavSection[] = [
 const LAB_OWNER_SECTIONS: NavSection[] = [
   { title: "Mon laboratoire", roles: ["admin", "lab_manager", "DIR"], items: [
     { label: "Tableau de bord", href: "/dashboard/lab-admin", icon: LayoutDashboard },
+    { label: "Catalogue d'examens", href: "/catalogue", icon: BookOpen },
     { label: "Personnel", href: "/personnel", icon: Users },
     { label: "Facturation", href: "/facturation", icon: CreditCard },
     { label: "Rapports", href: "/rapports", icon: BarChart3 },
@@ -39,7 +41,9 @@ const LAB_OWNER_SECTIONS: NavSection[] = [
   ]},
   { title: "Activité", roles: ["admin", "lab_manager", "DIR"], items: [
     { label: "Patients", href: "/patients", icon: Users },
+    { label: "Rendez-vous", href: "/rendez-vous", icon: Clock },
     { label: "Visites", href: "/visites", icon: Activity },
+    { label: "Demandes", href: "/demandes", icon: ClipboardList },
     { label: "Prélèvements", href: "/prelevements", icon: Stethoscope },
     { label: "Analyses", href: "/analyses", icon: FlaskConical },
     { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
@@ -50,17 +54,21 @@ const RECEPTION_SECTIONS: NavSection[] = [
   { title: "Réception", roles: ["receptionist"], items: [
     { label: "Tableau de bord", href: "/dashboard/receptionist", icon: LayoutDashboard },
     { label: "Patients", href: "/patients", icon: Users },
-    { label: "Visites", href: "/visites", icon: Activity },
     { label: "Rendez-vous", href: "/rendez-vous", icon: Clock },
+    { label: "Visites", href: "/visites", icon: Activity },
+    { label: "Demandes", href: "/demandes", icon: ClipboardList },
+    { label: "Catalogue", href: "/catalogue", icon: BookOpen },
     { label: "Mon profil", href: "/profil", icon: UserCircle },
   ]},
 ];
 const TECH_SECTIONS: NavSection[] = [
   { title: "Laboratoire", roles: ["technician", "laborant"], items: [
     { label: "Tableau de bord", href: "/dashboard/technician", icon: LayoutDashboard },
+    { label: "Demandes", href: "/demandes", icon: ClipboardList },
     { label: "Prélèvements", href: "/prelevements", icon: Stethoscope },
     { label: "Analyses", href: "/analyses", icon: FlaskConical },
     { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
+    { label: "Catalogue", href: "/catalogue", icon: BookOpen },
     { label: "Patients", href: "/patients", icon: Users },
     { label: "Mon profil", href: "/profil", icon: UserCircle },
   ]},
@@ -68,10 +76,11 @@ const TECH_SECTIONS: NavSection[] = [
 const DOCTOR_SECTIONS: NavSection[] = [
   { title: "Médecin", roles: ["doctor"], items: [
     { label: "Tableau de bord", href: "/dashboard/doctor", icon: LayoutDashboard },
-    { label: "Validations", href: "/validations", icon: ShieldCheck },
-    { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
-    { label: "Analyses", href: "/analyses", icon: FlaskConical },
     { label: "Patients", href: "/patients", icon: Users },
+    { label: "Demandes", href: "/demandes", icon: ClipboardList },
+    { label: "Analyses", href: "/analyses", icon: FlaskConical },
+    { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
+    { label: "Validations", href: "/validations", icon: ShieldCheck },
     { label: "Rapports", href: "/rapports", icon: BarChart3 },
     { label: "Mon profil", href: "/profil", icon: UserCircle },
   ]},

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { api } from "@/lib/api-client";
-import { useLabPatients, useTestCatalog } from "@/lib/use-lab-options";
+import { useConfigurationOptions, useLabPatients, useTestCatalog } from "@/lib/use-lab-options";
 import { FormDialog, Field, controlClass } from "./form-dialog";
 
 type InvoiceFormDialogProps = {
@@ -14,17 +14,26 @@ type InvoiceFormDialogProps = {
   onCreated?: () => void;
 };
 
-type Line = { description: string; quantity: string; unit_price: string; test_catalog_id: string };
+type Line = { description: string; quantity: string; unit_price: string; test_catalog_id: string; fee_type: string };
 
-const emptyLine: Line = { description: "", quantity: "1", unit_price: "", test_catalog_id: "" };
+const emptyLine: Line = { description: "", quantity: "1", unit_price: "", test_catalog_id: "", fee_type: "" };
 
 export function InvoiceFormDialog({ open, onOpenChange, laboratoryId, patientId, onCreated }: InvoiceFormDialogProps) {
   const { patients, loading: loadingPatients } = useLabPatients(open ? laboratoryId : null);
   const { tests, loading: loadingTests } = useTestCatalog(open ? laboratoryId : null);
+  const { items } = useConfigurationOptions(open ? laboratoryId : null);
   const [form, setForm] = React.useState({ patient_id: patientId || "", due_date: "", currency: "USD", notes: "" });
   const [lines, setLines] = React.useState<Line[]>([{ ...emptyLine }]);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
+
+  const feeTypes = React.useMemo(
+    () =>
+      (items.fee_type ?? [])
+        .filter((item: any) => item.is_active !== false)
+        .map((item: any) => ({ value: String(item.code), label: String(item.label || item.code) })),
+    [items],
+  );
 
   React.useEffect(() => {
     if (!open) return;
@@ -41,11 +50,12 @@ export function InvoiceFormDialog({ open, onOpenChange, laboratoryId, patientId,
 
   const pickTest = (index: number, testId: string) => {
     const test = tests.find((t) => t.id === testId);
-    if (!test) { updateLine(index, { test_catalog_id: "" }); return; }
+    if (!test) { updateLine(index, { test_catalog_id: "", fee_type: "autre" }); return; }
     updateLine(index, {
       test_catalog_id: test.id,
       description: test.name || test.code || "",
       unit_price: test.price !== undefined && test.price !== null ? String(test.price) : "",
+      fee_type: "analyse",
     });
   };
 
@@ -60,6 +70,7 @@ export function InvoiceFormDialog({ open, onOpenChange, laboratoryId, patientId,
           description: line.description.trim(),
           quantity: Number(line.quantity) || 1,
           unit_price: String(line.unit_price),
+          fee_type: line.fee_type || (line.test_catalog_id ? "analyse" : "autre"),
           ...(line.test_catalog_id ? { test_catalog_id: line.test_catalog_id } : {}),
         }));
 
@@ -138,8 +149,8 @@ export function InvoiceFormDialog({ open, onOpenChange, laboratoryId, patientId,
         </div>
         {lines.map((line, index) => (
           <div key={index} className="rounded-lg border border-slate-200 bg-slate-50/60 p-2.5 sm:p-3 space-y-2">
-            <div className="grid gap-2 sm:grid-cols-[1.4fr_.5fr_.7fr_.7fr_auto] sm:items-end">
-              <Field label={index === 0 ? "Examen / description" : "\u00A0"} htmlFor={`line_desc_${index}`}>
+            <div className="grid gap-2 sm:grid-cols-[1.5fr_.9fr_1.2fr_.5fr_.7fr_auto] sm:items-end">
+              <Field label={index === 0 ? "Examen" : "\u00A0"} htmlFor={`line_test_${index}`}>
                 <select
                   id={`line_test_${index}`}
                   className={controlClass}
@@ -150,6 +161,20 @@ export function InvoiceFormDialog({ open, onOpenChange, laboratoryId, patientId,
                   <option value="">Saisie libre…</option>
                   {tests.map((t) => (
                     <option key={t.id} value={t.id}>{t.name || t.code}{t.price !== undefined ? ` — ${t.price}` : ""}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label={index === 0 ? "Type de frais" : "\u00A0"} htmlFor={`line_fee_${index}`}>
+                <select
+                  id={`line_fee_${index}`}
+                  className={controlClass}
+                  value={line.fee_type}
+                  onChange={(e) => updateLine(index, { fee_type: e.target.value })}
+                  disabled={saving}
+                >
+                  <option value="">—</option>
+                  {feeTypes.map((fee) => (
+                    <option key={fee.value} value={fee.value}>{fee.label}</option>
                   ))}
                 </select>
               </Field>

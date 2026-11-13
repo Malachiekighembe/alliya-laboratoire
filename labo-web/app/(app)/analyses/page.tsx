@@ -11,7 +11,7 @@ import { DetailDialog } from "@/components/ui/detail-dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TestFormDialog } from "@/components/forms/test-form-dialog";
+import Link from "next/link";
 
 export default function AnalysesPage() {
   const { user } = useAuth();
@@ -19,7 +19,6 @@ export default function AnalysesPage() {
   const [analyses, setAnalyses] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [visibleCount, setVisibleCount] = React.useState(10);
-  const [createOpen, setCreateOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<any | null>(null);
   const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -79,8 +78,10 @@ export default function AnalysesPage() {
         title="Analyses"
         description="File de travail du laboratoire et suivi des échantillons"
         action={
-          <Button size="sm" className="!bg-[#1E2A47] !text-white hover:!bg-[#162544] w-full sm:w-auto" onClick={() => setCreateOpen(true)}>
-            <FlaskConical className="h-4 w-4 mr-2" /> Nouvelle analyse
+          <Button size="sm" variant="outline" className="w-full sm:w-auto" asChild>
+            <Link href="/catalogue">
+              <FlaskConical className="h-4 w-4 mr-2" /> Catalogue d'examens
+            </Link>
           </Button>
         }
       />
@@ -153,13 +154,6 @@ export default function AnalysesPage() {
         subtitle={selected ? patientOf(selected) : undefined}
         badge={selected?.status ? <Badge variant="alliya-turquoise-outline" className="capitalize">{selected.status}</Badge> : undefined}
         fields={selected ? detailFields(selected) : []}
-      />
-
-      <TestFormDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        laboratoryId={user?.laboratory_id}
-        onCreated={() => { void load(); }}
       />
     </div>
   );

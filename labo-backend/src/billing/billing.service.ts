@@ -80,12 +80,13 @@ export class BillingService {
   async createInvoice(dto: CreateInvoiceDto, laboratoryId: string, _userId: string): Promise<InvoiceView> {
     const invoiceNumber = await this.metricUtil.generateInvoiceNumber(laboratoryId);
 
-    const itemsData = (dto.items || []).map((item) => ({
+const itemsData = (dto.items || []).map((item) => ({
       description: item.description,
       quantity: item.quantity ?? 1,
       unit_price: item.unit_price,
       total_price: (item.quantity ?? 1) * item.unit_price,
       test_catalog_id: item.test_catalog_id ?? null,
+      fee_type: item.fee_type ?? (item.test_catalog_id ? 'analyse' : 'autre'),
       laboratory_id: laboratoryId,
     }));
 
@@ -129,7 +130,7 @@ export class BillingService {
       throw new BadRequestException('Seules les factures brouillon peuvent être modifiées');
     }
 
-    const totalPrice = (dto.quantity ?? 1) * dto.unit_price;
+const totalPrice = (dto.quantity ?? 1) * dto.unit_price;
     await this.prisma.invoice_items.create({
       data: {
         invoice_id: invoiceId,
@@ -139,6 +140,7 @@ export class BillingService {
         unit_price: dto.unit_price,
         total_price: totalPrice,
         test_catalog_id: dto.test_catalog_id ?? null,
+        fee_type: dto.fee_type ?? (dto.test_catalog_id ? 'analyse' : 'autre'),
       },
     });
 
@@ -579,11 +581,12 @@ export class BillingService {
         id: item.id,
         invoice_id: item.invoice_id,
         laboratory_id: item.laboratory_id,
-        test_catalog_id: item.test_catalog_id,
+test_catalog_id: item.test_catalog_id,
         description: item.description,
         quantity: item.quantity,
         unit_price: this.toNumber(item.unit_price),
         total_price: this.toNumber(item.total_price),
+        fee_type: item.fee_type ?? (item.test_catalog_id ? 'analyse' : 'autre'),
         created_at: item.created_at,
         updated_at: item.updated_at,
       })),
