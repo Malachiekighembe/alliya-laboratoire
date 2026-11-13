@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 
 @Injectable()
@@ -10,10 +10,14 @@ export class InventoryService {
   }
 
   async updateProduct(id: string, laboratory_id: string, data: Partial<{ sku: string; name: string; category: string; unit: string; price: number; min_stock: number; is_active: boolean }>) {
+    const existing = await this.prisma.products.findFirst({ where: { id, laboratory_id } });
+    if (!existing) throw new NotFoundException('Produit non trouve');
     return this.prisma.products.update({ where: { id }, data });
   }
 
   async deleteProduct(id: string, laboratory_id: string) {
+    const existing = await this.prisma.products.findFirst({ where: { id, laboratory_id } });
+    if (!existing) throw new NotFoundException('Produit non trouve');
     return this.prisma.products.update({ where: { id }, data: { is_active: false } });
   }
 
@@ -24,7 +28,9 @@ export class InventoryService {
   }
 
   async findById(id: string, laboratory_id: string) {
-    return this.prisma.products.findUnique({ where: { id } });
+    const product = await this.prisma.products.findFirst({ where: { id, laboratory_id } });
+    if (!product) throw new NotFoundException('Produit non trouve');
+    return product;
   }
 
   async createStockLot(laboratory_id: string, data: { product_id: string; batch_number: string; quantity: number; expiry_date?: Date }) {

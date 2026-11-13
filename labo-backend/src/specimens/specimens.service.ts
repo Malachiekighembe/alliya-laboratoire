@@ -5,6 +5,25 @@ import { PatientsService } from '../patients/patients.service.js';
 import { PaginationDto } from '../common/dto/pagination.dto.js';
 import { CreateSpecimenDto, UpdateSpecimenDto } from './specimens.dtos.js';
 
+/** Statuts §11.1 : échantillon. */
+export const SPECIMEN_STATUSES = ['en_attente', 'recu', 'accepte', 'rejete', 'epuise'] as const;
+
+const SPECIMEN_ALIASES: Record<string, string> = {
+  pending: 'en_attente',
+  received: 'recu',
+  processing: 'accepte',
+  completed: 'epuise',
+  accepted: 'accepte',
+  rejected: 'rejete',
+  discarded: 'epuise',
+};
+
+export function normalizeSpecimenStatus(status?: string | null): string {
+  if (!status) return 'en_attente';
+  const key = String(status).toLowerCase();
+  return SPECIMEN_ALIASES[key] ?? key;
+}
+
 @Injectable()
 export class SpecimensService {
   constructor(
@@ -65,7 +84,8 @@ export class SpecimensService {
         collected_by_id,
         type: createSpecimenDto.type,
         container: createSpecimenDto.container || null,
-        status: 'received',
+        status: 'en_attente',
+        qr_token: matricule,
         notes: createSpecimenDto.notes || null,
         collection_date: new Date(),
       },
@@ -260,21 +280,32 @@ export class SpecimensService {
       throw new NotFoundException('Échantillon non trouvé');
     }
 
-    // Validation du workflow
+    // Statuts §11.1 : en_attente -> recu -> accepte -> epuise, avec rejet possible.
+    const normalized = normalizeSpecimenStatus(existing.status);
+    const target = normalizeSpecimenStatus(status);
     const validTransitions: Record<string, string[]> = {
-      received: ['processing', 'rejected', 'discarded'],
-      processing: ['completed', 'rejected', 'discarded'],
-      completed: [],
-      rejected: [],
-      discarded: [],
+      en_attente: ['recu', 'accepte', 'rejete'],
+      recu: ['accepte', 'rejete'],
+      accepte: ['epuise', 'rejete'],
+      rejete: ['en_attente'],
+      epuise: [],
     };
 
-    if (!validTransitions[existing.status]?.includes(status)) {
-      throw new BadRequestException("Transition de statut invalide: " + existing.status + " -> " + status);
+    if (!validTransitions[normalized]?.includes(target)) {
+      throw new BadRequestException(`Transition de statut invalide: ${normalized} -> ${target}`);
     }
 
-    const data: any = { status };
-    if (notes !== undefined) {
+    const data: any = { status: target };
+    if (target === 'recu') data.received_at = new Date().toISOString();
+    if (target === 'accepte') {
+      data.accepted_at = new Date().toISOString();
+      data.accepted_by_id = (existing as any).collected_by_id ?? null;
+    }
+    if (target === 'rejete') {
+      data.rejected_at = new Date().toISOString();
+      data.rejected_reason = notes ?? (existing as any).rejected_reason ?? null;
+    }
+    if (notes !== undefined && target !== 'rejete') {
       data.notes = notes ? (existing.notes ? `${existing.notes}\n` : notes) : existing.notes;
     }
 
@@ -292,8 +323,28 @@ export class SpecimensService {
     return specimen;
   }
 
+  /** Acceptation de l'échantillon après contrôle (§7.4). */
+  async accept(id: string, laboratory_id: string, section?: string) {
+    const specimen = await this.updateStatus(id, laboratory_id, 'accepte');
+    if (section) {
+      return this.prisma.specimens.update({
+        where: { id },
+        data: { section },
+        include: { patient: true, order: true },
+      });
+    }
+    return specimen;
+  }
+
+  async assignSection(id: string, laboratory_id: string, section: string) {
+    const existing = await this.prisma.specimens.findFirst({ where: { id, laboratory_id } });
+    if (!existing) throw new NotFoundException('Échantillon non trouvé');
+    return this.prisma.specimens.update({ where: { id }, data: { section } });
+  }
+
   async reject(id: string, laboratory_id: string, reason?: string) {
-    return this.updateStatus(id, laboratory_id, "rejected", reason ? "Rejeté: " + reason : "Rejeté");
+    if (!reason) throw new BadRequestException('Le motif de rejet est obligatoire');
+    return this.updateStatus(id, laboratory_id, 'rejete', reason);
   }
 
   async discard(id: string, laboratory_id: string, reason?: string) {

@@ -9,13 +9,16 @@ import { validate } from 'class-validator';
 
 @Injectable()
 export class GlobalValidationPipe implements PipeTransform<any> {
-  async transform(value: any, { metatype }: ArgumentMetadata) {
+  async transform(value: any, { metatype, type }: ArgumentMetadata) {
     if (!metatype || !this.toValidate(metatype)) {
       return value;
     }
 
-    const object = plainToInstance(metatype, value);
-    const errors = await validate(object);
+    // Les filtres vides (?status=, ?order_id=) sont ignorés plutôt que rejetés.
+    const cleaned = type === 'query' ? this.stripEmpty(value) : value;
+
+    const object = plainToInstance(metatype, cleaned);
+    const errors = await validate(object, { whitelist: false });
 
     if (errors.length > 0) {
       const messages = this.buildErrorMessages(errors);
@@ -26,6 +29,16 @@ export class GlobalValidationPipe implements PipeTransform<any> {
     }
 
     return object;
+  }
+
+  private stripEmpty(value: any): any {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+    const out: any = {};
+    for (const [key, entry] of Object.entries(value)) {
+      if (entry === '' || entry === undefined) continue;
+      out[key] = entry;
+    }
+    return out;
   }
 
   private toValidate(metatype: Function): boolean {

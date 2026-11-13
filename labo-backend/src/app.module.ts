@@ -1,4 +1,4 @@
-﻿import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module.js';
 import { CommonModule } from './common/common.module.js';
@@ -15,6 +15,10 @@ import { InventoryModule } from './inventory/inventory.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { OrdersModule } from './orders/orders.module.js';
 import { ResultValidationsModule } from './result-validations/result-validations.module.js';
+import { CollectionsModule } from './collections/collections.module.js';
+import { AnalysesModule } from './analyses/analyses.module.js';
+import { AppointmentsModule } from './appointments/appointments.module.js';
+import { ClinicalModule } from './clinical/clinical.module.js';
 import { LaboratoriesModule } from './laboratories/laboratories.module.js';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
@@ -49,6 +53,10 @@ import { createConfiguration, validateEnvironment } from './config/index.js';
     ReportsModule,
     OrdersModule,
     ResultValidationsModule,
+    CollectionsModule,
+    AnalysesModule,
+    AppointmentsModule,
+    ClinicalModule,
     LaboratoriesModule,
     SubscriptionsModule,
     SupabaseModule,

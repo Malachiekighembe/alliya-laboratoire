@@ -15,28 +15,40 @@ export class PatientsService {
 
   async create(createPatientDto: CreatePatientDto, laboratory_id: string) {
     // Empêcher la création d'une deuxième identité pour le même patient
-    // (même téléphone ou même nom+prénom+date de naissance)
-    const existing = await this.prisma.patients.findFirst({
-      where: {
-        laboratory_id,
-        deleted_at: null,
-        OR: [
-          { phone: createPatientDto.phone || null },
-          {
-            first_name: createPatientDto.first_name,
-            last_name: createPatientDto.last_name,
-            birth_date: createPatientDto.birth_date
-              ? new Date(createPatientDto.birth_date)
-              : null,
-          },
-        ],
-      },
-    });
+    // (même téléphone, ou même nom+prénom+date de naissance).
+    // Seules les valeurs renseignées participent à la recherche : un champ
+    // null produirait un « IS NULL » qui capturerait tous les patients sans
+    // téléphone / sans date de naissance.
+    const identityFilters: any[] = [];
+    if (createPatientDto.phone) {
+      identityFilters.push({ phone: createPatientDto.phone });
+    }
+    if (
+      createPatientDto.first_name &&
+      createPatientDto.last_name &&
+      createPatientDto.birth_date
+    ) {
+      identityFilters.push({
+        first_name: createPatientDto.first_name,
+        last_name: createPatientDto.last_name,
+        birth_date: new Date(createPatientDto.birth_date),
+      });
+    }
 
-    if (existing) {
-      throw new ConflictException(
-        'Un patient avec cette identité existe déjà dans ce laboratoire',
-      );
+    if (identityFilters.length > 0) {
+      const existing = await this.prisma.patients.findFirst({
+        where: {
+          laboratory_id,
+          deleted_at: null,
+          OR: identityFilters,
+        },
+      });
+
+      if (existing) {
+        throw new ConflictException(
+          'Un patient avec cette identité existe déjà dans ce laboratoire',
+        );
+      }
     }
 
     const matricule = await this.metricUtil.generatePatientMatricule(laboratory_id);

@@ -24,7 +24,7 @@ export class VisitsService {
         created_by_id,
         practitioner_id: createVisitDto.practitioner_id || null,
         visit_date: createVisitDto.visit_date ? new Date(createVisitDto.visit_date) : new Date(),
-        status: 'scheduled',
+        status: 'ouverte',
         reason: createVisitDto.reason || null,
         notes: createVisitDto.notes || null,
       },
@@ -40,6 +40,26 @@ export class VisitsService {
     });
     if (tests.length !== orderDto.items.length) throw new BadRequestException('Tests invalides');
     const matricule = await this.metricUtil.generateMatricule(laboratory_id, 'DEM', 'LAB');
+    let total = 0;
+    const items = orderDto.items.map((item) => {
+      const test: any = tests.find((x: any) => x.id === item.test_catalog_id)!;
+      const quantity = (item as any).quantity ?? 1;
+      const unitPrice = Number((item as any).unit_price ?? test.price ?? 0);
+      total += quantity * unitPrice;
+      return {
+        laboratory_id,
+        test_catalog_id: item.test_catalog_id,
+        item_code: item.item_code || test.code,
+        item_name: item.item_name || test.name,
+        quantity,
+        unit_price: unitPrice,
+        total_price: quantity * unitPrice,
+        status: 'en_attente',
+        result_unit: test.unit ?? null,
+        reference_range: test.reference_range ?? null,
+        notes: item.notes || null,
+      };
+    });
     return this.prisma.$transaction(async (tx: any) => {
       const order = await tx.orders.create({
         data: {
@@ -49,22 +69,12 @@ export class VisitsService {
           patient_id: orderDto.patient_id,
           practitioner_id: orderDto.practitioner_id || null,
           created_by_id,
-          status: 'draft',
-          priority: orderDto.priority || 'normal',
+          status: 'en_attente',
+          priority: orderDto.priority || 'normale',
           notes: orderDto.notes || null,
-          order_items: {
-            create: orderDto.items.map((item) => {
-              const t = tests.find((x: any) => x.id === item.test_catalog_id)!;
-              return {
-                laboratory_id,
-                test_catalog_id: item.test_catalog_id,
-                item_code: item.item_code || t.code,
-                item_name: item.item_name || t.name,
-                status: 'pending',
-                notes: item.notes || null,
-              };
-            }),
-          },
+          total_price: Number(total.toFixed(2)),
+          payment_status: 'non_paye',
+          order_items: { create: items },
         },
         include: { order_items: true },
       });

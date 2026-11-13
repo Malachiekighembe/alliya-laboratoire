@@ -36,12 +36,15 @@ export class LaboratoriesService {
         this.prisma.users.count({ where: { laboratory_id: lab.id, deleted_at: null } }),
         this.prisma.patients.count({ where: { laboratory_id: lab.id, deleted_at: null } }),
         this.prisma.results.count({ where: { laboratory_id: lab.id } }),
-        this.prisma.results.count({ where: { laboratory_id: lab.id, status: 'validated' } }),
+        this.prisma.results.count({ where: { laboratory_id: lab.id, status: 'valide' } }),
         this.prisma.visits.count({ where: { laboratory_id: lab.id } }),
       ]);
 
       return {
         ...lab,
+        // Le logo est un data-URL de plusieurs centaines de Ko : inutile dans la
+        // liste (il reste disponible via /laboratories/:id).
+        logo_url: undefined,
         subscription,
         stats: {
           laboratory_id: lab.id,

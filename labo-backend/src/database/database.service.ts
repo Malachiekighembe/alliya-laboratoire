@@ -52,31 +52,42 @@ function expandCompoundKey(where: any): any {
   return out;
 }
 
+function encodeFilterValue(ck: string, cv: any): string {
+  if (cv && typeof cv === 'object' && cv.contains !== undefined) return `${ck}.ilike.%${cv.contains}%`;
+  if (cv instanceof Date) return `${ck}.eq.${cv.toISOString()}`;
+  return `${ck}.eq.${cv}`;
+}
+
 function applyFilters(q: any, where: any): any {
   if (!where) return q;
   for (const [k, v] of Object.entries(expandCompoundKey(where))) {
     if (k === 'OR' && Array.isArray(v)) {
-      const parts = v.map((cond: any) => Object.entries(cond)
-        .filter(([, cv]: any) => cv !== null && cv !== undefined)
-        .map(([ck, cv]: any) => {
-          if (cv && typeof cv === 'object' && cv.contains !== undefined) return `${ck}.ilike.%${cv.contains}%`;
-          return `${ck}.eq.${cv}`;
-        }).join(','))
-        .filter(Boolean)
-        .join(',');
-      if (parts) q = q.or(parts);
+      // Chaque élément de OR est un groupe : plusieurs conditions dans un même
+      // objet doivent être assemblées en ET (and(...)), sinon une recherche
+      // « nom + prénom + date » correspondrait au seul prénom.
+      const parts = v.map((cond: any) => {
+        const entries = Object.entries(cond).filter(([, cv]: any) => cv !== null && cv !== undefined);
+        if (entries.length === 0) return '';
+        const encoded = entries.map(([ck, cv]: any) => encodeFilterValue(ck, cv)).join(',');
+        return entries.length === 1 ? encoded : `and(${encoded})`;
+      }).filter(Boolean);
+      const or = parts.join(',');
+      if (or) q = q.or(or);
       continue;
     }
     if (v && typeof v === 'object' && !Array.isArray(v)) {
       const o: any = v;
-      if (o.equals !== undefined) q = q.eq(k, o.equals);
+      if (o.equals !== undefined) q = q.eq(k, o.equals instanceof Date ? o.equals.toISOString() : o.equals);
       if (o.in) q = q.in(k, o.in);
-      if (o.gte !== undefined) q = q.gte(k, o.gte);
-      if (o.lte !== undefined) q = q.lte(k, o.lte);
-      if (o.gt !== undefined) q = q.gt(k, o.gt);
-      if (o.lt !== undefined) q = q.lt(k, o.lt);
+      if (o.gte !== undefined) q = q.gte(k, o.gte instanceof Date ? o.gte.toISOString() : o.gte);
+      if (o.lte !== undefined) q = q.lte(k, o.lte instanceof Date ? o.lte.toISOString() : o.lte);
+      if (o.gt !== undefined) q = q.gt(k, o.gt instanceof Date ? o.gt.toISOString() : o.gt);
+      if (o.lt !== undefined) q = q.lt(k, o.lt instanceof Date ? o.lt.toISOString() : o.lt);
       if (o.contains !== undefined) q = q.ilike(k, `%${o.contains}%`);
       if (o.increment !== undefined) { /* handled in update wrapper */ }
+    } else if (v instanceof Date) {
+      // Évite la sérialisation "Thu Nov 13 2026 ... GMT+0200" qui casse les filtres.
+      q = q.eq(k, v.toISOString());
     } else if (v === null) {
       // Skip null filters: .is(k, null) generates invalid SQL in this supabase-js version
       continue;

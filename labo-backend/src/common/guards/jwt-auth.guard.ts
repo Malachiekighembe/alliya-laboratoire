@@ -75,6 +75,23 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'reports.view',
     'analyses.view', 'analyses.create', 'analyses.update',
   ],
+  // Biologiste : contrôle, interprétation et validation (§2.4, §9)
+  biologist: [
+    'dashboard.view',
+    'patients.read', 'patients.view',
+    'visits.read',
+    'specimens.read', 'specimens.update', 'specimens.status.manage',
+    'examinations.read', 'examinations.update',
+    'results.read', 'results.create', 'results.update', 'results.validate', 'results.review', 'results.amend',
+    'result-validations.read', 'result-validations.create', 'result-validations.update',
+    'orders.read',
+    'billing.read',
+    'users.read',
+    'laboratory.view', 'laboratory.read', 'laboratory.tests',
+    'subscription.read',
+    'reports.view', 'reports.generate',
+    'analyses.view', 'analyses.update', 'analyses.assign',
+  ],
   technician: [
     'dashboard.view',
     'patients.read', 'patients.view',

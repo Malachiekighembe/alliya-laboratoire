@@ -20,6 +20,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message: string | string[] = "Erreur interne du serveur";
     let error = 'Internal Server Error';
+    let details: unknown;
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -32,6 +33,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const responseObj = exceptionResponse as any;
         message = responseObj.message || exception.message;
         error = responseObj.error || exception.name;
+        // Détails de validation : indispensables pour identifier le champ fautif.
+        details = responseObj.errors ?? responseObj.details;
       }
     } else {
       let detail: string;
@@ -55,13 +58,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
       error = 'Internal Server Error';
     }
 
-    const errorResponse = {
+    const errorResponse: Record<string, unknown> = {
       statusCode: status,
       message,
       error,
       timestamp: new Date().toISOString(),
       path: request.url,
     };
+    if (details) errorResponse.errors = details;
 
     response.status(status).json(errorResponse);
   }

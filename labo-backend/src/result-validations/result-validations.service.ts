@@ -11,19 +11,29 @@ export class ResultValidationsService {
       throw new NotFoundException("Resultat non trouve");
     }
 
+    // Statuts §11.1 : brouillon, en_verification, a_corriger, valide, rejete, annule
+    const decision = ['valide', 'a_corriger', 'rejete'].includes(status) ? status : 'valide';
+    const resultStatus = decision === 'rejete' ? 'rejete' : decision === 'a_corriger' ? 'a_corriger' : 'valide';
+
     const validation = await this.prisma.result_validations.create({
       data: {
         laboratory_id,
         result_id: resultId,
         validated_by_id,
-        status,
+        status: decision,
+        decision,
         comment: notes || null,
+        validated_at: new Date().toISOString(),
       },
     });
 
     await this.prisma.results.update({
       where: { id: resultId },
-      data: { status: "validated", validated_by_id, validated_at: new Date() },
+      data: {
+        status: resultStatus,
+        validated_by_id,
+        validated_at: new Date().toISOString(),
+      },
     });
 
     return validation;

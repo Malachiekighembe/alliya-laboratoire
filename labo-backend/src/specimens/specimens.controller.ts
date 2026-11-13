@@ -70,6 +70,45 @@ export class SpecimensController {
     return ApiResponseDto.success(data, "Echantillon mis a jour");
   }
 
+  /** Réception de l'échantillon (§7.4). */
+  @Patch(":id/receive")
+  @RequirePermissions("specimens.status.manage")
+  async receive(@Param("id") id: string, @Query("laboratory_id") laboratory_id: string) {
+    const data = await this.specimensService.updateStatus(id, laboratory_id, "recu");
+    return ApiResponseDto.success(data, "Echantillon receptionne");
+  }
+
+  /** Acceptation après contrôle de conformité (§7.4). */
+  @Patch(":id/accept")
+  @RequirePermissions("specimens.status.manage")
+  async accept(
+    @Param("id") id: string,
+    @Body("section") section: string | undefined,
+    @Query("laboratory_id") laboratory_id: string,
+  ) {
+    const data = await this.specimensService.accept(id, laboratory_id, section);
+    return ApiResponseDto.success(data, "Echantillon accepte");
+  }
+
+  @Patch(":id/section")
+  @RequirePermissions("specimens.update")
+  async assignSection(
+    @Param("id") id: string,
+    @Body("section") section: string,
+    @Query("laboratory_id") laboratory_id: string,
+  ) {
+    const data = await this.specimensService.assignSection(id, laboratory_id, section);
+    return ApiResponseDto.success(data, "Section affectee");
+  }
+
+  /** Nouvelle collecte après rejet (§7.4). */
+  @Patch(":id/recollect")
+  @RequirePermissions("specimens.status.manage")
+  async recollect(@Param("id") id: string, @Query("laboratory_id") laboratory_id: string) {
+    const data = await this.specimensService.updateStatus(id, laboratory_id, "en_attente");
+    return ApiResponseDto.success(data, "Nouvelle collecte demandee");
+  }
+
   @Patch(":id/status")
   @RequirePermissions("specimens.status.manage")
   async updateStatus(
