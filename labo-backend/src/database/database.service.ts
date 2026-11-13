@@ -98,13 +98,18 @@ function applyFilters(q: any, where: any): any {
       if (o.gt !== undefined) q = q.gt(k, o.gt instanceof Date ? o.gt.toISOString() : o.gt);
       if (o.lt !== undefined) q = q.lt(k, o.lt instanceof Date ? o.lt.toISOString() : o.lt);
       if (o.contains !== undefined) q = q.ilike(k, `%${o.contains}%`);
+      // Ex: { id: { not: id } } — indispensable aux contrôles d'unicité.
+      if (o.not !== undefined) {
+        q = o.not === null ? q.not(k, 'is', null) : q.not(k, 'eq', o.not instanceof Date ? o.not.toISOString() : o.not);
+      }
       if (o.increment !== undefined) { /* handled in update wrapper */ }
     } else if (v instanceof Date) {
       // Évite la sérialisation "Thu Nov 13 2026 ... GMT+0200" qui casse les filtres.
       q = q.eq(k, v.toISOString());
     } else if (v === null) {
-      // Skip null filters: .is(k, null) generates invalid SQL in this supabase-js version
-      continue;
+      // `{ deleted_at: null }` doit réellement filtrer les lignes actives : sans
+      // cela les enregistrements supprimés logiquement réapparaissent.
+      q = q.is(k, null);
     } else if (v !== undefined) {
       q = q.eq(k, v);
     }
