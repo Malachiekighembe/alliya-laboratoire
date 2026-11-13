@@ -190,7 +190,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
 
   return (
     <>
-      <aside className={cn("fixed inset-y-0 left-0 z-40 hidden lg:flex flex-col transition-all duration-300 shadow-xl", collapsed ? "w-[76px]" : "w-64")}> 
+      <aside className={cn("fixed inset-y-0 left-0 z-40 hidden lg:flex flex-col transition-all duration-300 shadow-xl print:hidden", collapsed ? "w-[76px]" : "w-64")}> 
         {content}
       </aside>
       <AnimatePresence>

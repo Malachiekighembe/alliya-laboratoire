@@ -58,6 +58,20 @@ function encodeFilterValue(ck: string, cv: any): string {
   return `${ck}.eq.${cv}`;
 }
 
+function normalizeOrderBy(orderBy: any): Array<{ column: string; ascending: boolean }> {
+  if (!orderBy) return [];
+  const groups: any[] = Array.isArray(orderBy) ? orderBy : [orderBy];
+  const out: Array<{ column: string; ascending: boolean }> = [];
+  for (const group of groups) {
+    if (!group || typeof group !== 'object') continue;
+    for (const [column, dir] of Object.entries(group)) {
+      if (column.startsWith('_')) continue;
+      out.push({ column, ascending: String(dir).toLowerCase() !== 'desc' });
+    }
+  }
+  return out;
+}
+
 function applyFilters(q: any, where: any): any {
   if (!where) return q;
   for (const [k, v] of Object.entries(expandCompoundKey(where))) {
@@ -165,9 +179,7 @@ function tableProxy(table: string) {
       const select = args && args.select ? Object.keys(args.select).join(',') : '*';
       let q: any = from().select(select);
       q = applyFilters(q, args && args.where);
-      if (args && args.orderBy) {
-        for (const [k, v] of Object.entries(args.orderBy)) q = q.order(k, { ascending: v !== 'desc' });
-      }
+      for (const order of normalizeOrderBy(args && args.orderBy)) q = q.order(order.column, { ascending: order.ascending });
       if (args && args.skip) q = q.range(args.skip, args.skip + (args.take ?? 50) - 1);
       else if (args && args.take) q = q.limit(args.take);
       const { data, error } = await q;

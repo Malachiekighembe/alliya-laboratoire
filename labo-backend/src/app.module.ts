@@ -19,6 +19,8 @@ import { CollectionsModule } from './collections/collections.module.js';
 import { AnalysesModule } from './analyses/analyses.module.js';
 import { AppointmentsModule } from './appointments/appointments.module.js';
 import { ClinicalModule } from './clinical/clinical.module.js';
+import { ConfigurationModule } from './configuration/configuration.module.js';
+import { PatientDocumentsModule } from './patient-documents/patient-documents.module.js';
 import { LaboratoriesModule } from './laboratories/laboratories.module.js';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module.js';
 import { SupabaseModule } from './supabase/supabase.module.js';
@@ -57,6 +59,8 @@ import { createConfiguration, validateEnvironment } from './config/index.js';
     AnalysesModule,
     AppointmentsModule,
     ClinicalModule,
+    ConfigurationModule,
+    PatientDocumentsModule,
     LaboratoriesModule,
     SubscriptionsModule,
     SupabaseModule,

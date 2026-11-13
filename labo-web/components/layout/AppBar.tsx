@@ -93,7 +93,7 @@ export function AppBar({ onMenu }: { onMenu: () => void; collapsed?: boolean }) 
   return (
     <>
       {open && <div className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-[2px]" aria-hidden="true" onClick={() => setOpen(false)} />}
-      <header className="sticky top-0 z-50 h-14 lg:h-16 border-b border-slate-200/70 bg-white/95 backdrop-blur-md">
+      <header className="sticky top-0 z-50 h-14 lg:h-16 border-b border-slate-200/70 bg-white/95 backdrop-blur-md print:hidden">
         <div className="h-full px-3 sm:px-4 lg:px-8 flex items-center justify-between gap-3">
           <div className="flex items-center min-w-0">
             <button

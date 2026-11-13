@@ -39,9 +39,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <LabProvider user={user} laboratories={laboratories}>
       <div className="min-h-screen bg-[#F3F6FA]">
         <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
-        <div className={cn("min-h-screen flex flex-col transition-all duration-300", collapsed ? "lg:pl-[76px]" : "lg:pl-64")}>
+<div className={cn("min-h-screen flex flex-col transition-all duration-300 print:pl-0", collapsed ? "lg:pl-[76px]" : "lg:pl-64")}>
           <AppBar onMenu={() => setMobileOpen(true)} collapsed={collapsed} />
-          <motion.main initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex-1 p-3 sm:p-6 lg:p-8 pb-10">
+          <motion.main initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex-1 p-3 sm:p-6 lg:p-8 pb-10 print:p-0">
             {children}
           </motion.main>
         </div>

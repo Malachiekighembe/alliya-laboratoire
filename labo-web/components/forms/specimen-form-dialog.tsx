@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { api } from "@/lib/api-client";
-import { useLabPatients } from "@/lib/use-lab-options";
+import { useConfigurationOptions, useLabPatients } from "@/lib/use-lab-options";
 import { FormDialog, Field, controlClass } from "./form-dialog";
 
 const SPECIMEN_TYPES = [
@@ -23,14 +23,24 @@ type SpecimenFormDialogProps = {
 
 export function SpecimenFormDialog({ open, onOpenChange, laboratoryId, patientId, onCreated }: SpecimenFormDialogProps) {
   const { patients, loading: loadingPatients } = useLabPatients(open ? laboratoryId : null);
-  const [form, setForm] = React.useState({ patient_id: patientId || "", type: "sang", container: "", notes: "" });
+  const { items } = useConfigurationOptions(open ? laboratoryId : null);
+  const [form, setForm] = React.useState({ patient_id: patientId || "", type: "", container: "", notes: "" });
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
+
+  const specimenTypes = React.useMemo(() => {
+    const configured = (items.sample_type ?? [])
+      .filter((item: any) => item.is_active !== false)
+      .map((item: any) => ({ value: String(item.code), label: String(item.label || item.code) }));
+    return configured.length ? configured : SPECIMEN_TYPES;
+  }, [items]);
+
+  const selectedType = form.type || specimenTypes[0]?.value || "sang";
 
   React.useEffect(() => {
     if (!open) return;
     setError("");
-    setForm({ patient_id: patientId || "", type: "sang", container: "", notes: "" });
+    setForm({ patient_id: patientId || "", type: "", container: "", notes: "" });
   }, [open, patientId]);
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -40,7 +50,7 @@ export function SpecimenFormDialog({ open, onOpenChange, laboratoryId, patientId
     try {
       await api.post("/specimens", {
         patient_id: form.patient_id || undefined,
-        type: form.type,
+        type: selectedType,
         container: form.container.trim() || undefined,
         notes: form.notes.trim() || undefined,
       });
@@ -85,11 +95,11 @@ export function SpecimenFormDialog({ open, onOpenChange, laboratoryId, patientId
           <select
             id="specimen_type"
             className={controlClass}
-            value={form.type}
+            value={selectedType}
             onChange={(e) => setForm({ ...form, type: e.target.value })}
             disabled={saving}
           >
-            {SPECIMEN_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            {specimenTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </Field>
         <Field label="Contenant" htmlFor="specimen_container" hint="Facultatif">

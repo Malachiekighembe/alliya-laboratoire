@@ -4,7 +4,7 @@ import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
-import { api } from "@/lib/api-client";
+import { api, toList } from "@/lib/api-client";
 import {
   PageHeader,
   Card,
@@ -25,8 +25,12 @@ import {
   ClipboardCheck,
   Activity,
   ChevronRight,
+  FilePlus2,
+  Printer,
+  Trash2,
 } from "lucide-react";
 import { VisitFormDialog } from "@/components/forms/visit-form-dialog";
+import { PatientDocumentFormDialog } from "@/components/forms/patient-document-form-dialog";
 
 type Visit = {
   id: string;
@@ -60,6 +64,22 @@ type Carnet = {
   visits: Visit[];
 };
 
+type PatientDocument = {
+  id: string;
+  title: string;
+  reference: string | null;
+  document_type: string;
+  printed_at: string | null;
+  created_at: string;
+};
+
+const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+  bon_examen: "Bon d'examen",
+  ordonnance: "Ordonnance",
+  compte_rendu: "Compte rendu",
+  facture: "Facture",
+};
+
 export default function PatientCarnetPage() {
   const params = useParams<{ patientId: string }>();
   const patientId = params.patientId;
@@ -70,6 +90,21 @@ export default function PatientCarnetPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [visitOpen, setVisitOpen] = React.useState(false);
+  const [documents, setDocuments] = React.useState<PatientDocument[]>([]);
+  const [documentsOpen, setDocumentsOpen] = React.useState(false);
+  const [documentsError, setDocumentsError] = React.useState<string | null>(null);
+
+  const loadDocuments = React.useCallback(async () => {
+    if (!patientId) return;
+    try {
+      const query = `/patient-documents?patient_id=${patientId}&limit=50${user?.laboratory_id ? `&laboratory_id=${user.laboratory_id}` : ""}`;
+      const res = await api.get<any>(query);
+      setDocuments(toList(res.data));
+      setDocumentsError(null);
+    } catch (err: any) {
+      setDocumentsError(err?.message || "Documents indisponibles");
+    }
+  }, [patientId, user?.laboratory_id]);
 
   const load = React.useCallback(async () => {
     if (!patientId) return;
@@ -85,6 +120,17 @@ export default function PatientCarnetPage() {
   }, [patientId]);
 
   React.useEffect(() => { void load(); }, [load]);
+  React.useEffect(() => { void loadDocuments(); }, [loadDocuments]);
+
+  const removeDocument = async (document: PatientDocument) => {
+    if (!window.confirm(`Supprimer « ${document.title} » ?`)) return;
+    try {
+      await api.delete(`/patient-documents/${document.id}`);
+      await loadDocuments();
+    } catch (err: any) {
+      setDocumentsError(err?.message || "Suppression impossible");
+    }
+  };
 
   const canManage =
     hasRole("admin") || hasRole("super_admin") || hasRole("lab_manager") ||
@@ -285,6 +331,81 @@ export default function PatientCarnetPage() {
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <FileText className="h-4 w-4" /> Documents du patient ({documents.length})
+          </CardTitle>
+          {canManage && (
+            <Button size="sm" variant="outline" onClick={() => setDocumentsOpen(true)}>
+              <FilePlus2 className="h-4 w-4 mr-2" /> Nouveau document
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          {documentsError ? (
+            <Alert variant="destructive" className="mb-3">
+              <AlertDescription>{documentsError}</AlertDescription>
+            </Alert>
+          ) : null}
+          {documents.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              Aucun document généré pour ce patient.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {documents.map((document) => (
+                <li key={document.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{document.title}</span>
+                      <Badge variant="secondary">
+                        {DOCUMENT_TYPE_LABELS[document.document_type] || document.document_type}
+                      </Badge>
+                      {document.printed_at ? (
+                        <Badge variant="outline" className="text-[10px]">
+                          imprimé le {new Date(document.printed_at).toLocaleDateString("fr-FR")}
+                        </Badge>
+                      ) : null}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-mono">{document.reference || "—"}</span>
+                      {" · "}
+                      {new Date(document.created_at).toLocaleString("fr-FR")}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/patients/carnet/${patient.id}/documents/${document.id}`}>
+                        <Printer className="h-4 w-4 mr-2" /> Ouvrir / imprimer
+                      </Link>
+                    </Button>
+                    {canManage && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Supprimer le document"
+                        onClick={() => void removeDocument(document)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <PatientDocumentFormDialog
+        open={documentsOpen}
+        onOpenChange={setDocumentsOpen}
+        patientId={patient.id}
+        laboratoryId={user?.laboratory_id}
+        onCreated={() => { void loadDocuments(); }}
+      />
 
       <VisitFormDialog
         open={visitOpen}
