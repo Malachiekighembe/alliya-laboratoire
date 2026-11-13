@@ -259,7 +259,7 @@ export interface AsyncResult<T> {
 
 // API base URL — configurable via env
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-const DEFAULT_TIMEOUT = 15000;
+const DEFAULT_TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT_MS) > 0 ? Number(process.env.NEXT_PUBLIC_API_TIMEOUT_MS) : 30000;
 const MAX_RETRIES = 2;
 
 type AuthHandlers = {
@@ -302,8 +302,18 @@ class ApiClient {
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-      const res = await fetch(url, { ...options, signal: controller.signal });
-      return res;
+      return await fetch(url, { ...options, signal: controller.signal });
+    } catch (err) {
+      // fetch rejette avec un DOMException générique ("signal is aborted without reason")
+      // quand le timeout déclenche l'abort : on expose un message explicite.
+      if (controller.signal.aborted) {
+        const timeoutError = new Error(
+          `Délai dépassé : le serveur met trop de temps à répondre (${Math.round(timeoutMs / 1000)} s)`,
+        );
+        timeoutError.name = 'TimeoutError';
+        throw timeoutError;
+      }
+      throw err;
     } finally {
       clearTimeout(timer);
     }
@@ -414,6 +424,10 @@ class ApiClient {
           lastError = err as Error;
           // Ne pas retry sur erreurs 4xx (client)
           if (err instanceof Error && err.message.startsWith('HTTP 4')) {
+            throw err;
+          }
+          // Timeout (souvent un démarrage à froid du backend) : une seule nouvelle tentative
+          if (err instanceof Error && err.name === 'TimeoutError' && attempt >= 1) {
             throw err;
           }
           if (attempt < retries) {

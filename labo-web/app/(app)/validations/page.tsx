@@ -57,7 +57,20 @@ export default function ValidationsPage() {
   }, [hasMore, validations.length]);
 
   if (error) {
-    return <Alert variant="destructive"><AlertTitle>Erreur</AlertTitle><AlertDescription>{error.message || "Impossible de charger les validations"}</AlertDescription></Alert>;
+    return (
+      <div className="space-y-3 sm:space-y-5">
+        <PageHeader title="Validations" description="Validation et vérification des résultats d'analyses" />
+        <Alert variant="destructive">
+          <AlertTitle>Erreur</AlertTitle>
+          <AlertDescription className="space-y-3">
+            <p>{error.message || "Impossible de charger les validations"}</p>
+            <Button size="sm" variant="outline" onClick={() => { void validationsResult.refetch(); }}>
+              Réessayer
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
   }
 
   const stats = [
