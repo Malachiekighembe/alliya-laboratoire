@@ -9,17 +9,47 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart3, Users, FlaskConical, ClipboardCheck, Calendar, FileText, TrendingUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { DetailDialog } from "@/components/ui/detail-dialog";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { BarChart3, Users, FlaskConical, ClipboardCheck, Calendar, FileText, TrendingUp, Download } from "lucide-react";
 import Link from "next/link";
 
 export default function RapportsPage() {
   const { user } = useAuth();
   useRoleGuard();
 
+  const [reports, setReports] = React.useState<any[]>([]);
+  const [selected, setSelected] = React.useState<any | null>(null);
+  const [downloading, setDownloading] = React.useState<string | null>(null);
+
   const statsResult = useAsync(async () => {
     if (!user?.laboratory_id) return { data: null, error: null, loading: false };
     return api.safeGet<any>(`/reports/dashboard?laboratory_id=${user.laboratory_id}`);
   }, { enabled: !!user?.laboratory_id });
+
+  const reportsResult = useAsync(async () => {
+    if (!user?.laboratory_id) return { data: null, error: null, loading: false };
+    return api.safeGet<any>(`/reports?laboratory_id=${user.laboratory_id}`);
+  }, { enabled: !!user?.laboratory_id });
+
+  React.useEffect(() => {
+    const payload: any = reportsResult.data;
+    const list = Array.isArray(payload) ? payload : (payload?.items ?? payload?.data ?? []);
+    setReports(Array.isArray(list) ? list : []);
+  }, [reportsResult.data]);
+
+  const download = async (report: any) => {
+    if (!user?.laboratory_id) return;
+    setDownloading(report.id);
+    try {
+      await api.download(`/reports/${report.id}/pdf?laboratory_id=${user.laboratory_id}`, `${report.matricule || "rapport"}.pdf`);
+    } catch (err: any) {
+      // Le téléchargement échoue silencieusement côté UI : on garde l'état propre.
+    } finally {
+      setDownloading(null);
+    }
+  };
 
   const loading = statsResult.loading;
   const stats = (statsResult.data as any)?.data || statsResult.data || {};
@@ -80,19 +110,104 @@ export default function RapportsPage() {
       </Card>
 
       <Card className="border border-[#E5E7EB]">
-        <CardHeader className="p-3 sm:p-5 pb-2 sm:pb-3"><CardTitle className="text-sm sm:text-base flex items-center gap-2"><BarChart3 className="h-4 w-4" /> Rapports détaillés</CardTitle></CardHeader>
+        <CardHeader className="p-3 sm:p-5 pb-2 sm:pb-3"><CardTitle className="text-sm sm:text-base flex items-center gap-2"><BarChart3 className="h-4 w-4" /> Rapports générés</CardTitle></CardHeader>
         <CardContent className="p-3 sm:p-5 pt-0">
-          <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 sm:p-6 text-center">
-            <BarChart3 className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-[#3D9597]/50 mb-2" />
-            <p className="text-sm text-slate-600">Générez et consultez les rapports d'activité de votre laboratoire.</p>
-            <p className="text-xs text-slate-400 mt-1">Les exports et rapports avancés seront disponibles ici.</p>
-            <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <Link href="/patients/dossiers"><Button variant="outline" size="sm" className="w-auto h-8 text-xs">Dossiers</Button></Link>
-              <Link href="/resultats"><Button variant="outline" size="sm" className="w-auto h-8 text-xs">Résultats</Button></Link>
-            </div>
-          </div>
+          {reportsResult.loading ? (
+            <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+          ) : reports.length === 0 ? (
+            <p className="py-6 text-center text-sm text-slate-500">Aucun rapport généré pour le moment.</p>
+          ) : (
+            <>
+              <div className="space-y-2 sm:hidden">
+                {reports.map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => setSelected(r)}
+                    className="w-full text-left rounded-lg border border-slate-200 bg-white p-3 transition-colors hover:border-[#3D9597]/50 hover:bg-[#3D9597]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D9597]/40"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-xs font-semibold text-slate-800">{r.matricule || "—"}</span>
+                      <StatusBadge status={r.status} />
+                    </div>
+                    <p className="mt-1 text-sm text-slate-700">{r.title || r.type || "Rapport"}</p>
+                    <p className="mt-0.5 text-[11px] text-slate-400">
+                      {r.created_at ? new Date(r.created_at).toLocaleDateString("fr-FR") : "—"}
+                      {r.patient_name ? ` · ${r.patient_name}` : ""}
+                    </p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-muted/50 text-muted-foreground">
+                    <tr>
+                      <th className="p-3">Matricule</th>
+                      <th className="p-3">Type</th>
+                      <th className="p-3">Patient</th>
+                      <th className="p-3">Statut</th>
+                      <th className="p-3">Date</th>
+                      <th className="p-3 text-right">PDF</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reports.map((r) => (
+                      <tr
+                        key={r.id}
+                        onClick={() => setSelected(r)}
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(r); } }}
+                        className="border-b border-border hover:bg-muted/30 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#3D9597]/40"
+                      >
+                        <td className="p-3 font-mono text-xs">{r.matricule || "—"}</td>
+                        <td className="p-3">{r.title || r.type || "—"}</td>
+                        <td className="p-3">{r.patient_name || "—"}</td>
+                        <td className="p-3"><StatusBadge status={r.status} /></td>
+                        <td className="p-3">{r.created_at ? new Date(r.created_at).toLocaleDateString("fr-FR") : "—"}</td>
+                        <td className="p-3 text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={downloading === r.id}
+                            onClick={(e) => { e.stopPropagation(); void download(r); }}
+                          >
+                            <Download className="h-4 w-4 mr-1.5" />{downloading === r.id ? "…" : "PDF"}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
+
+      <DetailDialog
+        open={!!selected}
+        onOpenChange={(open) => { if (!open) setSelected(null); }}
+        title={selected?.matricule || "Rapport"}
+        subtitle={selected?.title || selected?.type || undefined}
+        badge={selected?.status ? <StatusBadge status={selected.status} /> : undefined}
+        fields={selected ? [
+          { label: "Type", value: selected.type || "—" },
+          { label: "Patient", value: selected.patient_name || "—" },
+          { label: "Période", value: selected.period || "—" },
+          { label: "Statut", value: <StatusBadge status={selected.status} /> },
+          { label: "Généré le", value: selected.created_at ? new Date(selected.created_at).toLocaleString("fr-FR") : "—" },
+          { label: "Notes", value: selected.notes, wide: true },
+        ] : []}
+      >
+        {selected && (
+          <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+            <Button size="sm" onClick={() => void download(selected)} disabled={downloading === selected.id}>
+              <Download className="h-4 w-4 mr-2" />Télécharger le PDF
+            </Button>
+          </div>
+        )}
+      </DetailDialog>
     </div>
   );
 }

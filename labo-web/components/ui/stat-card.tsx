@@ -1,4 +1,5 @@
 import * as React from "react";
+import Link from "next/link";
 import { cn } from "../../lib/utils";
 
 // Alliya palette constants
@@ -13,6 +14,8 @@ interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
   icon?: React.ReactNode;
   trend?: { value: number; label: string };
   variant?: "default" | "turquoise" | "alliya-dark" | "alliya-turquoise" | "success" | "warning" | "outline";
+  /** Rend la carte cliquable vers une page de détail. */
+  href?: string;
 }
 
 export function StatCard({
@@ -22,6 +25,7 @@ export function StatCard({
   trend,
   variant = "default",
   className,
+  href,
   ...props
 }: StatCardProps) {
   const accent = {
@@ -35,16 +39,17 @@ export function StatCard({
     outline: "border-l-input text-muted-foreground",
   }[variant];
 
-  return (
-    <div
-      className={cn(
-        "rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:shadow-md",
-        "border-l-4",
-        accent,
-        className
-      )}
-      {...props}
-    >
+  const classes = cn(
+    "rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:shadow-md",
+    "border-l-4",
+    accent,
+    href &&
+      "block cursor-pointer hover:-translate-y-0.5 hover:border-[#3D9597]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D9597]/40 focus-visible:ring-offset-2",
+    className
+  );
+
+  const content = (
+    <>
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-muted-foreground">{label}</p>
@@ -61,6 +66,20 @@ export function StatCard({
           </div>
         )}
       </div>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={classes} aria-label={label}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={classes} {...props}>
+      {content}
     </div>
   );
 }

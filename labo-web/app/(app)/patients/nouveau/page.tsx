@@ -126,7 +126,7 @@ export default function NouveauPatientPage() {
               <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
             <div className="sm:col-span-2">
-              <Button type="submit" variant="alliya-turquoise" disabled={loading}>
+              <Button type="submit" variant="default" disabled={loading}>
                 <Users className="h-4 w-4 mr-2" />
                 {loading ? "Enregistrement…" : "Enregistrer le patient"}
               </Button>

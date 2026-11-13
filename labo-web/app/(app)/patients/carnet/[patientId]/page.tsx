@@ -161,7 +161,7 @@ export default function PatientCarnetPage() {
           label="Matricule"
           value={carnet.matricule}
           icon={<User className="h-5 w-5 text-alliya-turquoise-700" />}
-          variant="alliya-turquoise"
+          variant="default"
         />
         <StatCard
           label="Visites"

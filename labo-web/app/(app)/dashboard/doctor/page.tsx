@@ -1,11 +1,12 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { motion } from "framer-motion";
 import { useLab } from "@/components/lab/LabProvider";
-import { api } from "@/lib/api-client";
+import { api, toList } from "@/lib/api-client";
 import { PageHeader } from "@/components/ui";
 import { Users, FlaskConical, ClipboardCheck, Stethoscope } from "lucide-react";
+import Link from "next/link";
 
 const fadeUp: any = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 const stagger: any = { visible: { transition: { staggerChildren: 0.06 } } };
@@ -18,24 +19,24 @@ export default function DoctorDashboard() {
   React.useEffect(() => {
     if (!activeLabId) { setLoading(false); return; }
     const filter = `?laboratory_id=${activeLabId}`;
-    Promise.all([api.get<any[]>(`/patients${filter}`), api.get<any[]>(`/resultats${filter}`)])
+    Promise.all([api.get<any>(`/patients${filter}`), api.get<any>(`/results${filter}`)])
       .then(([p, r]) => {
-        const patients = p.success && Array.isArray(p.data) ? p.data : [];
-        const results = r.success && Array.isArray(r.data) ? r.data : [];
+        const patients = p.success ? toList<any>(p.data) : [];
+        const results = r.success ? toList<any>(r.data) : [];
         setStats({
           patients: patients.length, analyses: results.length,
-          pending: results.filter((x: any) => x.status === "pending" || x.status === "en_attente").length,
-          validated: results.filter((x: any) => x.status === "validated" || x.status === "valide").length,
+          pending: results.filter((x: any) => ["pending", "en_attente", "en_verification"].includes(x.status)).length,
+          validated: results.filter((x: any) => ["validated", "valide"].includes(x.status)).length,
         });
         setLoading(false);
       }).catch(() => setLoading(false));
   }, [activeLabId]);
 
   const cards = [
-    { label: "Mes patients", value: stats.patients, icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
-    { label: "Analyses", value: stats.analyses, icon: <FlaskConical className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
-    { label: "En attente", value: stats.pending, icon: <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
-    { label: "Validés", value: stats.validated, icon: <Stethoscope className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
+    { label: "Mes patients", value: stats.patients, icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, href: "/patients" },
+    { label: "Analyses", value: stats.analyses, icon: <FlaskConical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, href: "/analyses" },
+    { label: "En attente", value: stats.pending, icon: <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, href: "/resultats" },
+    { label: "Validés", value: stats.validated, icon: <Stethoscope className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, href: "/validations" },
   ];
 
   return (
@@ -44,10 +45,12 @@ export default function DoctorDashboard() {
       <motion.div variants={stagger} className="grid grid-cols-2 xl:grid-cols-4 gap-1.5 sm:gap-3">
         {cards.map((c) => (
           <motion.div key={c.label} variants={fadeUp}>
-            <div className="flex items-center gap-2 sm:gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2 sm:p-3 h-full">
-              <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-md sm:rounded-lg bg-[#3D9597]/10 text-[#07122E] flex items-center justify-center shrink-0">{c.icon}</div>
-              <div className="min-w-0 leading-tight"><p className="text-[10px] sm:text-xs text-slate-500 truncate">{c.label}</p><p className="text-sm sm:text-xl font-bold text-slate-900">{loading ? "…" : c.value}</p></div>
-            </div>
+            <Link href={c.href} className="block h-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D9597]/40">
+              <div className="flex items-center gap-2 sm:gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2 sm:p-3 h-full transition-colors hover:border-[#3D9597]/50 hover:bg-[#3D9597]/5">
+                <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-md sm:rounded-lg bg-[#3D9597]/10 text-[#07122E] flex items-center justify-center shrink-0">{c.icon}</div>
+                <div className="min-w-0 leading-tight"><p className="text-[10px] sm:text-xs text-slate-500 truncate">{c.label}</p><p className="text-sm sm:text-xl font-bold text-slate-900">{loading ? "…" : c.value}</p></div>
+              </div>
+            </Link>
           </motion.div>
         ))}
       </motion.div>

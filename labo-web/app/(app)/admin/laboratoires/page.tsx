@@ -231,7 +231,11 @@ export default function AdminLaboratoiresPage() {
             {labs.slice(0, visibleCount).map((lab) => {
               const miss = missingLab(lab);
               return (
-                <Card key={lab.id} className="border border-[#E5E7EB] hover:shadow-sm transition-shadow">
+                <Card
+                  key={lab.id}
+                  onClick={() => openEdit(lab)}
+                  className="border border-[#E5E7EB] hover:shadow-sm transition-shadow hover:border-[#3D9597]/50"
+                >
                   <CardContent className="p-3 sm:pt-5 sm:p-6 space-y-2 sm:space-y-3">
                     <div className="flex items-start justify-between gap-1.5">
                       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -243,7 +247,7 @@ export default function AdminLaboratoiresPage() {
                           <p className="text-[10px] sm:text-xs text-slate-500 font-mono truncate">{lab.code || "—"}</p>
                         </div>
                       </div>
-                      <button onClick={() => openEdit(lab)} className="p-1 sm:p-1.5 rounded-md hover:bg-slate-100 text-slate-500 shrink-0" title="Modifier"><Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></button>
+                      <button onClick={(e) => { e.stopPropagation(); openEdit(lab); }} className="p-1 sm:p-1.5 rounded-md hover:bg-slate-100 text-slate-500 shrink-0" title="Modifier"><Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></button>
                     </div>
                     <div className="hidden sm:grid grid-cols-1 gap-1.5 text-sm text-slate-600">
                       <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-slate-400" /><span className="truncate">{lab.address || <span className="text-amber-600">Adresse manquante</span>}</span></div>

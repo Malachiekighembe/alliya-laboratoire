@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { DetailDialog } from "@/components/ui/detail-dialog";
 import { Receipt, User } from "lucide-react";
 import { InvoiceFormDialog } from "@/components/forms/invoice-form-dialog";
 
@@ -37,6 +38,7 @@ export default function FacturationPage() {
   const [search, setSearch] = React.useState("");
   const [visible, setVisible] = React.useState(PAGE_SIZE);
   const [open, setOpen] = React.useState(false);
+  const [selected, setSelected] = React.useState<any | null>(null);
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
   const invoicesResult = useAsync(async () => {
@@ -88,13 +90,28 @@ export default function FacturationPage() {
     { label: "Brouillons", value: invoices.filter((i) => i.status === "draft").length, cls: "text-slate-600" },
   ];
 
+  const detailFields = (inv: any) => [
+    { label: "Patient", value: nameOf(inv.patient_id) },
+    { label: "N° facture", value: inv.invoice_number, mono: true },
+    { label: "Statut", value: STATUS_LABEL[inv.status] || inv.status },
+    { label: "Émise le", value: inv.issued_date ? new Date(inv.issued_date).toLocaleDateString("fr-FR") : "—" },
+    { label: "Échéance", value: inv.due_date ? new Date(inv.due_date).toLocaleDateString("fr-FR") : "—" },
+    { label: "Sous-total", value: `${Number(inv.subtotal ?? 0).toLocaleString("fr-FR")} ${currencyOf(inv)}` },
+    { label: "Remise", value: inv.discount ? `${Number(inv.discount).toLocaleString("fr-FR")} ${currencyOf(inv)}` : "—" },
+    { label: "Taxes", value: inv.tax ? `${Number(inv.tax).toLocaleString("fr-FR")} ${currencyOf(inv)}` : "—" },
+    { label: "Total", value: `${Number(inv.total || 0).toLocaleString("fr-FR")} ${currencyOf(inv)}` },
+    { label: "Payé", value: `${Number(inv.amount_paid || 0).toLocaleString("fr-FR")} ${currencyOf(inv)}` },
+    { label: "Solde", value: `${Number(inv.balance ?? Math.max(Number(inv.total || 0) - Number(inv.amount_paid || 0), 0)).toLocaleString("fr-FR")} ${currencyOf(inv)}` },
+    { label: "Notes", value: inv.notes, wide: true },
+  ];
+
   return (
     <div className="space-y-3 sm:space-y-5">
       <PageHeader
         title="Facturation"
         description="Factures, encaissements et suivi de caisse"
         action={hasPermission("billing.create") ? (
-          <Button className="!bg-[#3D9597] !text-white w-full sm:w-auto" onClick={() => setOpen(true)}>
+          <Button className="!bg-[#1E2A47] !text-white hover:!bg-[#162544] w-full sm:w-auto" onClick={() => setOpen(true)}>
             <Receipt className="h-4 w-4 mr-2" /> Nouvelle facture
           </Button>
         ) : undefined}
@@ -131,7 +148,12 @@ export default function FacturationPage() {
               {loading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)
                 : shown.length === 0 ? <p className="py-6 text-center text-sm text-slate-500">Aucune facture.</p>
                 : shown.map((inv) => (
-                  <div key={inv.id} className="rounded-lg border border-[#EEF2F6] bg-white p-3">
+                  <button
+                    key={inv.id}
+                    type="button"
+                    onClick={() => setSelected(inv)}
+                    className="w-full text-left rounded-lg border border-[#EEF2F6] bg-white p-3 transition-colors hover:border-[#3D9597]/50 hover:bg-[#3D9597]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D9597]/40"
+                  >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-mono text-xs font-semibold text-slate-800">{inv.invoice_number || "—"}</span>
                       <Badge variant="outline" className="shrink-0 text-[10px]">{STATUS_LABEL[inv.status] || inv.status}</Badge>
@@ -144,7 +166,7 @@ export default function FacturationPage() {
                       {inv.due_date ? ` · échéance ${new Date(inv.due_date).toLocaleDateString("fr-FR")}` : ""}
                     </p>
                     <p className="mt-1 text-sm font-semibold text-[#1E2A47]">{Number(inv.total || 0).toLocaleString("fr-FR")} {currencyOf(inv)}</p>
-                  </div>
+                  </button>
                 ))}
             </div>
 
@@ -166,7 +188,13 @@ export default function FacturationPage() {
                   )) : shown.length === 0 ? (
                     <TableRow><TableCell colSpan={6} className="py-6 text-center text-muted-foreground">Aucune facture.</TableCell></TableRow>
                   ) : shown.map((inv) => (
-                    <TableRow key={inv.id}>
+                    <TableRow
+                      key={inv.id}
+                      onClick={() => setSelected(inv)}
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(inv); } }}
+                      className="cursor-pointer hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#3D9597]/40"
+                    >
                       <TableCell className="font-mono text-xs">{inv.invoice_number || "—"}</TableCell>
                       <TableCell>{nameOf(inv.patient_id)}</TableCell>
                       <TableCell>{inv.issued_date ? new Date(inv.issued_date).toLocaleDateString("fr-FR") : "—"}</TableCell>
@@ -182,6 +210,15 @@ export default function FacturationPage() {
           </CardContent>
         </Card>
       )}
+
+      <DetailDialog
+        open={!!selected}
+        onOpenChange={(open) => { if (!open) setSelected(null); }}
+        title={selected?.invoice_number || "Facture"}
+        subtitle={selected ? nameOf(selected.patient_id) : undefined}
+        badge={selected ? <Badge variant="outline">{STATUS_LABEL[selected.status] || selected.status}</Badge> : undefined}
+        fields={selected ? detailFields(selected) : []}
+      />
 
       <InvoiceFormDialog
         open={open}

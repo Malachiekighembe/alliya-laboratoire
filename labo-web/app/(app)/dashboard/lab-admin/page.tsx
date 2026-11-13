@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/ui/page-header";
 import { Users, FlaskConical, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import Link from "next/link";
 import { api } from "@/lib/api-client";
 
 const fadeUp: any = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
@@ -48,10 +49,10 @@ export default function LabAdminDashboard() {
   }, [user]);
 
   const cards = [
-    { label: "Patients", value: stats.patients, icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, sub: "Inscrits" },
-    { label: "Analyses", value: stats.analyses, icon: <FlaskConical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, sub: "Total" },
-    { label: "En attente", value: stats.pending, icon: <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, sub: "À traiter" },
-    { label: "Validés", value: stats.validated, icon: <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, sub: "Résultats" },
+    { label: "Patients", value: stats.patients, icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, sub: "Inscrits", href: "/patients" },
+    { label: "Analyses", value: stats.analyses, icon: <FlaskConical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, sub: "Total", href: "/analyses" },
+    { label: "En attente", value: stats.pending, icon: <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, sub: "À traiter", href: "/resultats" },
+    { label: "Validés", value: stats.validated, icon: <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, sub: "Résultats", href: "/validations" },
   ];
 
   return (
@@ -70,14 +71,16 @@ export default function LabAdminDashboard() {
       <motion.div variants={stagger} className="grid grid-cols-2 xl:grid-cols-4 gap-1.5 sm:gap-3">
         {cards.map((c) => (
           <motion.div key={c.label} variants={fadeUp}>
-            <div className="flex items-center gap-2 sm:gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2 sm:p-3 h-full">
-              <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-md sm:rounded-lg bg-[#3D9597]/10 text-[#07122E] flex items-center justify-center shrink-0">{c.icon}</div>
-              <div className="min-w-0 leading-tight">
-                <p className="text-[10px] sm:text-xs text-slate-500 truncate">{c.label}</p>
-                <p className="text-sm sm:text-xl font-bold text-slate-900">{loading ? "…" : c.value}</p>
-                <p className="text-[10px] text-slate-400 truncate">{c.sub}</p>
+            <Link href={c.href} className="block h-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D9597]/40">
+              <div className="flex items-center gap-2 sm:gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2 sm:p-3 h-full transition-colors hover:border-[#3D9597]/50 hover:bg-[#3D9597]/5">
+                <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-md sm:rounded-lg bg-[#3D9597]/10 text-[#07122E] flex items-center justify-center shrink-0">{c.icon}</div>
+                <div className="min-w-0 leading-tight">
+                  <p className="text-[10px] sm:text-xs text-slate-500 truncate">{c.label}</p>
+                  <p className="text-sm sm:text-xl font-bold text-slate-900">{loading ? "…" : c.value}</p>
+                  <p className="text-[10px] text-slate-400 truncate">{c.sub}</p>
+                </div>
               </div>
-            </div>
+            </Link>
           </motion.div>
         ))}
       </motion.div>

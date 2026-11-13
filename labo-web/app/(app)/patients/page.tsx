@@ -16,6 +16,9 @@ import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { DetailDialog } from "@/components/ui/detail-dialog";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 const initialForm = {
   first_name: "",
@@ -37,6 +40,7 @@ export default function PatientsPage() {
   const [saving, setSaving] = React.useState(false);
   const [formError, setFormError] = React.useState("");
   const [visibleCount, setVisibleCount] = React.useState(10);
+  const [selected, setSelected] = React.useState<any | null>(null);
   const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
 
   const carnetResult = useAsync(async () => {
@@ -202,7 +206,13 @@ export default function PatientsPage() {
                   </TableHeader>
                   <TableBody>
                     {visible.map((p) => (
-                      <TableRow key={p.id} className="hover:bg-muted/30 transition-colors">
+                      <TableRow
+                        key={p.id}
+                        onClick={() => setSelected(p)}
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(p); } }}
+                        className="hover:bg-muted/30 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#3D9597]/40"
+                      >
                         <TableCell className="font-mono text-xs">{p.matricule || "—"}</TableCell>
                         <TableCell className="font-medium">{p.last_name || "—"}</TableCell>
                         <TableCell className="font-medium">{p.first_name || "—"}</TableCell>
@@ -219,13 +229,18 @@ export default function PatientsPage() {
               </div>
               <div className="md:hidden grid grid-cols-2 gap-2">
                 {visible.map((p) => (
-                  <div key={p.id} className="rounded-lg border border-slate-200 bg-white p-2.5 space-y-1 min-w-0">
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setSelected(p)}
+                    className="text-left rounded-lg border border-slate-200 bg-white p-2.5 space-y-1 min-w-0 transition-colors hover:border-[#3D9597]/50 hover:bg-[#3D9597]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D9597]/40"
+                  >
                     <p className="text-xs font-semibold text-slate-900 truncate">{`${p.first_name || ""} ${p.last_name || ""}`.trim()}</p>
                     <p className="text-[10px] text-slate-500 font-mono truncate">{p.matricule || "—"}</p>
                     <div className="flex items-center justify-between gap-1 pt-0.5">
                       <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full", p.is_active ? "bg-[#3D9597]/10 text-[#2E7A7C]" : "bg-red-50 text-red-700")}>{p.is_active ? "Actif" : "Inactif"}</span>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
               {filtered.length > visibleCount && <div ref={loadMoreRef} className="h-8 flex items-center justify-center text-xs text-slate-400">Chargement…</div>}
@@ -233,6 +248,35 @@ export default function PatientsPage() {
           )}
         </CardContent>
       </Card>
+      <DetailDialog
+        open={!!selected}
+        onOpenChange={(open) => { if (!open) setSelected(null); }}
+        title={selected ? `${selected.first_name ?? ""} ${selected.last_name ?? ""}`.trim() || "Patient" : "Patient"}
+        subtitle={selected?.matricule}
+        badge={selected ? (
+          <Badge variant={selected.is_active ? "alliya-turquoise-outline" : "destructive"}>
+            {selected.is_active ? "Actif" : "Inactif"}
+          </Badge>
+        ) : undefined}
+        fields={selected ? [
+          { label: "Matricule", value: selected.matricule, mono: true },
+          { label: "Date de naissance", value: selected.birth_date ? new Date(selected.birth_date).toLocaleDateString("fr-FR") : "—" },
+          { label: "Genre", value: selected.gender || "—" },
+          { label: "Téléphone", value: selected.phone || "—" },
+          { label: "Email", value: selected.email || "—" },
+          { label: "Adresse", value: selected.address || "—" },
+          { label: "N° sécurité sociale", value: selected.ssn || "—", mono: true },
+          { label: "Ville", value: selected.city || "—" },
+        ] : []}
+      >
+        {selected && (
+          <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+            <Link href="/patients/dossiers">
+              <Button size="sm" variant="outline">Ouvrir les dossiers</Button>
+            </Link>
+          </div>
+        )}
+      </DetailDialog>
     </div>
   );
 }

@@ -1,11 +1,12 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { motion } from "framer-motion";
 import { useLab } from "@/components/lab/LabProvider";
-import { api } from "@/lib/api-client";
+import { api, toList } from "@/lib/api-client";
 import { PageHeader } from "@/components/ui";
 import { Users, Calendar, Phone, Mail } from "lucide-react";
+import Link from "next/link";
 
 const fadeUp: any = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 const stagger: any = { visible: { transition: { staggerChildren: 0.06 } } };
@@ -17,18 +18,26 @@ export default function ReceptionistDashboard() {
 
   React.useEffect(() => {
     if (!activeLabId) { setLoading(false); return; }
-    api.get<any[]>(`/patients?laboratory_id=${activeLabId}`).then((res) => {
-      const patients = res.success && Array.isArray(res.data) ? res.data : [];
-      setStats((s) => ({ ...s, patients: patients.length }));
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    const f = `?laboratory_id=${activeLabId}`;
+    Promise.all([api.get<any>(`/patients${f}`), api.get<any>(`/appointments${f}`)])
+      .then(([p, a]) => {
+        const patients = p.success ? toList<any>(p.data) : [];
+        const appointments = a.success ? toList<any>(a.data) : [];
+        const today = new Date().toISOString().slice(0, 10);
+        setStats({
+          patients: patients.length,
+          appointments: appointments.length,
+          today: appointments.filter((x: any) => String(x.appointment_date || "").slice(0, 10) === today).length,
+        });
+        setLoading(false);
+      }).catch(() => setLoading(false));
   }, [activeLabId]);
 
   const cards = [
-    { label: "Patients", value: stats.patients, icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
-    { label: "Rendez-vous", value: stats.appointments, icon: <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
-    { label: "Aujourd'hui", value: stats.today, icon: <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
-    { label: "Contacts", value: "—", icon: <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> },
+    { label: "Patients", value: stats.patients, icon: <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, href: "/patients" },
+    { label: "Rendez-vous", value: stats.appointments, icon: <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, href: "/rendez-vous" },
+    { label: "Aujourd'hui", value: stats.today, icon: <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, href: "/rendez-vous" },
+    { label: "Contacts", value: "—", icon: <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4" />, href: "/patients" },
   ];
 
   return (
@@ -37,10 +46,12 @@ export default function ReceptionistDashboard() {
       <motion.div variants={stagger} className="grid grid-cols-2 xl:grid-cols-4 gap-1.5 sm:gap-3">
         {cards.map((c) => (
           <motion.div key={c.label} variants={fadeUp}>
-            <div className="flex items-center gap-2 sm:gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2 sm:p-3 h-full">
-              <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-md sm:rounded-lg bg-[#3D9597]/10 text-[#07122E] flex items-center justify-center shrink-0">{c.icon}</div>
-              <div className="min-w-0 leading-tight"><p className="text-[10px] sm:text-xs text-slate-500 truncate">{c.label}</p><p className="text-sm sm:text-xl font-bold text-slate-900">{loading ? "…" : c.value}</p></div>
-            </div>
+            <Link href={c.href} className="block h-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D9597]/40">
+              <div className="flex items-center gap-2 sm:gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2 sm:p-3 h-full transition-colors hover:border-[#3D9597]/50 hover:bg-[#3D9597]/5">
+                <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-md sm:rounded-lg bg-[#3D9597]/10 text-[#07122E] flex items-center justify-center shrink-0">{c.icon}</div>
+                <div className="min-w-0 leading-tight"><p className="text-[10px] sm:text-xs text-slate-500 truncate">{c.label}</p><p className="text-sm sm:text-xl font-bold text-slate-900">{loading ? "…" : c.value}</p></div>
+              </div>
+            </Link>
           </motion.div>
         ))}
       </motion.div>

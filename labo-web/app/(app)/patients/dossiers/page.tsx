@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FileText, Plus, User } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { PatientCarnetFormDialog } from "@/components/forms/patient-carnet-form-dialog";
 
 const PAGE_SIZE = 10;
@@ -20,6 +21,7 @@ export default function DossiersPage() {
   const { user } = useAuth();
   useRoleGuard();
   const { patients } = useLabPatients(user?.laboratory_id);
+  const router = useRouter();
   const [carnets, setCarnets] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [visible, setVisible] = React.useState(PAGE_SIZE);
@@ -63,7 +65,7 @@ export default function DossiersPage() {
         title="Dossiers médicaux"
         description="Carnets de suivi et historique des patients"
         action={
-          <Button variant="alliya-turquoise" size="sm" className="w-full sm:w-auto" onClick={() => setOpen(true)}>
+          <Button variant="default" size="sm" className="w-full sm:w-auto" onClick={() => setOpen(true)}>
             <Plus className="h-4 w-4 mr-2" /> Nouveau dossier
           </Button>
         }
@@ -116,13 +118,19 @@ export default function DossiersPage() {
                   </thead>
                   <tbody>
                     {shown.map((c) => (
-                      <tr key={c.id} className="border-b border-[#EEF2F6] transition-colors hover:bg-[#F5F8FA]">
+                      <tr
+                        key={c.id}
+                        onClick={() => router.push(`/patients/carnet/${c.id}`)}
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(`/patients/carnet/${c.id}`); } }}
+                        className="border-b border-[#EEF2F6] transition-colors hover:bg-[#F5F8FA] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#3D9597]/40"
+                      >
                         <td className="p-3 font-mono text-xs">{c.matricule || "—"}</td>
                         <td className="p-3">{nameOf(c.patient_id)}</td>
                         <td className="p-3">{c.visit_count ?? 0}</td>
                         <td className="p-3">{c.created_at ? new Date(c.created_at).toLocaleDateString("fr-FR") : "—"}</td>
                         <td className="p-3 text-right">
-                          <Link href={`/patients/carnet/${c.id}`}>
+                          <Link href={`/patients/carnet/${c.id}`} onClick={(e) => e.stopPropagation()}>
                             <Button variant="ghost" size="sm">Ouvrir</Button>
                           </Link>
                         </td>

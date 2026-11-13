@@ -470,12 +470,37 @@ class ApiClient {
   safePost<T>(path: string, body?: unknown) { return this.safeRequest<T>('POST', path, body); }
   safePatch<T>(path: string, body?: unknown) { return this.safeRequest<T>('PATCH', path, body); }
   safeDelete<T>(path: string) { return this.safeRequest<T>('DELETE', path); }
+
+  /// Télécharge un fichier protégé (PDF, export) en joignant le jeton courant.
+  async download(path: string, filename?: string) {
+    const headers: Record<string, string> = {};
+    if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
+    const res = await fetch(`${API_BASE}/api/v1${path}`, { headers });
+    if (!res.ok) throw new Error(`Téléchargement impossible (HTTP ${res.status})`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename || 'document.pdf';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
 }
 
 export const api = new ApiClient();
 
 // Helpers
 export function formatMatricule(m: string): string { return m; }
+/** Accepte un tableau brut comme un enveloppe { items } / { data } (§ listes paginées). */
+export function toList<T = any>(payload: unknown): T[] {
+  if (Array.isArray(payload)) return payload as T[];
+  const obj = payload as any;
+  if (Array.isArray(obj?.items)) return obj.items as T[];
+  if (Array.isArray(obj?.data)) return obj.data as T[];
+  return [];
+}
 export function formatStatus(s: string): string {
   return s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }

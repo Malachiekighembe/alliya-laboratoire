@@ -45,8 +45,8 @@
   /* Status (doux) */
   --destructive: 0 60% 55%;
   --destructive-foreground: 0 0% 98%;
-  --success: 150 50% 40%;
-  --success-foreground: 0 0% 98%;
+  --success: 181 42% 42%;
+  --success-foreground: 0 0% 100%;
   --warning: 35 75% 50%;
   --warning-foreground: 0 0% 98%;
   --info: 210 75% 48%;
@@ -77,7 +77,7 @@
   --border: 226 55% 12%;
   --input: 226 55% 12%;
   --ring: 185 40% 44%;
-  --success: 155 55% 40%;
+  --success: 181 40% 48%;
   --warning: 38 65% 52%;
   --info: 215 65% 50%;
 }
