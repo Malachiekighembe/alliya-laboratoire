@@ -3,9 +3,9 @@
 import * as React from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoleGuard } from "@/lib/auth";
-import { api } from "@/lib/api-client";
+import { api, toList } from "@/lib/api-client";
 import { useAsync } from "@/lib/use-async";
-import { useLabPatients } from "@/lib/use-lab-options";
+import { useConfigurationOptions, useLabPatients } from "@/lib/use-lab-options";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,8 +16,10 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { DetailDialog } from "@/components/ui/detail-dialog";
-import { Receipt, User } from "lucide-react";
+import { Receipt, User, Printer, Banknote } from "lucide-react";
+import Link from "next/link";
 import { InvoiceFormDialog } from "@/components/forms/invoice-form-dialog";
+import { PaymentFormDialog } from "@/components/forms/payment-form-dialog";
 
 const PAGE_SIZE = 10;
 
@@ -39,6 +41,10 @@ export default function FacturationPage() {
   const [visible, setVisible] = React.useState(PAGE_SIZE);
   const [open, setOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<any | null>(null);
+  const [payTarget, setPayTarget] = React.useState<any | null>(null);
+  const [busyId, setBusyId] = React.useState<string | null>(null);
+  const [actionError, setActionError] = React.useState("");
+  const [optimisticRows, setOptimisticRows] = React.useState<any[]>([]);
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
   const invoicesResult = useAsync(async () => {
@@ -48,8 +54,39 @@ export default function FacturationPage() {
 
   const loading = invoicesResult.loading;
   const error = invoicesResult.error;
-  const envelope = invoicesResult.data as any;
-  const invoices: any[] = Array.isArray(envelope?.data) ? envelope.data : [];
+  const payload = invoicesResult.data as any;
+  const invoices: any[] = React.useMemo(() => {
+    const base = toList<any>(payload);
+    if (!optimisticRows.length) return base;
+    const ids = new Set(base.map((b) => b.id));
+    return [...optimisticRows.filter((row) => !ids.has(row.id)), ...base];
+  }, [payload, optimisticRows]);
+  const { items: configItems } = useConfigurationOptions(user?.laboratory_id);
+
+  const feeTypeLabels = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const item of (configItems.fee_type ?? []) as any[]) {
+      map[String(item.code)] = String(item.label || item.code);
+    }
+    return map;
+  }, [configItems]);
+
+  const feeTypeLabel = (code: string | null | undefined) =>
+    (code && feeTypeLabels[code]) || (code ? code.replace(/_/g, " ") : "—");
+
+  const issue = async (invoice: any) => {
+    setActionError("");
+    setBusyId(invoice.id);
+    try {
+      await api.patch(`/billing/${invoice.id}/issue`, {});
+      await invoicesResult.refetch();
+      setSelected(null);
+    } catch (err: any) {
+      setActionError(err?.message || "Émission impossible");
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   const nameOf = (patientId: string) => {
     const p = patients.find((x) => x.id === patientId);
@@ -103,6 +140,43 @@ export default function FacturationPage() {
     { label: "Payé", value: `${Number(inv.amount_paid || 0).toLocaleString("fr-FR")} ${currencyOf(inv)}` },
     { label: "Solde", value: `${Number(inv.balance ?? Math.max(Number(inv.total || 0) - Number(inv.amount_paid || 0), 0)).toLocaleString("fr-FR")} ${currencyOf(inv)}` },
     { label: "Notes", value: inv.notes, wide: true },
+    {
+      label: "Lignes facturées",
+      wide: true,
+      value: Array.isArray(inv.invoice_items) && inv.invoice_items.length > 0 ? (
+        <ul className="space-y-1">
+          {inv.invoice_items.map((item: any) => (
+            <li key={item.id} className="flex items-start justify-between gap-3 border-b border-border/60 pb-1">
+              <span className="min-w-0">
+                <span className="block truncate text-slate-800">{item.description || "—"}</span>
+                <span className="text-[11px] text-slate-400">{feeTypeLabel(item.fee_type)}</span>
+              </span>
+              <span className="shrink-0 font-medium">
+                {Number(item.total_price ?? item.unit_price ?? 0).toLocaleString("fr-FR")}
+                {item.quantity && Number(item.quantity) !== 1 ? ` × ${item.quantity}` : ""}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : "—",
+    },
+    {
+      label: "Paiements",
+      wide: true,
+      value: Array.isArray(inv.payments) && inv.payments.length > 0 ? (
+        <ul className="space-y-1">
+          {inv.payments.map((p: any) => (
+            <li key={p.id} className="flex items-center justify-between gap-3 border-b border-border/60 pb-1">
+              <span className="min-w-0 truncate">
+                {(p.method || "—").replace(/_/g, " ")}
+                {p.reference ? ` · ${p.reference}` : ""}
+              </span>
+              <span className="shrink-0 font-medium">{Number(p.amount ?? 0).toLocaleString("fr-FR")}</span>
+            </li>
+          ))}
+        </ul>
+      ) : "—",
+    },
   ];
 
   return (
@@ -127,6 +201,13 @@ export default function FacturationPage() {
           </Card>
         ))}
       </div>
+
+      {actionError ? (
+        <Alert variant="destructive">
+          <AlertTitle>Action impossible</AlertTitle>
+          <AlertDescription>{actionError}</AlertDescription>
+        </Alert>
+      ) : null}
 
       {error ? (
         <Alert variant="destructive">
@@ -156,7 +237,7 @@ export default function FacturationPage() {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-mono text-xs font-semibold text-slate-800">{inv.invoice_number || "—"}</span>
-                      <Badge variant="outline" className="shrink-0 text-[10px]">{STATUS_LABEL[inv.status] || inv.status}</Badge>
+                      <Badge variant="outline" className="shrink-0 text-[10px]">{inv._pending ? "En attente" : STATUS_LABEL[inv.status] || inv.status}</Badge>
                     </div>
                     <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
                       <User className="h-3 w-3" />{nameOf(inv.patient_id)}
@@ -199,7 +280,7 @@ export default function FacturationPage() {
                       <TableCell>{nameOf(inv.patient_id)}</TableCell>
                       <TableCell>{inv.issued_date ? new Date(inv.issued_date).toLocaleDateString("fr-FR") : "—"}</TableCell>
                       <TableCell>{inv.due_date ? new Date(inv.due_date).toLocaleDateString("fr-FR") : "—"}</TableCell>
-                      <TableCell><Badge variant="outline">{STATUS_LABEL[inv.status] || inv.status}</Badge></TableCell>
+                      <TableCell><Badge variant="outline">{inv._pending ? "En attente" : STATUS_LABEL[inv.status] || inv.status}</Badge></TableCell>
                       <TableCell className="text-right font-medium">{Number(inv.total || 0).toLocaleString("fr-FR")} {currencyOf(inv)}</TableCell>
                     </TableRow>
                   ))}
@@ -218,13 +299,53 @@ export default function FacturationPage() {
         subtitle={selected ? nameOf(selected.patient_id) : undefined}
         badge={selected ? <Badge variant="outline">{STATUS_LABEL[selected.status] || selected.status}</Badge> : undefined}
         fields={selected ? detailFields(selected) : []}
+      >
+        {selected && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {hasPermission("billing.issue") && selected.status === "draft" && (
+              <Button
+                className="!bg-[#1E2A47] !text-white hover:!bg-[#162544]"
+                disabled={busyId === selected.id}
+                onClick={() => void issue(selected)}
+              >
+                Émettre la facture
+              </Button>
+            )}
+            {(hasPermission("billing.pay") || hasPermission("billing.payments.manage")) &&
+              (selected.status === "issued" || selected.status === "partially_paid") && (
+                <Button
+                  className="!bg-[#1E2A47] !text-white hover:!bg-[#162544]"
+                  onClick={() => setPayTarget(selected)}
+                >
+                  <Banknote className="h-4 w-4 mr-2" /> Encaisser
+                </Button>
+              )}
+            <Button variant="outline" asChild>
+              <Link href={`/facturation/${selected.id}`}>
+                <Printer className="h-4 w-4 mr-2" /> Imprimer la facture
+              </Link>
+            </Button>
+          </div>
+        )}
+      </DetailDialog>
+
+      <PaymentFormDialog
+        open={!!payTarget}
+        onOpenChange={(open) => { if (!open) setPayTarget(null); }}
+        invoice={payTarget}
+        onSaved={() => { void invoicesResult.refetch(); }}
       />
 
       <InvoiceFormDialog
         open={open}
         onOpenChange={setOpen}
         laboratoryId={user?.laboratory_id}
-        onCreated={() => { void invoicesResult.refetch(); }}
+        onCreated={(created) => {
+          if (created?.id) {
+            setOptimisticRows((prev) => [{ ...created, _pending: true }, ...prev]);
+          }
+          void invoicesResult.refetch();
+        }}
       />
     </div>
   );

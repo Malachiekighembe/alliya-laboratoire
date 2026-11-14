@@ -10,7 +10,7 @@ type VisitFormDialogProps = {
   onOpenChange: (open: boolean) => void;
   laboratoryId?: string | null;
   patientId?: string;
-  onCreated?: () => void;
+  onCreated?: (created?: any) => void;
 };
 
 function today() {
@@ -34,14 +34,15 @@ export function VisitFormDialog({ open, onOpenChange, laboratoryId, patientId, o
     setError("");
     setSaving(true);
     try {
-      await api.post("/visits", {
+      const res = await api.post<any>("/visits", {
         patient_id: form.patient_id || undefined,
         visit_date: form.visit_date ? new Date(`${form.visit_date}T09:00:00`).toISOString() : undefined,
         reason: form.reason.trim() || undefined,
         notes: form.notes.trim() || undefined,
       });
+      const created = res?.data ?? null;
       onOpenChange(false);
-      onCreated?.();
+      onCreated?.(created ?? undefined);
     } catch (err: any) {
       setError(err?.message || "Impossible de créer la visite");
     } finally {

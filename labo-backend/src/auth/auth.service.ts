@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { DatabaseService } from '../database/database.service.js';
 import { PasswordUtil, UuidUtil } from '../common/index.js';
 import { LoginDto, RegisterDto, RefreshTokenDto, ChangePasswordDto } from './auth.dtos.js';
+import { expandRolesToPermissions } from '../common/guards/jwt-auth.guard.js';
 
 export interface AuthTokens {
   access_token: string;
@@ -156,7 +157,10 @@ export class AuthService {
       last_name: user.last_name || '',
       phone: user.phone ?? null,
       roles: user.roles ?? [],
-      permissions: user.permissions ?? [],
+      // Les permissions effectives = matrice du/des rôle(s) + octrois explicites.
+      permissions: Array.from(
+        new Set([...expandRolesToPermissions(user.roles ?? []), ...((user.permissions as string[]) ?? [])]),
+      ),
     };
   }
 }

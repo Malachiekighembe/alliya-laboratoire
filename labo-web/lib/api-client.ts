@@ -1,4 +1,6 @@
 ﻿// API client shared types and helpers for Alliya Laboratoire
+import { enqueue, list, remove, size, onFlush, isOnline } from "@/lib/offline";
+
 
 export interface ApiEnvelope<T = unknown> {
   success: boolean;
@@ -350,6 +352,16 @@ class ApiClient {
     return this.refreshPromise;
   }
 
+  private queueable(methodUp: string, path: string): boolean {
+    if (methodUp === 'GET') return false;
+    if (path.startsWith('/auth/login') || path.startsWith('/auth/refresh')) return false;
+    return true;
+  }
+
+  private offlineEnvelope<T>(): ApiEnvelope<T> {
+    return { success: true, data: null as unknown as T, message: "Action enregistrée hors ligne" };
+  }
+
   async request<T>(
     method: string,
     path: string,
@@ -358,6 +370,12 @@ class ApiClient {
   ): Promise<ApiEnvelope<T>> {
     const methodUp = method.toUpperCase();
     const isGet = methodUp === 'GET';
+
+    // Hors ligne: mettre en file les mutations (sauf auth)
+    if (!isGet && this.queueable(methodUp, path) && typeof navigator !== 'undefined' && !navigator.onLine) {
+      enqueue(methodUp, path, body);
+      return this.offlineEnvelope<T>();
+    }
 
     // Cache GET: réponse instantanée si fraîche (navigation fluide / "offline-like")
     if (isGet) {
@@ -436,6 +454,12 @@ class ApiClient {
         }
       }
 
+      // Erreur réseau/timeout pour une mutation: mise en file si autorisée
+      if (!isGet && this.queueable(methodUp, path)) {
+        enqueue(methodUp, path, body);
+        return this.offlineEnvelope<T>();
+      }
+
       throw lastError || new Error('Requête échouée');
     };
 
@@ -445,6 +469,24 @@ class ApiClient {
       return p;
     }
     return doFetch();
+  }
+
+  async flushOutbox(): Promise<void> {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+    const items = list();
+    for (const item of items) {
+      try {
+        await this.request(item.method, item.path, item.body);
+        remove(item.id);
+      } catch {
+        // conserver l'élément pour une prochaine tentative
+        break;
+      }
+    }
+  }
+
+  outboxSize(): number {
+    return size();
   }
 
   /// Non-blocking: returns { data, error, loading } without throwing
@@ -489,8 +531,6 @@ class ApiClient {
   }
 }
 
-export const api = new ApiClient();
-
 // Helpers
 export function formatMatricule(m: string): string { return m; }
 /** Accepte un tableau brut comme un enveloppe { items } / { data } (§ listes paginées). */
@@ -514,4 +554,10 @@ export function formatDateTime(d: string | null): string {
 }
 export function formatCurrency(amount: number | string): string {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(Number(amount));
+}
+export const api = new ApiClient();
+
+if (typeof window !== "undefined") {
+  onFlush(() => api.flushOutbox());
+  window.addEventListener("online", () => { void api.flushOutbox(); });
 }

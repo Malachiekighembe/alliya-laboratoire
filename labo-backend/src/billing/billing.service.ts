@@ -344,6 +344,7 @@ const totalPrice = (dto.quantity ?? 1) * dto.unit_price;
     }
 
     const receiptNumber = await this.metricUtil.generateReceiptNumber(laboratoryId);
+    const paymentMatricule = await this.metricUtil.generatePaymentMatricule(laboratoryId);
 
     const result = await this.prisma.$transaction(async (tx: any) => {
       const payment = await tx.payments.create({
@@ -351,6 +352,7 @@ const totalPrice = (dto.quantity ?? 1) * dto.unit_price;
           laboratory_id: laboratoryId,
           invoice_id: invoiceId,
           idempotency_key: dto.idempotency_key,
+          matricule: paymentMatricule,
           amount: dto.amount,
           currency: dto.currency ?? 'EUR',
           method: dto.method,
@@ -432,8 +434,16 @@ const totalPrice = (dto.quantity ?? 1) * dto.unit_price;
       throw new NotFoundException('Facture non trouvée');
     }
 
+    // Les reçus sont rattachés à un paiement : on récupère d'abord les paiements
+    // de la facture (le filtre de relation imbriqué n'est pas supporté par la couche Prisma).
+    const payments = await this.prisma.payments.findMany({
+      where: { laboratory_id: laboratoryId, invoice_id: invoiceId },
+    });
+    if (payments.length === 0) return [];
+
+    const paymentIds = payments.map((payment: any) => payment.id);
     const receipts = await this.prisma.receipts.findMany({
-      where: { laboratory_id: laboratoryId, payment: { invoice_id: invoiceId } },
+      where: { laboratory_id: laboratoryId, payment_id: { in: paymentIds } },
       orderBy: { issued_at: 'desc' },
     });
     return receipts.map((receipt: any) => this.mapReceipt(receipt));
@@ -552,6 +562,13 @@ const totalPrice = (dto.quantity ?? 1) * dto.unit_price;
   }
 
   private mapInvoice(invoice: any): InvoiceView {
+    const payments = (invoice.payments || []) as any[];
+    const total = this.toNumber(invoice.total);
+    // Seuls les paiements aboutis comptent comme encaissés.
+    const amountPaid = payments
+      .filter((payment: any) => (payment.status ?? 'completed') === 'completed')
+      .reduce((acc: number, payment: any) => acc + this.toNumber(payment.amount), 0);
+
     return {
       id: invoice.id,
       laboratory_id: invoice.laboratory_id,
@@ -564,9 +581,11 @@ const totalPrice = (dto.quantity ?? 1) * dto.unit_price;
       status: invoice.status,
       subtotal: this.toNumber(invoice.subtotal),
       tax: this.toNumber(invoice.tax),
-      total: this.toNumber(invoice.total),
+      total,
       currency: invoice.currency,
       notes: invoice.notes,
+      amount_paid: amountPaid,
+      balance: Math.max(total - amountPaid, 0),
       created_at: invoice.created_at,
       updated_at: invoice.updated_at,
       patient: invoice.patient

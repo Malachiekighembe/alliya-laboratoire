@@ -61,6 +61,10 @@ export interface InvoiceView {
   total: number;
   currency: string;
   notes: string | null;
+  /** Total encaissé (paiements complétés). */
+  amount_paid: number;
+  /** Reste à payer (total - montant encaissé, jamais négatif). */
+  balance: number;
   created_at: Date;
   updated_at: Date;
   patient: PatientSummary | null;

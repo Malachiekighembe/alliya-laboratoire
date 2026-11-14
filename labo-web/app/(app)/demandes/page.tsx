@@ -14,6 +14,7 @@ import { DetailDialog } from "@/components/ui/detail-dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { OrderFormDialog } from "@/components/forms/order-form-dialog";
 import { ClipboardList, Plus, Search, Send } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const CREATE_ROLES = ["admin", "super_admin", "lab_manager", "DIR", "receptionist", "doctor"];
 const SEND_ROLES = ["admin", "super_admin", "lab_manager", "DIR", "receptionist"];
@@ -36,6 +37,7 @@ export default function DemandesPage() {
   const [open, setOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<any | null>(null);
   const [sending, setSending] = React.useState<string | null>(null);
+  const [optimisticRows, setOptimisticRows] = React.useState<any[]>([]);
 
   const load = React.useCallback(async () => {
     if (!laboratoryId) { setLoading(false); return; }
@@ -72,16 +74,22 @@ export default function DemandesPage() {
     }
   };
 
+  const displayed = React.useMemo(() => {
+    if (!optimisticRows.length) return orders;
+    const ids = new Set(orders.map((o) => o.id));
+    return [...optimisticRows.filter((row) => !ids.has(row.id)), ...orders];
+  }, [orders, optimisticRows]);
+
   const patientName = (order: any) =>
     [order.patient?.first_name, order.patient?.last_name].filter(Boolean).join(" ") || "—";
 
   const totalOf = (order: any) => Number(order.total_price ?? 0);
 
   const stats = {
-    total: orders.length,
-    pending: orders.filter((order) => PENDING_STATUSES.includes(order.status)).length,
-    running: orders.filter((order) => order.status === "en_cours").length,
-    revenue: orders
+    total: displayed.length,
+    pending: displayed.filter((order) => PENDING_STATUSES.includes(order.status)).length,
+    running: displayed.filter((order) => order.status === "en_cours").length,
+    revenue: displayed
       .filter((order) => !["annulee"].includes(order.status))
       .reduce((sum, order) => sum + totalOf(order), 0),
   };
@@ -143,7 +151,7 @@ export default function DemandesPage() {
 
       <Card>
         <CardHeader className="gap-3">
-          <CardTitle className="text-base">Toutes les demandes ({orders.length})</CardTitle>
+          <CardTitle className="text-base">Toutes les demandes ({displayed.length})</CardTitle>
           <div className="grid gap-2 sm:grid-cols-[2fr_1fr]">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -170,11 +178,65 @@ export default function DemandesPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">Chargement…</p>
-          ) : orders.length === 0 ? (
+            <>
+              <div className="space-y-2 sm:hidden">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-full rounded-lg" />
+                ))}
+              </div>
+              <p className="hidden py-8 text-center text-sm text-muted-foreground sm:block">Chargement…</p>
+            </>
+          ) : displayed.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">Aucune demande enregistrée.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+              <div className="space-y-2 sm:hidden">
+                {displayed.map((order) => {
+                  const count = Array.isArray(order.order_items) ? order.order_items.length : 0;
+                  return (
+                    <div
+                      key={order.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelected(order)}
+                      onKeyDown={(e) => {
+                        if (e.target !== e.currentTarget) return;
+                        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(order); }
+                      }}
+                      className="min-h-[44px] w-full cursor-pointer rounded-lg border border-[#E5E7EB] bg-white p-3 transition-colors hover:border-[#3D9597]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D9597]/40"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate font-mono text-xs font-semibold text-slate-800">{order.matricule}</span>
+                            <StatusBadge status={order._pending ? "en_attente" : order.status} className="shrink-0 text-[10px]" />
+                          </div>
+                          <p className="mt-1 truncate text-sm font-medium text-slate-900">{patientName(order)}</p>
+                          <p className="mt-0.5 text-[11px] text-slate-500">
+                            {order.order_date ? new Date(order.order_date).toLocaleDateString("fr-FR") : "—"}
+                            {" · "}{count} examen{count > 1 ? "s" : ""}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <p className="text-sm font-semibold text-[#1E2A47]">{totalOf(order).toFixed(2)}</p>
+                          {canSend && PENDING_STATUSES.includes(order.status) ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="mt-1 h-8"
+                              disabled={sending === order.id}
+                              onClick={(e) => { e.stopPropagation(); void sendToLab(order); }}
+                            >
+                              <Send className="h-3.5 w-3.5 mr-1" /> Laboratoire
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border">
@@ -188,7 +250,7 @@ export default function DemandesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order) => {
+                  {displayed.map((order) => {
                     const count = Array.isArray(order.order_items) ? order.order_items.length : 0;
                     return (
                       <tr key={order.id} className="border-b border-border last:border-0 hover:bg-muted/40">
@@ -201,7 +263,7 @@ export default function DemandesPage() {
                         </td>
                         <td className="px-3 py-2 text-xs">{order.order_date ? new Date(order.order_date).toLocaleDateString("fr-FR") : "—"}</td>
                         <td className="px-3 py-2 text-center text-xs">{count}</td>
-                        <td className="px-3 py-2"><StatusBadge status={order.status} /></td>
+                        <td className="px-3 py-2"><StatusBadge status={order._pending ? "en_attente" : order.status} /></td>
                         <td className="px-3 py-2 text-right text-xs">{totalOf(order).toFixed(2)}</td>
                         <td className="px-3 py-2">
                           <div className="flex items-center justify-end gap-1">
@@ -224,6 +286,7 @@ export default function DemandesPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -241,7 +304,12 @@ export default function DemandesPage() {
         open={open}
         onOpenChange={setOpen}
         laboratoryId={laboratoryId}
-        onCreated={() => { void load(); }}
+        onCreated={(created) => {
+          if (created?.id) {
+            setOptimisticRows((prev) => [{ ...created, _pending: true }, ...prev]);
+          }
+          void load();
+        }}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-﻿import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
@@ -32,6 +32,7 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
 admin: [
     ...COMMON,
     "/dashboard/lab-admin",
+    "/scanner",
     "/patients",
     "/analyses",
     "/catalogue",
@@ -50,6 +51,7 @@ admin: [
   lab_manager: [
     ...COMMON,
     "/dashboard/lab-admin",
+    "/scanner",
     "/patients",
     "/analyses",
     "/catalogue",
@@ -67,6 +69,7 @@ admin: [
   DIR: [
     ...COMMON,
     "/dashboard/lab-admin",
+    "/scanner",
     "/patients",
     "/analyses",
     "/catalogue",
@@ -84,6 +87,7 @@ admin: [
   doctor: [
     ...COMMON,
     "/dashboard/doctor",
+    "/scanner",
     "/patients",
     "/analyses",
     "/catalogue",
@@ -97,6 +101,7 @@ admin: [
   technician: [
     ...COMMON,
     "/dashboard/technician",
+    "/scanner",
     "/patients",
     "/analyses",
     "/catalogue",
@@ -108,6 +113,7 @@ admin: [
   receptionist: [
     ...COMMON,
     "/dashboard/receptionist",
+    "/scanner",
     "/patients",
     "/visites",
     "/demandes",
@@ -118,6 +124,7 @@ admin: [
   laborant: [
     ...COMMON,
     "/dashboard/laborant",
+    "/scanner",
     "/patients",
     "/analyses",
     "/catalogue",

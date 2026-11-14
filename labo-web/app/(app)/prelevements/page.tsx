@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoleGuard } from "@/lib/auth";
-import { api } from "@/lib/api-client";
+import { api, toList } from "@/lib/api-client";
 import { useAsync } from "@/lib/use-async";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,6 +35,7 @@ export default function PrelevementsPage() {
   const [visible, setVisible] = React.useState(PAGE_SIZE);
   const [createOpen, setCreateOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<any | null>(null);
+  const [optimisticRows, setOptimisticRows] = React.useState<any[]>([]);
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
   const specimensResult = useAsync(async () => {
@@ -50,9 +51,12 @@ export default function PrelevementsPage() {
   const loading = specimensResult.loading;
   const error = specimensResult.error;
   const envelope = specimensResult.data as any;
-  const specimens: any[] = (envelope?.data || []).filter((s: any) =>
-    `${s.patient?.first_name || ""} ${s.patient?.last_name || ""} ${s.matricule || ""}`.toLowerCase().includes(search.toLowerCase())
-  );
+  const specimens: any[] = React.useMemo(() => {
+    const base = toList<any>(envelope);
+    if (!optimisticRows.length) return base;
+    const ids = new Set(base.map((b) => b.id));
+    return [...optimisticRows.filter((row) => !ids.has(row.id)), ...base];
+  }, [envelope, optimisticRows]);
 
   React.useEffect(() => { setVisible(PAGE_SIZE); }, [search, statusFilter, envelope]);
   const shown = specimens.slice(0, visible);
@@ -129,7 +133,7 @@ export default function PrelevementsPage() {
               <p className="text-sm font-medium text-slate-900 truncate flex items-center gap-1.5"><User className="h-3.5 w-3.5 text-slate-400" />{patientOf(s)}</p>
               <p className="text-[11px] text-slate-500 mt-0.5">{s.type || "—"} · {s.collection_date ? new Date(s.collection_date).toLocaleDateString("fr-FR") : "—"}</p>
             </div>
-            <StatusBadge status={s.status} className="text-[10px] shrink-0" />
+            <StatusBadge status={s._pending ? "en_attente" : s.status} className="text-[10px] shrink-0" />
           </CardContent></Card>
         ))}
         {hasMore && <div ref={sentinelRef} className="h-6 flex items-center justify-center text-xs text-slate-400">Chargement…</div>}
@@ -152,7 +156,7 @@ export default function PrelevementsPage() {
                 <TableCell className="font-mono text-xs">{s.matricule}</TableCell>
                 <TableCell><div className="flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" /><span>{patientOf(s)}</span></div></TableCell>
                 <TableCell>{s.type || "—"}</TableCell>
-                <TableCell><StatusBadge status={s.status} /></TableCell>
+                <TableCell><StatusBadge status={s._pending ? "en_attente" : s.status} /></TableCell>
                 <TableCell>{s.collection_date ? new Date(s.collection_date).toLocaleDateString("fr-FR") : "—"}</TableCell>
                 <TableCell className="text-right"><Link href="/patients/dossiers"><Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>Dossier</Button></Link></TableCell>
               </TableRow>
@@ -175,7 +179,12 @@ export default function PrelevementsPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         laboratoryId={user?.laboratory_id}
-        onCreated={() => { void specimensResult.refetch(); }}
+        onCreated={(created) => {
+          if (created?.id) {
+            setOptimisticRows((prev) => [{ ...created, _pending: true }, ...prev]);
+          }
+          void specimensResult.refetch();
+        }}
       />
     </div>
   );

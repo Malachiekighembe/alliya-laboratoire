@@ -382,6 +382,56 @@ export class SpecimensService {
     return { success: true };
   }
 
+
+  async findPublicByQrToken(token: string) {
+    const specimen: any = await this.prisma.specimens.findFirst({
+      where: {
+        OR: [{ qr_token: token }, { matricule: token }],
+      },
+      include: {
+        patient: {
+          select: { id: true, matricule: true, first_name: true, last_name: true, birth_date: true, gender: true },
+        },
+        order: {
+          select: { matricule: true, status: true },
+        },
+        results: {
+          select: { test_name: true, value: true, unit: true, status: true },
+        },
+      },
+    });
+
+    if (!specimen) return null;
+
+    return {
+      matricule: specimen.matricule ?? null,
+      type: specimen.type ?? null,
+      container: specimen.container ?? null,
+      status: specimen.status ?? null,
+      collection_date: specimen.collection_date ?? null,
+      patient: specimen.patient
+        ? {
+            id: specimen.patient.id,
+            matricule: specimen.patient.matricule ?? null,
+            first_name: specimen.patient.first_name ?? null,
+            last_name: specimen.patient.last_name ?? null,
+            birth_date: specimen.patient.birth_date ?? null,
+            gender: specimen.patient.gender ?? null,
+          }
+        : null,
+      order: specimen.order
+        ? { matricule: specimen.order.matricule ?? null, status: specimen.order.status ?? null }
+        : null,
+      results: Array.isArray(specimen.results)
+        ? specimen.results.map((r: any) => ({
+            test_name: r.test_name ?? null,
+            value: r.value ?? null,
+            unit: r.unit ?? null,
+            status: r.status ?? null,
+          }))
+        : [],
+    };
+  }
   async getStatistics(laboratory_id: string, dateFrom?: string, dateTo?: string) {
     const where: any = {
       laboratory_id,

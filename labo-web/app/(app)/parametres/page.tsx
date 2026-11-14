@@ -16,7 +16,8 @@ import {
   ConfigurationItemFormDialog,
   type ConfigurationItem,
 } from "@/components/forms/configuration-item-form-dialog";
-import { Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Pencil, Plus, RotateCcw, Trash2, FileText } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const EDIT_ROLES = ["admin", "super_admin", "lab_manager"];
 
@@ -158,7 +159,14 @@ export default function ParametresPage() {
                   </CardHeader>
                   <CardContent>
                     {loading ? (
-                      <p className="py-8 text-center text-sm text-muted-foreground">Chargement…</p>
+                      <>
+                        <div className="space-y-2 sm:hidden">
+                          {Array.from({ length: 4 }).map((_, i) => (
+                            <Skeleton key={i} className="h-20 w-full rounded-lg" />
+                          ))}
+                        </div>
+                        <p className="hidden py-8 text-center text-sm text-muted-foreground sm:block">Chargement…</p>
+                      </>
                     ) : rows.length === 0 ? (
                       <div className="py-8 text-center text-sm text-muted-foreground">
                         <p>Aucun élément configuré pour cette catégorie.</p>
@@ -169,7 +177,62 @@ export default function ParametresPage() {
                         ) : null}
                       </div>
                     ) : (
-                      <div className="overflow-x-auto">
+                      <>
+                      <div className="space-y-2 sm:hidden">
+                        {rows.map((item) => {
+                          const cardInteractive = canEdit
+                            ? {
+                                role: "button" as const,
+                                tabIndex: 0,
+                                onClick: () => { setEditing(item); setDialogOpen(true); },
+                                onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
+                                  if (event.target !== event.currentTarget) return;
+                                  if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setEditing(item); setDialogOpen(true); }
+                                },
+                              }
+                            : {};
+                          return (
+                            <div
+                              key={item.id}
+                              {...cardInteractive}
+                              className="min-h-[44px] w-full rounded-lg border border-[#E5E7EB] bg-white p-3 transition-colors hover:border-[#3D9597]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D9597]/40"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <span className="font-mono text-xs font-semibold text-slate-800">{item.code}</span>
+                                    {item.is_default ? <Badge variant="secondary" className="text-[10px]">défaut</Badge> : null}
+                                    <Badge variant={item.is_active ? "default" : "outline"} className={item.is_active ? "bg-success/10 text-success border-success/20 text-[10px]" : "text-[10px]"}>
+                                      {item.is_active ? "Actif" : "Inactif"}
+                                    </Badge>
+                                  </div>
+                                  <p className="mt-1 truncate text-sm font-medium text-slate-900">{item.label}</p>
+                                  {item.description ? (
+                                    <p className="mt-0.5 text-[11px] text-slate-500">{item.description}</p>
+                                  ) : null}
+                                </div>
+                                <p className="shrink-0 text-[11px] text-slate-500">
+                                  {item.price ? `${item.price} ${item.unit || ""}`.trim() : item.unit || "—"}
+                                </p>
+                              </div>
+                              {canEdit ? (
+                                <div className="mt-2 flex items-center justify-end gap-1 border-t border-[#E5E7EB] pt-2">
+                                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); void toggle(item); }}>
+                                    {item.is_active ? "Désactiver" : "Activer"}
+                                  </Button>
+                                  <Button variant="ghost" size="icon" aria-label="Modifier" onClick={(e) => { e.stopPropagation(); setEditing(item); setDialogOpen(true); }}>
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" aria-label="Supprimer" onClick={(e) => { e.stopPropagation(); void remove(item); }}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b border-border">
@@ -226,6 +289,7 @@ export default function ParametresPage() {
                           </tbody>
                         </table>
                       </div>
+                      </>
                     )}
                   </CardContent>
                 </Card>
@@ -234,6 +298,17 @@ export default function ParametresPage() {
           })}
         </Tabs>
       ) : null}
+
+      <Card href="/parametres/audit" className="border border-[#E5E7EB]">
+        <CardHeader className="p-3 sm:p-5 pb-2 sm:pb-3">
+          <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+            <FileText className="h-4 w-4 text-[#1E2A47]" /> Journal d'audit
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3 sm:p-5 pt-0">
+          <p className="text-sm text-muted-foreground">Consultez le journal des opérations importantes du laboratoire.</p>
+        </CardContent>
+      </Card>
 
       <ConfigurationItemFormDialog
         open={dialogOpen}

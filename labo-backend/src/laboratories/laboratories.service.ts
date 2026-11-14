@@ -1,13 +1,15 @@
-﻿import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import { CacheService } from '../cache/cache.service.js';
 import { PasswordUtil } from '../common/utils/password.util.js';
+import { MetricUtil } from '../common/utils/metric.util.js';
 
 @Injectable()
 export class LaboratoriesService {
   constructor(
     private readonly prisma: DatabaseService,
     private readonly cache: CacheService,
+    private readonly metricUtil: MetricUtil,
   ) {}
 
   private isSuperAdmin(user: any): boolean {
@@ -42,8 +44,6 @@ export class LaboratoriesService {
 
       return {
         ...lab,
-        // Le logo est un data-URL de plusieurs centaines de Ko : inutile dans la
-        // liste (il reste disponible via /laboratories/:id).
         logo_url: undefined,
         subscription,
         stats: {
@@ -122,6 +122,8 @@ export class LaboratoriesService {
       const password_hash = admin.password ? await PasswordUtil.hash(admin.password) : null;
       const roles: string[] = Array.isArray(admin.roles) && admin.roles.length ? admin.roles : ['admin'];
       try {
+        const primaryRole = roles.find((r: string) => ['receptionist', 'technician', 'laborant', 'biologist'].includes(String(r).toLowerCase())) || roles[0];
+        const matricule = admin.matricule || await this.metricUtil.generateUserMatricule(lab.id, primaryRole);
         adminUser = await this.prisma.users.create({
           data: {
             laboratory_id: lab.id,
@@ -130,6 +132,7 @@ export class LaboratoriesService {
             first_name: admin.first_name || '',
             last_name: admin.last_name || '',
             phone: admin.phone || null,
+            matricule,
             roles,
             permissions: [],
             is_active: admin.is_active !== false,

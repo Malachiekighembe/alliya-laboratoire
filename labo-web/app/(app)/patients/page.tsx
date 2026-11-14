@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRoleGuard } from "@/lib/auth";
 import { api } from "@/lib/api-client";
 import { useAsync } from "@/lib/use-async";
+import { optimisticId } from "@/lib/use-optimistic";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -42,6 +43,7 @@ export default function PatientsPage() {
   const [visibleCount, setVisibleCount] = React.useState(10);
   const [selected, setSelected] = React.useState<any | null>(null);
   const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
+  const [optimisticRows, setOptimisticRows] = React.useState<any[]>([]);
 
   const carnetResult = useAsync(async () => {
     if (!user?.laboratory_id) return { data: null, error: null, loading: false };
@@ -49,7 +51,10 @@ export default function PatientsPage() {
     return res;
   }, { enabled: !!user?.laboratory_id });
 
-  const patients: any[] = carnetResult.data ?? [];
+const patients: any[] = React.useMemo(() => {
+    const base = carnetResult.data ?? [];
+    return [...optimisticRows, ...base];
+  }, [carnetResult.data, optimisticRows]);
   const loading = carnetResult.loading;
   const error = carnetResult.error;
 
@@ -68,10 +73,28 @@ export default function PatientsPage() {
     return () => obs.disconnect();
   }, [filtered.length, visibleCount]);
 
-  const submit = async (e: React.FormEvent) => {
+const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
     setSaving(true);
+    const tempId = optimisticId();
+    const optimisticRow = {
+      id: tempId,
+      _pending: true,
+      first_name: form.first_name,
+      last_name: form.last_name,
+      birth_date: form.birth_date || null,
+      gender: form.gender || "UNKNOWN",
+      phone: form.phone || null,
+      email: form.email || null,
+      address: form.address || null,
+      ssn: form.ssn || null,
+      matricule: "—",
+      is_active: true,
+    };
+    setOptimisticRows((prev) => [optimisticRow, ...prev]);
+    setOpen(false);
+    setForm({ ...initialForm });
     try {
       await api.post("/patients", {
         first_name: form.first_name,
@@ -83,10 +106,10 @@ export default function PatientsPage() {
         address: form.address || null,
         ssn: form.ssn || null,
       });
-      setOpen(false);
-      setForm({ ...initialForm });
       await carnetResult.refetch();
+      setOptimisticRows((prev) => prev.filter((r) => r.id !== tempId));
     } catch (err: any) {
+      setOptimisticRows((prev) => prev.filter((r) => r.id !== tempId));
       setFormError(err?.message || "Erreur lors de la création du patient");
     } finally {
       setSaving(false);
@@ -219,7 +242,7 @@ export default function PatientsPage() {
                         <TableCell className="text-sm">{p.phone || "—"}</TableCell>
                         <TableCell>
                           <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", p.is_active ? "bg-[#3D9597]/10 text-[#2E7A7C] border border-[#3D9597]/20" : "bg-red-50 text-red-700 border border-red-100")}>
-                            {p.is_active ? "Actif" : "Inactif"}
+                            {p._pending ? "En attente" : p.is_active ? "Actif" : "Inactif"}
                           </span>
                         </TableCell>
                       </TableRow>
@@ -238,7 +261,7 @@ export default function PatientsPage() {
                     <p className="text-xs font-semibold text-slate-900 truncate">{`${p.first_name || ""} ${p.last_name || ""}`.trim()}</p>
                     <p className="text-[10px] text-slate-500 font-mono truncate">{p.matricule || "—"}</p>
                     <div className="flex items-center justify-between gap-1 pt-0.5">
-                      <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full", p.is_active ? "bg-[#3D9597]/10 text-[#2E7A7C]" : "bg-red-50 text-red-700")}>{p.is_active ? "Actif" : "Inactif"}</span>
+                      <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full", p.is_active ? "bg-[#3D9597]/10 text-[#2E7A7C]" : "bg-red-50 text-red-700")}>{p._pending ? "En attente" : p.is_active ? "Actif" : "Inactif"}</span>
                     </div>
                   </button>
                 ))}

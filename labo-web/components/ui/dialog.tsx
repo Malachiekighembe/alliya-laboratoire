@@ -33,7 +33,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed z-50 flex max-h-[92vh] w-full flex-col gap-4 overflow-y-auto rounded-t-2xl border border-slate-200/80 bg-white p-5 shadow-xl duration-200",
+        "fixed z-50 flex max-h-[90vh] w-full flex-col gap-4 overflow-y-auto overscroll-contain rounded-t-2xl border border-slate-200/80 bg-white p-5 shadow-xl duration-200",
         "bottom-0 left-0 translate-x-0 translate-y-0",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
         "sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:max-h-[90vh] sm:w-[calc(100%-2rem)] sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:p-6",
@@ -70,6 +70,8 @@ const DialogFooter = ({
   <div
     className={cn(
       "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-4 border-t border-slate-100 mt-1",
+      "sticky bottom-0 z-10 -mx-5 -mb-5 bg-white px-5 pb-[calc(1rem_+_env(safe-area-inset-bottom))]",
+      "sm:static sm:mx-0 sm:mb-0 sm:bg-transparent sm:px-0 sm:pb-0",
       className
     )}
     {...props}

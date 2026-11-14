@@ -17,11 +17,22 @@ type SpecimenFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   laboratoryId?: string | null;
-  patientId?: string;
-  onCreated?: () => void;
+  patientId?: string | null;
+  /** Demande (commande) à rattacher au prélèvement, si connue. */
+  orderId?: string | null;
+  visitId?: string | null;
+  onCreated?: (created?: any) => void;
 };
 
-export function SpecimenFormDialog({ open, onOpenChange, laboratoryId, patientId, onCreated }: SpecimenFormDialogProps) {
+export function SpecimenFormDialog({
+  open,
+  onOpenChange,
+  laboratoryId,
+  patientId,
+  orderId,
+  visitId,
+  onCreated,
+}: SpecimenFormDialogProps) {
   const { patients, loading: loadingPatients } = useLabPatients(open ? laboratoryId : null);
   const { items } = useConfigurationOptions(open ? laboratoryId : null);
   const [form, setForm] = React.useState({ patient_id: patientId || "", type: "", container: "", notes: "" });
@@ -48,14 +59,17 @@ export function SpecimenFormDialog({ open, onOpenChange, laboratoryId, patientId
     setError("");
     setSaving(true);
     try {
-      await api.post("/specimens", {
+      const res = await api.post<any>("/specimens", {
         patient_id: form.patient_id || undefined,
+        order_id: orderId || undefined,
+        visit_id: visitId || undefined,
         type: selectedType,
         container: form.container.trim() || undefined,
         notes: form.notes.trim() || undefined,
       });
+      const created = res?.data ?? null;
       onOpenChange(false);
-      onCreated?.();
+      onCreated?.(created ?? undefined);
     } catch (err: any) {
       setError(err?.message || "Impossible de créer le prélèvement");
     } finally {

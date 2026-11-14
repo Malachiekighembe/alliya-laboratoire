@@ -3,8 +3,9 @@
 import * as React from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoleGuard } from "@/lib/auth";
-import { api } from "@/lib/api-client";
+import { api, toList } from "@/lib/api-client";
 import { useAsync } from "@/lib/use-async";
+import { optimisticId } from "@/lib/use-optimistic";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -36,6 +37,7 @@ export default function RendezVousPage() {
   const [visible, setVisible] = React.useState(PAGE_SIZE);
   const [open, setOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<any | null>(null);
+  const [optimisticRows, setOptimisticRows] = React.useState<any[]>([]);
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
   const appointmentsResult = useAsync(async () => {
@@ -50,8 +52,11 @@ export default function RendezVousPage() {
   const loading = appointmentsResult.loading;
   const error = appointmentsResult.error;
   const envelope = appointmentsResult.data as any;
-  const payload = Array.isArray(envelope?.data) ? envelope.data : (envelope?.data?.items ?? []);
-  const appointments: any[] = Array.isArray(payload) ? payload : [];
+  const appointments: any[] = React.useMemo(() => {
+    const base = toList<any>(envelope);
+    if (!optimisticRows.length) return base;
+    return [...optimisticRows.filter((row) => !base.some((b) => b.id === row.id)), ...base];
+  }, [envelope, optimisticRows]);
 
   React.useEffect(() => { setVisible(PAGE_SIZE); }, [appointments.length]);
 
@@ -149,7 +154,7 @@ export default function RendezVousPage() {
                         <User className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         <span className="truncate">{patientOf(v)}</span>
                       </span>
-                      <Badge variant="outline" className="shrink-0 text-[10px]">{STATUS_LABEL[v.status] || v.status}</Badge>
+                      <Badge variant="outline" className="shrink-0 text-[10px]">{v._pending ? "En attente" : STATUS_LABEL[v.status] || v.status}</Badge>
                     </div>
                     <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
                       <Calendar className="h-3 w-3" />{dateOf(v) ? dateOf(v)!.toLocaleDateString("fr-FR") : "—"}{v.reason ? ` · ${v.reason}` : ""}
@@ -183,7 +188,7 @@ export default function RendezVousPage() {
                     >
                       <TableCell>{patientOf(v)}</TableCell>
                       <TableCell>{dateOf(v) ? dateOf(v)!.toLocaleDateString("fr-FR") : "—"}</TableCell>
-                      <TableCell><StatusBadge status={v.status} /></TableCell>
+                      <TableCell><StatusBadge status={v._pending ? "en_attente" : v.status} /></TableCell>
                       <TableCell>{v.reason || "—"}</TableCell>
                     </TableRow>
                   ))}
@@ -208,7 +213,13 @@ export default function RendezVousPage() {
         open={open}
         onOpenChange={setOpen}
         laboratoryId={user?.laboratory_id}
-        onCreated={() => { void appointmentsResult.refetch(); }}
+        onCreated={(created) => {
+          if (created?.id) {
+            const optimistic = { ...created, _pending: true };
+            setOptimisticRows((prev) => [optimistic, ...prev]);
+          }
+          void appointmentsResult.refetch();
+        }}
       />
     </div>
   );

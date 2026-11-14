@@ -109,7 +109,7 @@ export class VisitsService {
       where: { id, laboratory_id },
       include: { patient: true, practitioner: true, creator: true, orders: { include: { order_items: true } } },
     });
-    if (!visit) throw new NotFoundException('Visite non trouv�e');
+    if (!visit) throw new NotFoundException('Visite non trouvï¿½e');
     return visit;
   }
 

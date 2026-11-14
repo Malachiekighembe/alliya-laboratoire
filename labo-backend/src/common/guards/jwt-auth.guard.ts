@@ -40,7 +40,7 @@ const LAB_OPERATE = [
   'reports.generate', 'reports.export',
 ];
 
-const ROLE_PERMISSIONS: Record<string, string[]> = {
+export const ROLE_PERMISSIONS: Record<string, string[]> = {
   super_admin: [
     ...LAB_OPERATE,
     'users.delete', 'users.roles.manage',
@@ -150,7 +150,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
 };
 
-function expandRolesToPermissions(roles: string[]): string[] {
+export function expandRolesToPermissions(roles: string[]): string[] {
   const perms = new Set<string>();
   for (const role of roles) {
     const rp = ROLE_PERMISSIONS[role];

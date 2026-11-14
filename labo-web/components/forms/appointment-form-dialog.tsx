@@ -8,7 +8,7 @@ type AppointmentFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   laboratoryId?: string | null;
-  onCreated?: () => void;
+  onCreated?: (created?: any) => void;
 };
 
 const emptyForm = { patient_id: "", appointment_date: "", reason: "", notes: "" };
@@ -45,14 +45,15 @@ export function AppointmentFormDialog({
     if (!form.appointment_date) { setError("La date du rendez-vous est requise."); return; }
     setSaving(true);
     try {
-      await api.post("/appointments", {
+      const res = await api.post<any>("/appointments", {
         patient_id: form.patient_id,
         appointment_date: new Date(form.appointment_date).toISOString(),
         reason: form.reason.trim() || undefined,
         notes: form.notes.trim() || undefined,
       });
+      const created = res?.data ?? null;
       onOpenChange(false);
-      onCreated?.();
+      onCreated?.(created ?? undefined);
     } catch (err: any) {
       setError(err?.message || "Impossible de créer le rendez-vous");
     } finally {

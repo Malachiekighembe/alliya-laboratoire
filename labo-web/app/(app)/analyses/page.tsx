@@ -12,14 +12,21 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ResultFormDialog } from "@/components/forms/result-form-dialog";
+import { SpecimenFormDialog } from "@/components/forms/specimen-form-dialog";
 
 export default function AnalysesPage() {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   useRoleGuard();
+  const canEnterResult = hasPermission("results.create");
+  const canCollect = hasPermission("specimens.create");
   const [analyses, setAnalyses] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [visibleCount, setVisibleCount] = React.useState(10);
   const [selected, setSelected] = React.useState<any | null>(null);
+  const [resultTarget, setResultTarget] = React.useState<any | null>(null);
+  const [specimenTarget, setSpecimenTarget] = React.useState<any | null>(null);
+  const [optimisticRows, setOptimisticRows] = React.useState<any[]>([]);
   const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
 
   const load = React.useCallback(async () => {
@@ -49,6 +56,10 @@ export default function AnalysesPage() {
   }, [analyses.length, visibleCount]);
 
   if (loading) return <div className="p-6 flex items-center justify-center text-slate-500">Chargement…</div>;
+  if (optimisticRows.length) {
+    const ids = new Set(analyses.map((a) => a.id));
+    analyses.unshift(...optimisticRows.filter((row) => !ids.has(row.id)));
+  }
   const visible = analyses.slice(0, visibleCount);
 
   const nameOf = (a: any) =>
@@ -64,7 +75,7 @@ export default function AnalysesPage() {
     { label: "Matricule", value: a.matricule, mono: true },
     { label: "Analyse", value: nameOf(a) },
     { label: "Section", value: a.section || a.test_catalog?.section || "—" },
-    { label: "Statut", value: <StatusBadge status={a.status} /> },
+    { label: "Statut", value: <StatusBadge status={a._pending ? "en_attente" : a.status} /> },
     { label: "Priorité", value: a.priority || "normale" },
     { label: "Demandé par", value: a.order?.matricule || "—" },
     { label: "Réalisé par", value: a.performed_by ? `${a.performed_by.first_name ?? ""} ${a.performed_by.last_name ?? ""}`.trim() || "—" : "—" },
@@ -103,6 +114,7 @@ export default function AnalysesPage() {
                       <th className="p-3">Statut</th>
                       <th className="p-3">Priorité</th>
                       <th className="p-3">Date</th>
+                      <th className="p-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -116,9 +128,20 @@ export default function AnalysesPage() {
                       >
                         <td className="p-3">{patientOf(a)}</td>
                         <td className="p-3">{nameOf(a)}</td>
-                        <td className="p-3"><StatusBadge status={a.status} /></td>
+                        <td className="p-3"><StatusBadge status={a._pending ? "en_attente" : a.status} /></td>
                         <td className="p-3">{a.priority || "normale"}</td>
                         <td className="p-3">{a.created_at ? new Date(a.created_at).toLocaleDateString("fr-FR") : "—"}</td>
+                        <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          {canEnterResult && a.specimen_id ? (
+                            <Button size="sm" variant="outline" onClick={() => setResultTarget(a)}>
+                              Saisir
+                            </Button>
+                          ) : canCollect ? (
+                            <Button size="sm" variant="outline" onClick={() => setSpecimenTarget(a)}>
+                              Prélever
+                            </Button>
+                          ) : null}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -135,7 +158,7 @@ export default function AnalysesPage() {
                     <p className="text-xs font-semibold text-slate-900 truncate">{nameOf(a)}</p>
                     <p className="text-[11px] text-slate-500 truncate">{patientOf(a)}</p>
                     <div className="flex items-center justify-between gap-1 pt-0.5">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700 capitalize truncate">{a.status || "—"}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700 capitalize truncate">{a._pending ? "En attente" : a.status || "—"}</span>
                       <span className="text-[10px] text-slate-400 shrink-0">{a.created_at ? new Date(a.created_at).toLocaleDateString("fr-FR") : ""}</span>
                     </div>
                   </button>
@@ -154,6 +177,53 @@ export default function AnalysesPage() {
         subtitle={selected ? patientOf(selected) : undefined}
         badge={selected?.status ? <Badge variant="alliya-turquoise-outline" className="capitalize">{selected.status}</Badge> : undefined}
         fields={selected ? detailFields(selected) : []}
+      >
+        {selected && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {canEnterResult && selected.specimen_id ? (
+              <Button
+                className="!bg-[#1E2A47] !text-white hover:!bg-[#162544]"
+                onClick={() => { setResultTarget(selected); setSelected(null); }}
+              >
+                Saisir le résultat
+              </Button>
+            ) : canCollect ? (
+              <Button
+                className="!bg-[#1E2A47] !text-white hover:!bg-[#162544]"
+                onClick={() => { setSpecimenTarget(selected); setSelected(null); }}
+              >
+                Enregistrer le prélèvement
+              </Button>
+            ) : null}
+            <Button variant="outline" asChild>
+              <Link href="/resultats">Voir les résultats</Link>
+            </Button>
+          </div>
+        )}
+      </DetailDialog>
+
+      <ResultFormDialog
+        open={!!resultTarget}
+        onOpenChange={(open) => { if (!open) setResultTarget(null); }}
+        laboratoryId={user?.laboratory_id}
+        specimenId={resultTarget?.specimen_id ?? null}
+        testId={resultTarget?.test_catalog_id ?? null}
+        onSaved={() => { void load(); }}
+      />
+
+      <SpecimenFormDialog
+        open={!!specimenTarget}
+        onOpenChange={(open) => { if (!open) setSpecimenTarget(null); }}
+        laboratoryId={user?.laboratory_id}
+        patientId={specimenTarget?.patient_id ?? null}
+        orderId={specimenTarget?.order_id ?? specimenTarget?.order?.id ?? null}
+        visitId={specimenTarget?.visit_id ?? specimenTarget?.visit?.id ?? null}
+        onCreated={(created) => {
+          if (created?.id) {
+            setOptimisticRows((prev) => [{ ...created, _pending: true }, ...prev]);
+          }
+          void load();
+        }}
       />
     </div>
   );

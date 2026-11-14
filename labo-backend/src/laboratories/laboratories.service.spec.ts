@@ -18,7 +18,10 @@ function makeService() {
     set: vi.fn().mockResolvedValue(undefined),
     delByPattern: vi.fn().mockResolvedValue(undefined),
   };
-  return { service: new LaboratoriesService(prisma, cache), laboratories, users, cache };
+  const metricUtil: any = {
+    generateUserMatricule: vi.fn().mockResolvedValue('LAB/ADM/2026/0001'),
+  };
+  return { service: new LaboratoriesService(prisma, cache, metricUtil), laboratories, users, cache, metricUtil };
 }
 
 describe('LaboratoriesService.create', () => {
@@ -41,6 +44,7 @@ describe('LaboratoriesService.create', () => {
     expect(created.email).toBe('responsable@labo.cd');
     expect(created.password_hash).not.toBe('MotDePasse123');
     expect(await bcrypt.compare('MotDePasse123', created.password_hash)).toBe(true);
+    expect(created.matricule).toBe('LAB/ADM/2026/0001');
 
     expect(result.admin.password_hash).toBeUndefined();
   });

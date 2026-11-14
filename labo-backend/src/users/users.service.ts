@@ -1,12 +1,13 @@
-﻿import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { DatabaseService } from '../database/database.service.js';
 import { PasswordUtil } from '../common/utils/password.util.js';
+import { MetricUtil } from '../common/utils/metric.util.js';
 import { PaginationDto } from '../common/dto/pagination.dto.js';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: DatabaseService) {}
+  constructor(private readonly prisma: DatabaseService, private readonly metricUtil: MetricUtil) {}
 
   async create(createUserDto: any, laboratoryId?: string | null, _actorId?: string) {
     const targetLabId = createUserDto.laboratory_id ?? laboratoryId ?? null;
@@ -25,7 +26,12 @@ export class UsersService {
       ? createUserDto.roles
       : ['viewer'];
 
-    const matricule = createUserDto.matricule || `USR-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
+    let matricule = createUserDto.matricule || null;
+    if (!matricule) {
+      const primaryRole = roles.find((r) => ['receptionist', 'technician', 'laborant', 'biologist'].includes(String(r).toLowerCase())) || roles[0];
+      matricule = await this.metricUtil.generateUserMatricule(targetLabId, primaryRole);
+    }
+
     const user = await this.prisma.users.create({
       data: {
         laboratory_id: targetLabId,
@@ -208,7 +214,6 @@ export class UsersService {
     const code = String(Math.floor(100000 + Math.random() * 900000));
     UsersService.emailOtps.set(userId, { code, email, expiresAt: Date.now() + 10 * 60 * 1000 });
 
-    // Try to send via SMTP if configured (TurboSMTP or any SMTP provider). Fallback: return devCode for environments without mail.
     let sent = false;
     let smtpError: string | null = null;
     try {
@@ -264,11 +269,9 @@ export class UsersService {
           try {
             const info = await transporter.sendMail({ from, to: email, subject, text, html });
             sent = true;
-            // eslint-disable-next-line no-console
             console.log('[SMTP] OTP envoyé:', { to: email, messageId: info?.messageId, from });
           } catch (sendErr: any) {
             smtpError = sendErr?.message || String(sendErr);
-            // eslint-disable-next-line no-console
             console.error('[SMTP] Échec sendMail:', smtpError, sendErr?.code, sendErr?.command);
           }
         }
@@ -276,7 +279,6 @@ export class UsersService {
     } catch (err: any) {
       sent = false;
       smtpError = err?.message || String(err);
-      // eslint-disable-next-line no-console
       console.error('[SMTP] Erreur générale OTP:', err?.message || err);
     }
 

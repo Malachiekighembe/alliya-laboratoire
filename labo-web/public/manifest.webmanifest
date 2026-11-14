@@ -1,0 +1,19 @@
+{
+  "name": "Alliya Laboratoire",
+  "short_name": "Alliya",
+  "description": "Système de gestion de laboratoire biomédical Alliya.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F9FA",
+  "theme_color": "#1E2A47",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

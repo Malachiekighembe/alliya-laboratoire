@@ -12,7 +12,6 @@ import { Plus, User, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { DetailDialog } from "@/components/ui/detail-dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -35,6 +34,7 @@ export default function VisitesPage() {
   const [visible, setVisible] = React.useState(PAGE_SIZE);
   const [createOpen, setCreateOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<any | null>(null);
+  const [optimisticRows, setOptimisticRows] = React.useState<any[]>([]);
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
   const visitsResult = useAsync(async () => {
@@ -53,6 +53,9 @@ export default function VisitesPage() {
   const visits: any[] = (envelope?.data || []).filter((v: any) =>
     `${v.patient?.first_name || ""} ${v.patient?.last_name || ""} ${v.matricule || ""}`.toLowerCase().includes(search.toLowerCase())
   );
+  if (optimisticRows.length) {
+    visits.unshift(...optimisticRows.filter((row) => !visits.some((v) => v.id === row.id)));
+  }
 
   React.useEffect(() => { setVisible(PAGE_SIZE); }, [search, statusFilter, envelope]);
   const shown = visits.slice(0, visible);
@@ -126,7 +129,7 @@ export default function VisitesPage() {
               <p className="text-sm font-medium text-slate-900 truncate flex items-center gap-1.5"><User className="h-3.5 w-3.5 text-slate-400" />{patientOf(v)}</p>
               <p className="text-[11px] text-slate-500 mt-0.5">{v.visit_date ? new Date(v.visit_date).toLocaleDateString("fr-FR") : "—"} · {v.reason || "—"}</p>
             </div>
-            <StatusBadge status={v.status} className="text-[10px] shrink-0" />
+            <StatusBadge status={v._pending ? "en_attente" : v.status} className="text-[10px] shrink-0" />
           </CardContent></Card>
         ))}
         {hasMore && <div ref={sentinelRef} className="h-6 flex items-center justify-center text-xs text-slate-400">Chargement…</div>}
@@ -149,7 +152,7 @@ export default function VisitesPage() {
                 <TableCell className="font-mono text-xs">{v.matricule}</TableCell>
                 <TableCell><div className="flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" /><span>{patientOf(v)}</span></div></TableCell>
                 <TableCell>{v.visit_date ? new Date(v.visit_date).toLocaleDateString("fr-FR") : "—"}</TableCell>
-                <TableCell><StatusBadge status={v.status} /></TableCell>
+                <TableCell><StatusBadge status={v._pending ? "en_attente" : v.status} /></TableCell>
                 <TableCell>{v.reason || "—"}</TableCell>
                 <TableCell className="text-right"><Link href="/patients/dossiers"><Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>Dossier</Button></Link></TableCell>
               </TableRow>
@@ -172,7 +175,13 @@ export default function VisitesPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         laboratoryId={user?.laboratory_id}
-        onCreated={() => { void visitsResult.refetch(); }}
+        onCreated={(created) => {
+          if (created?.id) {
+            const optimistic = { ...created, _pending: true, patient: created.patient ?? null };
+            setOptimisticRows((prev) => [optimistic, ...prev]);
+          }
+          void visitsResult.refetch();
+        }}
       />
     </div>
   );

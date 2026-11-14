@@ -98,7 +98,7 @@ export function AppBar({ onMenu }: { onMenu: () => void; collapsed?: boolean }) 
           <div className="flex items-center min-w-0">
             <button
               onClick={onMenu}
-              className="lg:hidden inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-[#07122E] shadow-sm transition-colors"
+              className="lg:hidden inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-[#07122E] shadow-sm transition-colors"
               aria-label="Ouvrir le menu"
             >
               <Menu className="h-5 w-5" />
@@ -109,7 +109,7 @@ export function AppBar({ onMenu }: { onMenu: () => void; collapsed?: boolean }) 
             <div className="relative" ref={panelRef}>
               <button
                 onClick={() => setOpen((v) => !v)}
-                className="relative inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-[#07122E] shadow-sm transition-colors"
+                className="relative inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-[#07122E] shadow-sm transition-colors"
                 aria-label="Notifications"
                 aria-expanded={open}
               >
@@ -177,7 +177,7 @@ export function AppBar({ onMenu }: { onMenu: () => void; collapsed?: boolean }) 
 
             <Link href="/profil" className="lg:hidden inline-flex items-center justify-center shrink-0" title={`${fullName} — ${statusTitle}`}>
               <span className="relative">
-                <span className="block h-9 w-9 sm:h-10 sm:w-10 rounded-full overflow-hidden ring-2 ring-slate-100 bg-gradient-to-br from-[#1E2A47] to-[#3D9597] text-white flex items-center justify-center text-xs font-semibold">
+                <span className="block h-11 w-11 sm:h-10 sm:w-10 rounded-full overflow-hidden ring-2 ring-slate-100 bg-gradient-to-br from-[#1E2A47] to-[#3D9597] text-white flex items-center justify-center text-xs font-semibold">
                   {avatarUrl ? <img src={avatarUrl} alt="Profil" className="h-full w-full object-cover" /> : (getInitials(user?.first_name || "", user?.last_name || "") || "U")}
                 </span>
                 <span className={`absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white ${statusDot}`} title={statusTitle} />
@@ -186,7 +186,7 @@ export function AppBar({ onMenu }: { onMenu: () => void; collapsed?: boolean }) 
 
             <button
               onClick={handleLogout}
-              className="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-auto sm:px-3 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-[#07122E] shadow-sm transition-colors"
+              className="inline-flex items-center justify-center h-11 w-11 sm:h-10 sm:w-auto sm:px-3 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-[#07122E] shadow-sm transition-colors"
               title="Déconnexion"
             >
               <LogOut className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />

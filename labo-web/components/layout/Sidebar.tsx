@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -8,13 +8,14 @@ import {
   LayoutDashboard, Users, FlaskConical, ClipboardCheck, BarChart3, UserCog,
   Settings, LogOut, ChevronLeft, ChevronRight, X, Clock, Activity, CreditCard, Stethoscope, Building2, ShieldCheck, UserCircle,
   ClipboardList, BookOpen,
+  ScanLine,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLab } from "@/components/lab/LabProvider";
 import { cn, getInitials } from "@/lib/utils";
 
-type NavItem = { label: string; href: string; icon: React.ComponentType<{ className?: string }>; roles?: string[] };
-type NavSection = { title: string; items: NavItem[]; roles?: string[] };
+export type NavItem = { label: string; href: string; icon: React.ComponentType<{ className?: string }>; roles?: string[] };
+export type NavSection = { title: string; items: NavItem[]; roles?: string[] };
 
 const NAVY = "#0f1b33";
 const NAVY_2 = "#162544";
@@ -44,7 +45,8 @@ const LAB_OWNER_SECTIONS: NavSection[] = [
     { label: "Rendez-vous", href: "/rendez-vous", icon: Clock },
     { label: "Visites", href: "/visites", icon: Activity },
     { label: "Demandes", href: "/demandes", icon: ClipboardList },
-    { label: "Prélèvements", href: "/prelevements", icon: Stethoscope },
+{ label: "Scanner", href: "/scanner", icon: ScanLine },
+        { label: "Prélèvements", href: "/prelevements", icon: Stethoscope },
     { label: "Analyses", href: "/analyses", icon: FlaskConical },
     { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
     { label: "Validations", href: "/validations", icon: ShieldCheck },
@@ -56,6 +58,7 @@ const RECEPTION_SECTIONS: NavSection[] = [
     { label: "Patients", href: "/patients", icon: Users },
     { label: "Rendez-vous", href: "/rendez-vous", icon: Clock },
     { label: "Visites", href: "/visites", icon: Activity },
+    { label: "Scanner", href: "/scanner", icon: ScanLine },
     { label: "Demandes", href: "/demandes", icon: ClipboardList },
     { label: "Catalogue", href: "/catalogue", icon: BookOpen },
     { label: "Mon profil", href: "/profil", icon: UserCircle },
@@ -65,7 +68,9 @@ const TECH_SECTIONS: NavSection[] = [
   { title: "Laboratoire", roles: ["technician", "laborant"], items: [
     { label: "Tableau de bord", href: "/dashboard/technician", icon: LayoutDashboard },
     { label: "Demandes", href: "/demandes", icon: ClipboardList },
-    { label: "Prélèvements", href: "/prelevements", icon: Stethoscope },
+    { label: "Scanner", href: "/scanner", icon: ScanLine },
+{ label: "Scanner", href: "/scanner", icon: ScanLine },
+        { label: "Prélèvements", href: "/prelevements", icon: Stethoscope },
     { label: "Analyses", href: "/analyses", icon: FlaskConical },
     { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
     { label: "Catalogue", href: "/catalogue", icon: BookOpen },
@@ -78,6 +83,7 @@ const DOCTOR_SECTIONS: NavSection[] = [
     { label: "Tableau de bord", href: "/dashboard/doctor", icon: LayoutDashboard },
     { label: "Patients", href: "/patients", icon: Users },
     { label: "Demandes", href: "/demandes", icon: ClipboardList },
+    { label: "Scanner", href: "/scanner", icon: ScanLine },
     { label: "Analyses", href: "/analyses", icon: FlaskConical },
     { label: "Résultats", href: "/resultats", icon: ClipboardCheck },
     { label: "Validations", href: "/validations", icon: ShieldCheck },
@@ -94,7 +100,7 @@ const VIEWER_SECTIONS: NavSection[] = [
     { label: "Mon profil", href: "/profil", icon: UserCircle },
   ]},
 ];
-const ALL_SECTIONS = [...SYSTEM_SECTIONS, ...LAB_OWNER_SECTIONS, ...RECEPTION_SECTIONS, ...TECH_SECTIONS, ...DOCTOR_SECTIONS, ...VIEWER_SECTIONS];
+export const ALL_SECTIONS = [...SYSTEM_SECTIONS, ...LAB_OWNER_SECTIONS, ...RECEPTION_SECTIONS, ...TECH_SECTIONS, ...DOCTOR_SECTIONS, ...VIEWER_SECTIONS];
 
 export interface SidebarProps { collapsed: boolean; onToggle: () => void; mobileOpen: boolean; onMobileClose: () => void; }
 

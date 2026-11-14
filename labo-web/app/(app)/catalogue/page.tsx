@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { StatCard } from "@/components/ui/stat-card";
 import { TestFormDialog } from "@/components/forms/test-form-dialog";
 import { FlaskConical, Pencil, Plus, Power, Search } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const EDIT_ROLES = ["admin", "super_admin", "lab_manager", "DIR"];
 
@@ -48,10 +49,12 @@ export default function CataloguePage() {
   const [showInactive, setShowInactive] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<any | null>(null);
+  const [optimisticRows, setOptimisticRows] = React.useState<any[]>([]);
 
   const load = React.useCallback(async () => {
     if (!laboratoryId) { setLoading(false); return; }
     setLoading(true);
+    setOptimisticRows([]);
     const params = new URLSearchParams({
       laboratory_id: laboratoryId,
       limit: "100",
@@ -82,7 +85,13 @@ export default function CataloguePage() {
     }
   };
 
-  const prices = tests.map((test) => Number(test.price)).filter((price) => Number.isFinite(price) && price > 0);
+  const displayed = React.useMemo(() => {
+    if (!optimisticRows.length) return tests;
+    const ids = new Set(tests.map((t) => t.id));
+    return [...optimisticRows.filter((row) => !ids.has(row.id)), ...tests];
+  }, [tests, optimisticRows]);
+
+  const prices = displayed.map((test) => Number(test.price)).filter((price) => Number.isFinite(price) && price > 0);
   const averagePrice = prices.length ? prices.reduce((sum, price) => sum + price, 0) / prices.length : 0;
 
   return (
@@ -107,15 +116,15 @@ export default function CataloguePage() {
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Examens" value={tests.length} icon={<FlaskConical className="h-5 w-5 text-alliya-turquoise-700" />} variant="default" />
-        <StatCard label="Types d'examen" value={new Set(tests.map((test) => test.exam_type).filter(Boolean)).size} variant="outline" />
-        <StatCard label="Sections" value={new Set(tests.map((test) => test.section).filter(Boolean)).size} variant="outline" />
+        <StatCard label="Examens" value={displayed.length} icon={<FlaskConical className="h-5 w-5 text-alliya-turquoise-700" />} variant="default" />
+        <StatCard label="Types d'examen" value={new Set(displayed.map((test) => test.exam_type).filter(Boolean)).size} variant="outline" />
+        <StatCard label="Sections" value={new Set(displayed.map((test) => test.section).filter(Boolean)).size} variant="outline" />
         <StatCard label="Prix moyen" value={averagePrice ? averagePrice.toFixed(2) : "—"} variant="alliya-dark" />
       </div>
 
       <Card>
         <CardHeader className="gap-3">
-          <CardTitle className="text-base">Examens ({tests.length})</CardTitle>
+          <CardTitle className="text-base">Examens ({displayed.length})</CardTitle>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -159,8 +168,15 @@ export default function CataloguePage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">Chargement…</p>
-          ) : tests.length === 0 ? (
+            <>
+              <div className="space-y-2 sm:hidden">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-full rounded-lg" />
+                ))}
+              </div>
+              <p className="hidden py-8 text-center text-sm text-muted-foreground sm:block">Chargement…</p>
+            </>
+          ) : displayed.length === 0 ? (
             <div className="py-10 text-center">
               <p className="text-sm text-muted-foreground">Aucun examen ne correspond à la recherche.</p>
               {canEdit ? (
@@ -170,7 +186,58 @@ export default function CataloguePage() {
               ) : null}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <div className="space-y-2 sm:hidden">
+              {displayed.map((test) => {
+                const cardInteractive = canEdit
+                  ? {
+                      role: "button" as const,
+                      tabIndex: 0,
+                      onClick: () => { setEditing(test); setDialogOpen(true); },
+                      onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
+                        if (event.target !== event.currentTarget) return;
+                        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setEditing(test); setDialogOpen(true); }
+                      },
+                    }
+                  : {};
+                return (
+                  <div
+                    key={test.id}
+                    {...cardInteractive}
+                    className="min-h-[44px] w-full rounded-lg border border-[#E5E7EB] bg-white p-3 transition-colors hover:border-[#3D9597]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3D9597]/40"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate font-mono text-xs font-semibold text-slate-800">{test.code}</span>
+                          <Badge variant={test.is_active ? "default" : "outline"} className={test._pending ? "shrink-0 text-[10px] bg-slate-100 text-slate-600 border-slate-200" : test.is_active ? "shrink-0 bg-success/10 text-success border-success/20 text-[10px]" : "shrink-0 text-[10px]"}>
+                            {test._pending ? "En attente" : test.is_active ? "Actif" : "Inactif"}
+                          </Badge>
+                        </div>
+                        <p className="mt-1 truncate text-sm font-medium text-slate-900">{test.name}</p>
+                        <p className="mt-0.5 truncate text-[11px] text-slate-500">
+                          {[labelOf(examTypes, test.exam_type), labelOf(sections, test.section), labelOf(sampleTypes, test.sample_type)].join(" · ")}
+                        </p>
+                      </div>
+                      <p className="shrink-0 text-sm font-semibold text-[#1E2A47]">
+                        {test.price !== null && test.price !== undefined ? Number(test.price).toFixed(2) : "—"}
+                      </p>
+                    </div>
+                    {canEdit ? (
+                      <div className="mt-2 flex items-center justify-end gap-1 border-t border-[#E5E7EB] pt-2">
+                        <Button variant="ghost" size="icon" aria-label="Modifier" onClick={(e) => { e.stopPropagation(); setEditing(test); setDialogOpen(true); }}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" aria-label={test.is_active ? "Désactiver" : "Activer"} onClick={(e) => { e.stopPropagation(); void toggle(test); }}>
+                          <Power className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border">
@@ -185,7 +252,7 @@ export default function CataloguePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {tests.map((test) => (
+                  {displayed.map((test) => (
                     <tr key={test.id} className="border-b border-border last:border-0 hover:bg-muted/40">
                       <td className="px-3 py-2 font-mono text-xs">{test.code}</td>
                       <td className="px-3 py-2">
@@ -199,8 +266,8 @@ export default function CataloguePage() {
                       <td className="px-3 py-2 text-xs">{labelOf(sampleTypes, test.sample_type)}</td>
                       <td className="px-3 py-2 text-right text-xs">{test.price !== null && test.price !== undefined ? Number(test.price).toFixed(2) : "—"}</td>
                       <td className="px-3 py-2">
-                        <Badge variant={test.is_active ? "default" : "outline"} className={test.is_active ? "bg-success/10 text-success border-success/20" : undefined}>
-                          {test.is_active ? "Actif" : "Inactif"}
+                        <Badge variant={test.is_active ? "default" : "outline"} className={test._pending ? "bg-slate-100 text-slate-600 border-slate-200" : test.is_active ? "bg-success/10 text-success border-success/20" : undefined}>
+                          {test._pending ? "En attente" : test.is_active ? "Actif" : "Inactif"}
                         </Badge>
                       </td>
                       {canEdit ? (
@@ -220,6 +287,7 @@ export default function CataloguePage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -229,7 +297,12 @@ export default function CataloguePage() {
         onOpenChange={setDialogOpen}
         laboratoryId={laboratoryId}
         test={editing}
-        onSaved={() => { void load(); }}
+        onSaved={(created) => {
+          if (created?.id && !editing?.id) {
+            setOptimisticRows((prev) => [{ ...created, _pending: true }, ...prev]);
+          }
+          void load();
+        }}
       />
     </div>
   );

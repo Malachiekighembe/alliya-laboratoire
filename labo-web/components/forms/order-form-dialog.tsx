@@ -11,7 +11,7 @@ type OrderFormDialogProps = {
   onOpenChange: (open: boolean) => void;
   laboratoryId?: string | null;
   patientId?: string;
-  onCreated?: () => void;
+  onCreated?: (created?: any) => void;
 };
 
 type Line = { test_catalog_id: string; quantity: string; unit_price: string };
@@ -80,7 +80,7 @@ export function OrderFormDialog({ open, onOpenChange, laboratoryId, patientId, o
 
     setSaving(true);
     try {
-      await api.post("/orders", {
+      const res = await api.post<any>("/orders", {
         patient_id: form.patient_id,
         visit_id: form.visit_id || undefined,
         priority: form.priority,
@@ -91,8 +91,9 @@ export function OrderFormDialog({ open, onOpenChange, laboratoryId, patientId, o
           unit_price: line.unit_price === "" ? undefined : Number(line.unit_price),
         })),
       });
+      const created = res?.data ?? null;
       onOpenChange(false);
-      onCreated?.();
+      onCreated?.(created ?? undefined);
     } catch (err: any) {
       setError(err?.message || "Création de la demande impossible");
     } finally {

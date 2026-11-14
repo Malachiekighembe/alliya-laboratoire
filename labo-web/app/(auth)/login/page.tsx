@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [showPw, setShowPw] = React.useState(false);
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+  const [showHelp, setShowHelp] = React.useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,9 +86,14 @@ export default function LoginPage() {
                   <Lock className="h-3 w-3 text-[#6B7280]" />
                   Mot de passe
                 </Label>
-                <a href="#" className="text-[10px] text-[#6B7280] font-medium hover:underline hover:text-[#111827] transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setShowHelp((v) => !v)}
+                  className="text-[10px] text-[#6B7280] font-medium hover:underline hover:text-[#111827] transition-colors"
+                  aria-expanded={showHelp}
+                >
                   Mot de passe oublié ?
-                </a>
+                </button>
               </div>
               <div className="relative group">
                 <Input
@@ -108,6 +114,11 @@ export default function LoginPage() {
                   {showPw ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                 </button>
               </div>
+              {showHelp && (
+                <p className="text-[10px] text-[#6B7280] bg-[#F0FAFA] border border-[#3D9597]/30 rounded-lg px-3 py-2 leading-relaxed">
+                  Contactez l'administrateur de votre laboratoire pour réinitialiser votre mot de passe.
+                </p>
+              )}
             </div>
 
             <div className="flex items-center justify-between text-[10px]">

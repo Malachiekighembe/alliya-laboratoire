@@ -1,28 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service.js';
-
-/** Correspondance rôle → code de matricule utilisateur (§1.2). */
-const ROLE_MATRICULE_CODES: Record<string, string> = {
-  super_admin: 'ADM',
-  admin: 'ADM',
-  lab_manager: 'ADM',
-  receptionist: 'REC',
-  technician: 'TEC',
-  laborant: 'TEC',
-  biologist: 'BIO',
-  doctor: 'DOC',
-  viewer: 'SUP',
-};
 
 @Injectable()
 export class MetricUtil {
+  private readonly logger = new Logger(MetricUtil.name);
+
   constructor(private prisma: DatabaseService) {}
 
   /**
-   * Incrémente et retourne le compteur d'un type d'entité pour un laboratoire.
-   * Utilisé pour les numéros au format préfixe-ANNEE-000000 (FAC, REC).
+   * Genere un matricule au format LAB/<CODE>/<YEAR>/<4 chiffres>.
+   * Tentative via RPC atomique, repli sur le compteur applicatif si la RPC est indisponible.
    */
-  private async nextCounter(laboratoryId: string, entityType: string): Promise<number> {
+  async generateMatricule(
+    laboratoryId: string,
+    entityType: string,
+    prefix: string = 'LAB',
+  ): Promise<string> {
+    try {
+      const matricule = await this.prisma.rpc('generate_matricule', {
+        p_laboratory_id: laboratoryId,
+        p_entity_type: entityType,
+        p_prefix: prefix,
+      });
+      if (typeof matricule === 'string' && matricule) return matricule;
+      throw new Error('Réponse RPC invalide');
+    } catch (error: any) {
+      this.logger.warn(
+        `RPC generate_matricule indisponible pour ${entityType}, repli sur matricule_counters: ${error?.message || error}`,
+      );
+      return this.generateMatriculeFallback(laboratoryId, entityType, prefix);
+    }
+  }
+
+  private async generateMatriculeFallback(
+    laboratoryId: string,
+    entityType: string,
+    prefix: string,
+  ): Promise<string> {
     const year = new Date().getFullYear();
     const result = await this.prisma.$transaction(async (tx: any) => {
       const counter = await tx.matricule_counters.upsert({
@@ -37,124 +51,38 @@ export class MetricUtil {
         update: { last_number: { increment: 1 } },
         select: { last_number: true },
       });
-      return counter.last_number;
+      return Number(counter.last_number);
     });
-    return Number(result);
+    return `${prefix}/${entityType}/${year}/${String(result).padStart(4, '0')}`;
   }
 
   /**
-   * Génère un matricule au format LAB/CODE/ANNEE/0001
-   * Génération atomique côté base de données (fonction generate_matricule)
-   * @param laboratoryId ID du laboratoire
-   * @param entityType Type d'entité (PAT, VIS, DEM, PRE, ECH, ANA, RES, RAP, FAC, PAY, REN, ...)
-   * @param prefix Préfixe (toujours LAB)
+   * Génère un matricule utilisateur pour les rôles supportés.
+   * receptionist -> REC, technician/laborant -> TEC, biologist -> BIO.
+   * Les autres rôles conservent un identifiant USR-* (évite la collision avec DOC).
    */
-  async generateMatricule(
-    laboratoryId: string,
-    entityType: string,
-    prefix: string = 'LAB',
-  ): Promise<string> {
-    const year = new Date().getFullYear();
-
-    try {
-      const matricule: string = await this.prisma.rpc('generate_matricule', {
-        p_laboratory_id: laboratoryId,
-        p_entity_type: entityType,
-        p_year: year,
-      });
-      return matricule;
-    } catch {
-      // Fallback : transaction atomique côté application si la fonction DB est indisponible
-      const result = await this.prisma.$transaction(async (tx: any) => {
-        const counter = await tx.matricule_counters.upsert({
-          where: {
-            laboratory_id_entity_type_year: {
-              laboratory_id: laboratoryId,
-              entity_type: entityType,
-              year,
-            },
-          },
-          create: { laboratory_id: laboratoryId, entity_type: entityType, year, last_number: 1 },
-          update: { last_number: { increment: 1 } },
-          select: { last_number: true },
-        });
-        return counter.last_number;
-      });
-
-      const formattedNumber = result.toString().padStart(4, '0');
-      return `${prefix}/${entityType}/${year}/${formattedNumber}`;
-    }
+  generateUserMatricule(laboratoryId: string, role: string): Promise<string> | string {
+    const normalized = String(role || '').toLowerCase();
+    if (normalized === 'receptionist') return this.generateMatricule(laboratoryId, 'REC', 'LAB');
+    if (normalized === 'technician' || normalized === 'laborant') return this.generateMatricule(laboratoryId, 'TEC', 'LAB');
+    if (normalized === 'biologist') return this.generateMatricule(laboratoryId, 'BIO', 'LAB');
+    return `USR-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
   }
 
-  // --- Utilisateurs (§1.2) -------------------------------------------------
-  async generateUserMatricule(laboratoryId: string, role: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, ROLE_MATRICULE_CODES[role] ?? 'USR', 'LAB');
-  }
+  async generatePatientMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'PAT', 'LAB'); }
+  async generateVisitMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'VIS', 'LAB'); }
+  async generateOrderMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'DEM', 'LAB'); }
+  async generateCollectionMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'PRE', 'LAB'); }
+  async generateSpecimenMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'ECH', 'LAB'); }
+  async generateAnalysisMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'ANA', 'LAB'); }
+  async generateResultMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'RES', 'LAB'); }
+  async generateReportMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'RAP', 'LAB'); }
+  async generateCarnetMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'CAR', 'LAB'); }
+  async generateConsultationMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'CON', 'LAB'); }
+  async generatePrescriptionMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'PRN', 'LAB'); }
+  async generateAppointmentMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'REN', 'LAB'); }
 
-  // --- Dossiers et opérations (§1.3) --------------------------------------
-  async generatePatientMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'PAT', 'LAB');
-  }
-
-  async generateVisitMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'VIS', 'LAB');
-  }
-
-  /** Demande d'analyses (table orders). */
-  async generateOrderMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'DEM', 'LAB');
-  }
-
-  async generateCollectionMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'PRE', 'LAB');
-  }
-
-  async generateSpecimenMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'ECH', 'LAB');
-  }
-
-  async generateAnalysisMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'ANA', 'LAB');
-  }
-
-  async generateResultMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'RES', 'LAB');
-  }
-
-  async generateReportMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'RAP', 'LAB');
-  }
-
-  async generateCarnetMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'CAR', 'LAB');
-  }
-
-  async generateConsultationMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'CON', 'LAB');
-  }
-
-  async generatePrescriptionMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'PRN', 'LAB');
-  }
-
-  async generateAppointmentMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'REN', 'LAB');
-  }
-
-  // --- Facturation (§6) ----------------------------------------------------
-  async generateInvoiceNumber(laboratoryId: string): Promise<string> {
-    const year = new Date().getFullYear();
-    const next = await this.nextCounter(laboratoryId, 'FAC');
-    return `FAC-${year}-${next.toString().padStart(6, '0')}`;
-  }
-
-  async generatePaymentMatricule(laboratoryId: string): Promise<string> {
-    return this.generateMatricule(laboratoryId, 'PAY', 'LAB');
-  }
-
-  async generateReceiptNumber(laboratoryId: string): Promise<string> {
-    const year = new Date().getFullYear();
-    const next = await this.nextCounter(laboratoryId, 'RCP');
-    return `REC-${year}-${next.toString().padStart(6, '0')}`;
-  }
+  async generateInvoiceNumber(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'FAC', 'LAB'); }
+  async generatePaymentMatricule(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'PAY', 'LAB'); }
+  async generateReceiptNumber(laboratoryId: string): Promise<string> { return this.generateMatricule(laboratoryId, 'REC', 'LAB'); }
 }

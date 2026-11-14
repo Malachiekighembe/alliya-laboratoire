@@ -3,180 +3,180 @@ import { Type } from 'class-transformer';
 
 export class CreateTestCatalogDto {
   @IsString({ message: 'Le code est requis' })
-  @MaxLength(50, { message: 'Le code ne peut pas dépasser 50 caractères' })
+  @MaxLength(50, { message: 'Le code ne peut pas dÃ©passer 50 caractÃ¨res' })
   code: string;
 
   @IsString({ message: 'Le nom est requis' })
-  @MaxLength(200, { message: 'Le nom ne peut pas dépasser 200 caractères' })
+  @MaxLength(200, { message: 'Le nom ne peut pas dÃ©passer 200 caractÃ¨res' })
   name: string;
 
   @IsOptional()
-  @IsString({ message: 'La catégorie doit être une chaîne de caractères' })
-  @MaxLength(100, { message: 'La catégorie ne peut pas dépasser 100 caractères' })
+  @IsString({ message: 'La catÃ©gorie doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(100, { message: 'La catÃ©gorie ne peut pas dÃ©passer 100 caractÃ¨res' })
   category?: string;
 
-  /** Type d'examen (liste « Type d'examen » de /parametres). */
+  /** Type d'examen (liste Â« Type d'examen Â» de /parametres). */
   @IsOptional()
-  @IsString({ message: "Le type d'examen doit être une chaîne de caractères" })
-  @MaxLength(50, { message: "Le type d'examen ne peut pas dépasser 50 caractères" })
+  @IsString({ message: "Le type d'examen doit Ãªtre une chaÃ®ne de caractÃ¨res" })
+  @MaxLength(50, { message: "Le type d'examen ne peut pas dÃ©passer 50 caractÃ¨res" })
   exam_type?: string;
 
-  /** Section technique (liste « Section technique » de /parametres). */
+  /** Section technique (liste Â« Section technique Â» de /parametres). */
   @IsOptional()
-  @IsString({ message: 'La section doit être une chaîne de caractères' })
-  @MaxLength(100, { message: 'La section ne peut pas dépasser 100 caractères' })
+  @IsString({ message: 'La section doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(100, { message: 'La section ne peut pas dÃ©passer 100 caractÃ¨res' })
   section?: string;
 
-  /** Type d'échantillon (liste « Type d'échantillon » de /parametres). */
+  /** Type d'Ã©chantillon (liste Â« Type d'Ã©chantillon Â» de /parametres). */
   @IsOptional()
-  @IsString({ message: "Le type d'échantillon doit être une chaîne de caractères" })
-  @MaxLength(50, { message: "Le type d'échantillon ne peut pas dépasser 50 caractères" })
+  @IsString({ message: "Le type d'Ã©chantillon doit Ãªtre une chaÃ®ne de caractÃ¨res" })
+  @MaxLength(50, { message: "Le type d'Ã©chantillon ne peut pas dÃ©passer 50 caractÃ¨res" })
   sample_type?: string;
 
   @IsOptional()
-  @IsString({ message: 'Le contenant doit être une chaîne de caractères' })
-  @MaxLength(100, { message: 'Le contenant ne peut pas dépasser 100 caractères' })
+  @IsString({ message: 'Le contenant doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(100, { message: 'Le contenant ne peut pas dÃ©passer 100 caractÃ¨res' })
   container?: string;
 
   @IsOptional()
-  @IsString({ message: 'La préparation doit être une chaîne de caractères' })
-  @MaxLength(255, { message: 'La préparation ne peut pas dépasser 255 caractères' })
+  @IsString({ message: 'La prÃ©paration doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(255, { message: 'La prÃ©paration ne peut pas dÃ©passer 255 caractÃ¨res' })
   preparation?: string;
 
   @IsOptional()
-  @IsString({ message: 'La méthode doit être une chaîne de caractères' })
-  @MaxLength(100, { message: 'La méthode ne peut pas dépasser 100 caractères' })
+  @IsString({ message: 'La mÃ©thode doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(100, { message: 'La mÃ©thode ne peut pas dÃ©passer 100 caractÃ¨res' })
   method?: string;
 
   @IsOptional()
-  @IsString({ message: 'La description doit être une chaîne de caractères' })
-  @MaxLength(500, { message: 'La description ne peut pas dépasser 500 caractères' })
+  @IsString({ message: 'La description doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(500, { message: 'La description ne peut pas dÃ©passer 500 caractÃ¨res' })
   description?: string;
 
   @IsOptional()
-  @IsString({ message: 'Lunité doit être une chaîne de caractères' })
-  @MaxLength(50, { message: 'Lunité ne peut pas dépasser 50 caractères' })
+  @IsString({ message: 'LunitÃ© doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(50, { message: 'LunitÃ© ne peut pas dÃ©passer 50 caractÃ¨res' })
   unit?: string;
 
   @IsOptional()
-  @IsString({ message: 'La plage de référence doit être une chaîne de caractères' })
-  @MaxLength(200, { message: 'La plage de référence ne peut pas dépasser 200 caractères' })
+  @IsString({ message: 'La plage de rÃ©fÃ©rence doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(200, { message: 'La plage de rÃ©fÃ©rence ne peut pas dÃ©passer 200 caractÃ¨res' })
   reference_range?: string;
 
   @IsOptional()
-  @IsNumber({}, { message: 'Le prix doit être un nombre' })
-  @Min(0, { message: 'Le prix doit être positif' })
+  @IsNumber({}, { message: 'Le prix doit Ãªtre un nombre' })
+  @Min(0, { message: 'Le prix doit Ãªtre positif' })
   @Type(() => Number)
   price?: number;
 
   @IsOptional()
-  @IsInt({ message: 'La durée doit être un entier' })
-  @Min(0, { message: 'La durée doit être positive' })
+  @IsInt({ message: 'La durÃ©e doit Ãªtre un entier' })
+  @Min(0, { message: 'La durÃ©e doit Ãªtre positive' })
   @Type(() => Number)
   duration_minutes?: number;
 }
 
 export class UpdateTestCatalogDto {
   @IsOptional()
-  @IsString({ message: 'Le code doit être une chaîne de caractères' })
-  @MaxLength(50, { message: 'Le code ne peut pas dépasser 50 caractères' })
+  @IsString({ message: 'Le code doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(50, { message: 'Le code ne peut pas dÃ©passer 50 caractÃ¨res' })
   code?: string;
 
   @IsOptional()
-  @IsString({ message: 'Le nom doit être une chaîne de caractères' })
-  @MaxLength(200, { message: 'Le nom ne peut pas dépasser 200 caractères' })
+  @IsString({ message: 'Le nom doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(200, { message: 'Le nom ne peut pas dÃ©passer 200 caractÃ¨res' })
   name?: string;
 
   @IsOptional()
-  @IsString({ message: 'La catégorie doit être une chaîne de caractères' })
-  @MaxLength(100, { message: 'La catégorie ne peut pas dépasser 100 caractères' })
+  @IsString({ message: 'La catÃ©gorie doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(100, { message: 'La catÃ©gorie ne peut pas dÃ©passer 100 caractÃ¨res' })
   category?: string;
 
   @IsOptional()
-  @IsString({ message: "Le type d'examen doit être une chaîne de caractères" })
-  @MaxLength(50, { message: "Le type d'examen ne peut pas dépasser 50 caractères" })
+  @IsString({ message: "Le type d'examen doit Ãªtre une chaÃ®ne de caractÃ¨res" })
+  @MaxLength(50, { message: "Le type d'examen ne peut pas dÃ©passer 50 caractÃ¨res" })
   exam_type?: string;
 
   @IsOptional()
-  @IsString({ message: 'La section doit être une chaîne de caractères' })
-  @MaxLength(100, { message: 'La section ne peut pas dépasser 100 caractères' })
+  @IsString({ message: 'La section doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(100, { message: 'La section ne peut pas dÃ©passer 100 caractÃ¨res' })
   section?: string;
 
   @IsOptional()
-  @IsString({ message: "Le type d'échantillon doit être une chaîne de caractères" })
-  @MaxLength(50, { message: "Le type d'échantillon ne peut pas dépasser 50 caractères" })
+  @IsString({ message: "Le type d'Ã©chantillon doit Ãªtre une chaÃ®ne de caractÃ¨res" })
+  @MaxLength(50, { message: "Le type d'Ã©chantillon ne peut pas dÃ©passer 50 caractÃ¨res" })
   sample_type?: string;
 
   @IsOptional()
-  @IsString({ message: 'Le contenant doit être une chaîne de caractères' })
-  @MaxLength(100, { message: 'Le contenant ne peut pas dépasser 100 caractères' })
+  @IsString({ message: 'Le contenant doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(100, { message: 'Le contenant ne peut pas dÃ©passer 100 caractÃ¨res' })
   container?: string;
 
   @IsOptional()
-  @IsString({ message: 'La préparation doit être une chaîne de caractères' })
-  @MaxLength(255, { message: 'La préparation ne peut pas dépasser 255 caractères' })
+  @IsString({ message: 'La prÃ©paration doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(255, { message: 'La prÃ©paration ne peut pas dÃ©passer 255 caractÃ¨res' })
   preparation?: string;
 
   @IsOptional()
-  @IsString({ message: 'La méthode doit être une chaîne de caractères' })
-  @MaxLength(100, { message: 'La méthode ne peut pas dépasser 100 caractères' })
+  @IsString({ message: 'La mÃ©thode doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(100, { message: 'La mÃ©thode ne peut pas dÃ©passer 100 caractÃ¨res' })
   method?: string;
 
   @IsOptional()
-  @IsString({ message: 'La description doit être une chaîne de caractères' })
-  @MaxLength(500, { message: 'La description ne peut pas dépasser 500 caractères' })
+  @IsString({ message: 'La description doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(500, { message: 'La description ne peut pas dÃ©passer 500 caractÃ¨res' })
   description?: string;
 
   @IsOptional()
-  @IsString({ message: 'Lunité doit être une chaîne de caractères' })
-  @MaxLength(50, { message: 'Lunité ne peut pas dépasser 50 caractères' })
+  @IsString({ message: 'LunitÃ© doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(50, { message: 'LunitÃ© ne peut pas dÃ©passer 50 caractÃ¨res' })
   unit?: string;
 
   @IsOptional()
-  @IsString({ message: 'La plage de référence doit être une chaîne de caractères' })
-  @MaxLength(200, { message: 'La plage de référence ne peut pas dépasser 200 caractères' })
+  @IsString({ message: 'La plage de rÃ©fÃ©rence doit Ãªtre une chaÃ®ne de caractÃ¨res' })
+  @MaxLength(200, { message: 'La plage de rÃ©fÃ©rence ne peut pas dÃ©passer 200 caractÃ¨res' })
   reference_range?: string;
 
   @IsOptional()
-  @IsNumber({}, { message: 'Le prix doit être un nombre' })
-  @Min(0, { message: 'Le prix doit être positif' })
+  @IsNumber({}, { message: 'Le prix doit Ãªtre un nombre' })
+  @Min(0, { message: 'Le prix doit Ãªtre positif' })
   @Type(() => Number)
   price?: number;
 
   @IsOptional()
-  @IsInt({ message: 'La durée doit être un entier' })
-  @Min(0, { message: 'La durée doit être positive' })
+  @IsInt({ message: 'La durÃ©e doit Ãªtre un entier' })
+  @Min(0, { message: 'La durÃ©e doit Ãªtre positive' })
   @Type(() => Number)
   duration_minutes?: number;
 
   @IsOptional()
-  @IsBoolean({ message: 'Le statut actif doit être un booléen' })
+  @IsBoolean({ message: 'Le statut actif doit Ãªtre un boolÃ©en' })
   is_active?: boolean;
 }
 
 export class SearchExaminationsDto {
   @IsOptional()
-  @IsString({ message: 'La recherche doit être une chaîne de caractères' })
+  @IsString({ message: 'La recherche doit Ãªtre une chaÃ®ne de caractÃ¨res' })
   search?: string;
 
   @IsOptional()
-  @IsString({ message: 'La catégorie doit être une chaîne de caractères' })
+  @IsString({ message: 'La catÃ©gorie doit Ãªtre une chaÃ®ne de caractÃ¨res' })
   category?: string;
 
   @IsOptional()
-  @IsString({ message: "Le type d'examen doit être une chaîne de caractères" })
+  @IsString({ message: "Le type d'examen doit Ãªtre une chaÃ®ne de caractÃ¨res" })
   exam_type?: string;
 
   @IsOptional()
-  @IsString({ message: 'La section doit être une chaîne de caractères' })
+  @IsString({ message: 'La section doit Ãªtre une chaÃ®ne de caractÃ¨res' })
   section?: string;
 
   @IsOptional()
-  @IsString({ message: "Le type d'échantillon doit être une chaîne de caractères" })
+  @IsString({ message: "Le type d'Ã©chantillon doit Ãªtre une chaÃ®ne de caractÃ¨res" })
   sample_type?: string;
 
   @IsOptional()
-  @IsBoolean({ message: 'Le statut actif doit être un booléen' })
+  @IsBoolean({ message: 'Le statut actif doit Ãªtre un boolÃ©en' })
   @Type(() => Boolean)
   include_inactive?: boolean;
 }

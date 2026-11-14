@@ -11,7 +11,7 @@ type InvoiceFormDialogProps = {
   onOpenChange: (open: boolean) => void;
   laboratoryId?: string | null;
   patientId?: string;
-  onCreated?: () => void;
+  onCreated?: (created?: any) => void;
 };
 
 type Line = { description: string; quantity: string; unit_price: string; test_catalog_id: string; fee_type: string };
@@ -74,15 +74,16 @@ export function InvoiceFormDialog({ open, onOpenChange, laboratoryId, patientId,
           ...(line.test_catalog_id ? { test_catalog_id: line.test_catalog_id } : {}),
         }));
 
-      await api.post("/billing", {
+      const res = await api.post<any>("/billing", {
         patient_id: form.patient_id || undefined,
         due_date: form.due_date ? new Date(`${form.due_date}T00:00:00`).toISOString() : undefined,
         currency: form.currency || "USD",
         notes: form.notes.trim() || undefined,
         items,
       });
+      const created = res?.data ?? null;
       onOpenChange(false);
-      onCreated?.();
+      onCreated?.(created ?? undefined);
     } catch (err: any) {
       setError(err?.message || "Impossible de créer la facture");
     } finally {

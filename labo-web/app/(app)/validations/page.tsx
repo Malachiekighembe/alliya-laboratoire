@@ -17,6 +17,7 @@ import { DetailDialog } from "@/components/ui/detail-dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+import { ResultReviewDialog } from "@/components/forms/result-review-dialog";
 
 const PAGE_SIZE = 10;
 
@@ -26,12 +27,17 @@ const PENDING_STATUSES = ["en_attente", "en_verification", "pending", "submitted
 const REJECTED_STATUSES = ["rejete", "rejected", "a_corriger", "annule"];
 
 export default function ValidationsPage() {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   useRoleGuard();
+  const canValidate = hasPermission("results.validate");
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
   const [visible, setVisible] = React.useState(PAGE_SIZE);
   const [selected, setSelected] = React.useState<any | null>(null);
+  const [reviewTarget, setReviewTarget] = React.useState<any | null>(null);
+  const [busyId, setBusyId] = React.useState<string | null>(null);
+  const [actionError, setActionError] = React.useState("");
+  const [optimisticRows, setOptimisticRows] = React.useState<any[]>([]);
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
   const validationsResult = useAsync(async () => {
@@ -47,7 +53,9 @@ export default function ValidationsPage() {
   const loading = validationsResult.loading;
   const error = validationsResult.error;
   const envelope = validationsResult.data as any;
-  const validations: any[] = toList<any>(envelope).filter((v: any) => {
+  const baseValidations = toList<any>(envelope);
+  const pendingExtra = optimisticRows.filter((row) => !baseValidations.some((v) => v.id === row.id));
+  const validations: any[] = [...pendingExtra, ...baseValidations].filter((v: any) => {
     const patient = v.result?.patient || {};
     return `${patient.first_name || ""} ${patient.last_name || ""} ${v.result?.matricule || ""}`.toLowerCase().includes(search.toLowerCase());
   });
@@ -69,6 +77,24 @@ export default function ValidationsPage() {
     { label: "En attente", value: validations.filter((v) => PENDING_STATUSES.includes(v.status)).length, cls: "text-amber-600" },
     { label: "Rejetées", value: validations.filter((v) => REJECTED_STATUSES.includes(v.status)).length, cls: "text-red-600" },
   ];
+
+  const validate = async (v: any) => {
+    const resultId = v.result?.id;
+    if (!resultId) return;
+    setActionError("");
+    setBusyId(v.id);
+    setOptimisticRows((prev) => prev.map((row) => (row.id === v.id ? { ...row, status: "valide" } : row)));
+    try {
+      await api.patch(`/results/${resultId}/validate`, {});
+      await validationsResult.refetch();
+      setSelected(null);
+    } catch (err: any) {
+      setOptimisticRows((prev) => prev.filter((row) => row.id !== v.id));
+      setActionError(err?.message || "Validation impossible");
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   const patientOf = (v: any) => {
     const p = v.result?.patient || {};
@@ -126,6 +152,13 @@ export default function ValidationsPage() {
         </div>
       </div>
 
+      {actionError ? (
+        <Alert variant="destructive">
+          <AlertTitle>Validation impossible</AlertTitle>
+          <AlertDescription>{actionError}</AlertDescription>
+        </Alert>
+      ) : null}
+
       <div className="space-y-2 sm:hidden">
         {loading ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)
         : shown.length === 0 ? <div className="text-center text-sm text-muted-foreground py-6 border border-dashed rounded-lg">Aucune validation trouvée.</div>
@@ -172,7 +205,23 @@ export default function ValidationsPage() {
                   <TableCell>{result.test_catalog?.name || "—"}</TableCell>
                   <TableCell>{result.value || "—"}</TableCell>
                   <TableCell><StatusBadge status={v.status} /></TableCell>
-                  <TableCell className="text-right"><Link href="/patients/dossiers" onClick={(e) => e.stopPropagation()}><Button variant="ghost" size="sm">Dossier</Button></Link></TableCell>
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex justify-end gap-1">
+                      {canValidate && PENDING_STATUSES.includes(v.status) && v.result?.id && (
+                        <Button
+                          size="sm"
+                          className="!bg-[#2E7A7C] !text-white hover:!bg-[#256769]"
+                          disabled={busyId === v.id}
+                          onClick={() => void validate(v)}
+                        >
+                          Valider
+                        </Button>
+                      )}
+                      <Link href="/patients/dossiers">
+                        <Button variant="ghost" size="sm">Dossier</Button>
+                      </Link>
+                    </div>
+                  </TableCell>
                 </TableRow>
               );
             })}
@@ -188,6 +237,32 @@ export default function ValidationsPage() {
         subtitle={selected ? patientOf(selected) : undefined}
         badge={selected?.status ? <StatusBadge status={selected.status} /> : undefined}
         fields={selected ? detailFields(selected) : []}
+      >
+        {selected && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {canValidate && PENDING_STATUSES.includes(selected.status) && selected.result?.id && (
+              <Button
+                className="!bg-[#2E7A7C] !text-white hover:!bg-[#256769]"
+                disabled={busyId === selected.id}
+                onClick={() => void validate(selected)}
+              >
+                Valider le résultat
+              </Button>
+            )}
+            {canValidate && selected.result?.id && (
+              <Button variant="outline" onClick={() => setReviewTarget(selected.result)}>
+                Demander une correction
+              </Button>
+            )}
+          </div>
+        )}
+      </DetailDialog>
+
+      <ResultReviewDialog
+        open={!!reviewTarget}
+        onOpenChange={(open) => { if (!open) setReviewTarget(null); }}
+        resultId={reviewTarget?.id ?? null}
+        onDone={() => { void validationsResult.refetch(); }}
       />
     </div>
   );

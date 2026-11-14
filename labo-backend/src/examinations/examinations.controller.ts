@@ -76,20 +76,20 @@ const includeInactive = searchDto.include_inactive === true;
   @RequirePermissions('examinations.create')
   async create(@Body() dto: CreateTestCatalogDto, @CurrentLaboratory() labId: string) {
     const data = await this.examinationsService.create(dto, labId);
-    return ApiResponseDto.success(data, 'Examen créé');
+    return ApiResponseDto.success(data, 'Examen crÃ©Ã©');
   }
 
   @Patch(':id')
   @RequirePermissions('examinations.update')
   async update(@Param('id') id: string, @Body() dto: UpdateTestCatalogDto, @CurrentLaboratory() labId: string) {
     const data = await this.examinationsService.update(id, labId, dto);
-    return ApiResponseDto.success(data, 'Examen mis à jour');
+    return ApiResponseDto.success(data, 'Examen mis Ã  jour');
   }
 
   @Delete(':id')
   @RequirePermissions('examinations.delete')
   async remove(@Param('id') id: string, @CurrentLaboratory() labId: string) {
     await this.examinationsService.remove(id, labId);
-    return ApiResponseDto.success(null, 'Examen supprimé');
+    return ApiResponseDto.success(null, 'Examen supprimÃ©');
   }
 }

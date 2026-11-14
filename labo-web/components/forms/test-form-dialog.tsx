@@ -10,7 +10,7 @@ type TestFormDialogProps = {
   onOpenChange: (open: boolean) => void;
   laboratoryId?: string | null;
   test?: any | null;
-  onSaved?: () => void;
+  onSaved?: (created?: any) => void;
 };
 
 type FormState = {
@@ -114,13 +114,14 @@ export function TestFormDialog({ open, onOpenChange, laboratoryId, test, onSaved
 
     setSaving(true);
     try {
+      let created: any = null;
       if (test?.id) {
-        await api.patch(`/examinations/${test.id}`, { ...payload, is_active: form.is_active });
+        created = (await api.patch(`/examinations/${test.id}`, { ...payload, is_active: form.is_active }))?.data ?? null;
       } else {
-        await api.post("/examinations", { ...payload, is_active: form.is_active });
+        created = (await api.post("/examinations", { ...payload, is_active: form.is_active }))?.data ?? null;
       }
       onOpenChange(false);
-      onSaved?.();
+      onSaved?.(created ?? undefined);
     } catch (err: any) {
       setError(err?.message || "Enregistrement impossible");
     } finally {

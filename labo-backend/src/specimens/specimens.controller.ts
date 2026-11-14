@@ -1,4 +1,4 @@
-﻿import { Controller, Post, Get, Patch, Delete, Body, Param, Query, UseGuards } from "@nestjs/common";
+import { Controller, Post, Get, Patch, Delete, Body, Param, Query, UseGuards } from "@nestjs/common";
 import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { SpecimensService } from "./specimens.service.js";
 import { ApiResponseDto } from "../common/dto/api-response.dto.js";
